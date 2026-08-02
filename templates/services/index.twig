@@ -14,15 +14,41 @@
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+<div id="table-container">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Search Bar -->
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex gap-4">
+            <div class="relative flex-1 max-w-md">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="search" id="search-box" name="search" value="{{ search }}" placeholder="Search services..." 
+                       hx-get="/web/services?sort={{ sort }}&dir={{ dir }}" 
+                       hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true"
+                       hx-trigger="keyup changed delay:500ms, search"
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
+            </div>
+        </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
-                    <th class="px-6 py-4 font-medium">Service Name</th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/services?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Service Name {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
                     <th class="px-6 py-4 font-medium">Description</th>
-                    <th class="px-6 py-4 font-medium">Duration (mins)</th>
-                    <th class="px-6 py-4 font-medium">Price</th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/services?sort=duration_minutes&dir={{ sort == 'duration_minutes' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Duration (mins) {% if sort == 'duration_minutes' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/services?sort=price&dir={{ sort == 'price' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Price {% if sort == 'price' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
                     <th class="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
             </thead>

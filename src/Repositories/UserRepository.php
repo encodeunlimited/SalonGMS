@@ -6,6 +6,9 @@ class UserRepository extends BaseRepository
 {
     protected string $table = 'users';
 
+    protected function getSearchableFields(): array { return ['name', 'email', 'role']; }
+    protected function getSortableFields(): array { return ['id', 'name', 'email', 'role', 'commission_rate', 'created_at']; }
+
     public function getByEmail(string $email): ?array
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = :email AND tenant_id = :tenant_id LIMIT 1");

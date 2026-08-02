@@ -6,6 +6,9 @@ class ServiceRepository extends BaseRepository
 {
     protected string $table = 'services';
 
+    protected function getSearchableFields(): array { return ['name', 'description']; }
+    protected function getSortableFields(): array { return ['id', 'name', 'duration_minutes', 'price']; }
+
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("

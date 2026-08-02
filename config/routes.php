@@ -44,6 +44,7 @@ return function (App $app) {
         $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');
         $group->get('/customers/create', \App\Web\Controllers\CustomerController::class . ':create');
         $group->post('/customers/create', \App\Web\Controllers\CustomerController::class . ':store');
+        $group->post('/api/customers', \App\Web\Controllers\CustomerController::class . ':apiStore');
         $group->get('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':edit');
         $group->post('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':update');
         

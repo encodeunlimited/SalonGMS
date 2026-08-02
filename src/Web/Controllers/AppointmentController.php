@@ -5,22 +5,36 @@ namespace App\Web\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
-
 use App\Repositories\AppointmentRepository;
 use App\Services\AppointmentService;
 use Exception;
+use App\Repositories\CustomerRepository;
+use App\Repositories\ServiceRepository;
+use App\Repositories\UserRepository;
 
 class AppointmentController
 {
     private Twig $view;
     private AppointmentRepository $appointments;
     private AppointmentService $appointmentService;
+    private CustomerRepository $customers;
+    private ServiceRepository $services;
+    private UserRepository $users;
 
-    public function __construct(Twig $view, AppointmentRepository $appointments, AppointmentService $appointmentService)
-    {
+    public function __construct(
+        Twig $view, 
+        AppointmentRepository $appointments, 
+        AppointmentService $appointmentService,
+        CustomerRepository $customers,
+        ServiceRepository $services,
+        UserRepository $users
+    ) {
         $this->view = $view;
         $this->appointments = $appointments;
         $this->appointmentService = $appointmentService;
+        $this->customers = $customers;
+        $this->services = $services;
+        $this->users = $users;
     }
 
     public function index(Request $request, Response $response): Response
@@ -28,12 +42,22 @@ class AppointmentController
         $tenantId = (int)$request->getAttribute('tenant_id');
         
         $this->appointments->setTenantId($tenantId);
+        $this->customers->setTenantId($tenantId);
+        $this->services->setTenantId($tenantId);
+        $this->users->setTenantId($tenantId);
+
         $appointments = $this->appointments->getAllForTenant();
+        $customersList = $this->customers->getAll();
+        $servicesList = $this->services->getAll();
+        $stylistsList = $this->users->getAll(); // In real app, might filter by role
 
         return $this->view->render($response, 'appointments/index.twig', [
             'title' => 'Appointments',
             'active_menu' => 'appointments',
-            'appointments' => $appointments
+            'appointments' => $appointments,
+            'customers' => $customersList,
+            'services' => $servicesList,
+            'stylists' => $stylistsList
         ]);
     }
 
@@ -43,6 +67,30 @@ class AppointmentController
         $tenantId = (int)$request->getAttribute('tenant_id');
         
         $this->appointmentService->setTenantId($tenantId);
+        $this->customers->setTenantId($tenantId);
+        $this->services->setTenantId($tenantId);
+        $this->users->setTenantId($tenantId);
+        
+        // Look up names from IDs
+        if (!empty($data['customer_id'])) {
+            $customer = $this->customers->getById((int)$data['customer_id']);
+            if ($customer) $data['customer_name'] = $customer['name'];
+        }
+        
+        if (!empty($data['service_id'])) {
+            $service = $this->services->getById((int)$data['service_id']);
+            if ($service) $data['service_name'] = $service['name'];
+        }
+        
+        if (!empty($data['stylist_id'])) {
+            $stylist = $this->users->getById((int)$data['stylist_id']);
+            if ($stylist) $data['stylist_name'] = $stylist['name'];
+        }
+
+        // For the service validation
+        if (isset($data['stylist_name'])) {
+            $data['stylist'] = $data['stylist_name']; // Backwards compatibility for service validation
+        }
         
         try {
             $newAppointment = $this->appointmentService->createAppointment($data);

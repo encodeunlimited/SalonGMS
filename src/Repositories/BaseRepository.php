@@ -43,14 +43,56 @@ abstract class BaseRepository
     }
 
     /**
-     * Fetch all records for the current tenant.
+     * Fetch all records for the current tenant, with optional search, sort, and filter.
      */
-    public function getAll(): array
+    public function getAll(array $options = []): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = :tenant_id ORDER BY id DESC");
-        $stmt->execute(['tenant_id' => $this->getTenantId()]);
+        $sql = "SELECT * FROM {$this->table} WHERE tenant_id = :tenant_id";
+        $params = ['tenant_id' => $this->getTenantId()];
+
+        // Search logic
+        if (!empty($options['search'])) {
+            $search = '%' . $options['search'] . '%';
+            $searchableFields = $this->getSearchableFields();
+            if (!empty($searchableFields)) {
+                $searchConditions = [];
+                foreach ($searchableFields as $field) {
+                    $searchConditions[] = "$field LIKE :search";
+                }
+                $sql .= " AND (" . implode(" OR ", $searchConditions) . ")";
+                $params['search'] = $search;
+            }
+        }
+
+        // Filter logic
+        if (!empty($options['filters'])) {
+            foreach ($options['filters'] as $field => $value) {
+                if ($value !== '') {
+                    $sql .= " AND $field = :$field";
+                    $params[$field] = $value;
+                }
+            }
+        }
+
+        // Sort logic
+        $sort = $options['sort'] ?? 'id';
+        $dir = strtoupper($options['dir'] ?? 'DESC');
+        if (!in_array($dir, ['ASC', 'DESC'])) $dir = 'DESC';
+        
+        $allowedSortColumns = $this->getSortableFields();
+        if (!empty($allowedSortColumns) && in_array($sort, $allowedSortColumns)) {
+            $sql .= " ORDER BY $sort $dir";
+        } else {
+            $sql .= " ORDER BY id $dir";
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    protected function getSearchableFields(): array { return []; }
+    protected function getSortableFields(): array { return ['id']; }
 
     /**
      * Fetch a specific record for the current tenant.

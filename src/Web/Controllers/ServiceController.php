@@ -22,12 +22,24 @@ class ServiceController
     {
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->services->setTenantId($tenantId);
-        $servicesList = $this->services->getAll();
+        
+        $params = $request->getQueryParams();
+        $options = [
+            'search' => $params['search'] ?? '',
+            'sort' => $params['sort'] ?? 'id',
+            'dir' => $params['dir'] ?? 'desc',
+            'filters' => []
+        ];
+        
+        $servicesList = $this->services->getAll($options);
 
         return $this->view->render($response, 'services/index.twig', [
             'title' => 'Services',
             'active_menu' => 'services',
-            'services' => $servicesList
+            'services' => $servicesList,
+            'search' => $options['search'],
+            'sort' => $options['sort'],
+            'dir' => $options['dir']
         ]);
     }
 

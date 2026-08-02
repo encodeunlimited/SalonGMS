@@ -22,12 +22,29 @@ class EmployeeController
     {
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->users->setTenantId($tenantId);
-        $employees = $this->users->getAll();
+        
+        $params = $request->getQueryParams();
+        $options = [
+            'search' => $params['search'] ?? '',
+            'sort' => $params['sort'] ?? 'id',
+            'dir' => $params['dir'] ?? 'desc',
+            'filters' => []
+        ];
+        
+        if (!empty($params['role'])) {
+            $options['filters']['role'] = $params['role'];
+        }
+        
+        $employeesList = $this->users->getAll($options);
 
         return $this->view->render($response, 'employees/index.twig', [
             'title' => 'Employees',
             'active_menu' => 'employees',
-            'employees' => $employees
+            'employees' => $employeesList,
+            'search' => $options['search'],
+            'sort' => $options['sort'],
+            'dir' => $options['dir'],
+            'role_filter' => $params['role'] ?? ''
         ]);
     }
 

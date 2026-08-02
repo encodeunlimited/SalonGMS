@@ -39,18 +39,21 @@ class AppointmentRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, customer_name, service, stylist, apt_date, apt_time, status)
-            VALUES (:tenant_id, :customer, :service, :stylist, :date, :time, :status)
+            INSERT INTO {$this->table} (tenant_id, customer_id, user_id, service_id, customer_name, service, stylist, apt_date, apt_time, status)
+            VALUES (:tenant_id, :customer_id, :user_id, :service_id, :customer_name, :service, :stylist, :date, :time, :status)
         ");
         
         $insertData = [
             'tenant_id' => $this->getTenantId(),
-            'customer' => $data['customer_name'] ?? 'Unknown',
-            'service' => $data['service'] ?? 'Unknown',
-            'stylist' => $data['stylist'] ?? 'Unknown',
+            'customer_id' => !empty($data['customer_id']) ? (int)$data['customer_id'] : null,
+            'user_id' => !empty($data['stylist_id']) ? (int)$data['stylist_id'] : null,
+            'service_id' => !empty($data['service_id']) ? (int)$data['service_id'] : null,
+            'customer_name' => $data['customer_name'] ?? 'Unknown',
+            'service' => $data['service_name'] ?? 'Unknown',
+            'stylist' => $data['stylist_name'] ?? 'Unknown',
             'date' => $data['date'] ?? date('Y-m-d'),
             'time' => $data['time'] ?? '12:00',
-            'status' => 'pending'
+            'status' => 'scheduled'
         ];
         
         $stmt->execute($insertData);

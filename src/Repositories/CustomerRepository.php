@@ -6,6 +6,9 @@ class CustomerRepository extends BaseRepository
 {
     protected string $table = 'customers';
 
+    protected function getSearchableFields(): array { return ['name', 'email', 'phone', 'notes']; }
+    protected function getSortableFields(): array { return ['id', 'name', 'email', 'phone', 'created_at']; }
+
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("

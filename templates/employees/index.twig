@@ -14,15 +14,58 @@
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+<div id="table-container">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Search / Filter bar -->
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex gap-4 flex-wrap">
+            <div class="relative flex-1 max-w-md min-w-[200px]">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="search" id="search-box" name="search" value="{{ search }}" placeholder="Search employees..." 
+                       hx-get="/web/employees?sort={{ sort }}&dir={{ dir }}" 
+                       hx-include="#role-filter"
+                       hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true"
+                       hx-trigger="keyup changed delay:500ms, search"
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
+            </div>
+            <div class="w-48">
+                <select id="role-filter" name="role" 
+                        hx-get="/web/employees?sort={{ sort }}&dir={{ dir }}" 
+                        hx-include="#search-box"
+                        hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true"
+                        class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                    <option value="">All Roles</option>
+                    <option value="stylist" {% if role_filter == 'stylist' %}selected{% endif %}>Stylist</option>
+                    <option value="manager" {% if role_filter == 'manager' %}selected{% endif %}>Manager</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+            </div>
+        </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
-                    <th class="px-6 py-4 font-medium">Name</th>
-                    <th class="px-6 py-4 font-medium">Email</th>
-                    <th class="px-6 py-4 font-medium">Role</th>
-                    <th class="px-6 py-4 font-medium">Commission Rate</th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/employees?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box, #role-filter" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Name {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/employees?sort=email&dir={{ sort == 'email' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box, #role-filter" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Email {% if sort == 'email' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/employees?sort=role&dir={{ sort == 'role' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box, #role-filter" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Role {% if sort == 'role' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/employees?sort=commission_rate&dir={{ sort == 'commission_rate' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box, #role-filter" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Commission Rate {% if sort == 'commission_rate' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
                     <th class="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
             </thead>

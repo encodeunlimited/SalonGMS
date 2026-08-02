@@ -22,12 +22,24 @@ class CustomerController
     {
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->customers->setTenantId($tenantId);
-        $customersList = $this->customers->getAll();
+        
+        $params = $request->getQueryParams();
+        $options = [
+            'search' => $params['search'] ?? '',
+            'sort' => $params['sort'] ?? 'id',
+            'dir' => $params['dir'] ?? 'desc',
+            'filters' => []
+        ];
+        
+        $customersList = $this->customers->getAll($options);
 
         return $this->view->render($response, 'customers/index.twig', [
             'title' => 'Customers',
             'active_menu' => 'customers',
-            'customers' => $customersList
+            'customers' => $customersList,
+            'search' => $options['search'],
+            'sort' => $options['sort'],
+            'dir' => $options['dir']
         ]);
     }
 
@@ -129,5 +141,23 @@ class CustomerController
         $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Customer updated successfully!</div></div>');
         
         return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+    }
+
+    public function apiStore(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->customers->setTenantId($tenantId);
+        
+        $data = json_decode((string)$request->getBody(), true);
+        
+        $customer = $this->customers->create([
+            'name' => $data['name'] ?? 'Unknown',
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'profile_image' => null
+        ]);
+
+        $response->getBody()->write(json_encode($customer));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }

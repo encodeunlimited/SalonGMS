@@ -42,12 +42,28 @@ class EmployeeController
         $this->users->setTenantId($tenantId);
         
         $data = $request->getParsedBody();
+        $uploadedFiles = $request->getUploadedFiles();
+        $profileImagePath = null;
+
+        if (isset($uploadedFiles['profile_image']) && $uploadedFiles['profile_image']->getError() === UPLOAD_ERR_OK) {
+            $uploadedFile = $uploadedFiles['profile_image'];
+            $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
+            $basename = bin2hex(random_bytes(8));
+            $filename = sprintf('%s.%0.8s', $basename, $extension);
+            
+            $directory = __DIR__ . '/../../../../public/uploads/profiles';
+            $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
+            
+            $profileImagePath = '/uploads/profiles/' . $filename;
+        }
+
         $employee = $this->users->create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
             'role' => $data['role'],
-            'commission_rate' => (float)$data['commission_rate']
+            'commission_rate' => (float)$data['commission_rate'],
+            'profile_image' => $profileImagePath
         ]);
 
         $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
@@ -55,7 +71,69 @@ class EmployeeController
         $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
         
         $response->getBody()->write($oobEmptyState . '<tbody hx-swap-oob="beforeend:#employees-table-body">' . $rowHtml . '</tbody>');
+        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Employee added successfully!</div></div>');
         
-        return $response->withHeader('HX-Trigger', 'close-modal');
+        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+    }
+
+    public function edit(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->users->setTenantId($tenantId);
+        
+        $employeeId = (int) $args['id'];
+        $employee = $this->users->getById($employeeId);
+        
+        if (!$employee) {
+            return $response->withStatus(404);
+        }
+
+        $html = $this->view->fetch('employees/modal.twig', ['employee' => $employee]);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->users->setTenantId($tenantId);
+        
+        $employeeId = (int) $args['id'];
+        $data = $request->getParsedBody();
+        $uploadedFiles = $request->getUploadedFiles();
+        
+        $updateData = [
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'commission_rate' => (float)$data['commission_rate']
+        ];
+        
+        if (!empty($data['password'])) {
+            $updateData['password'] = $data['password'];
+        }
+
+        if (isset($uploadedFiles['profile_image']) && $uploadedFiles['profile_image']->getError() === UPLOAD_ERR_OK) {
+            $uploadedFile = $uploadedFiles['profile_image'];
+            $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
+            $basename = bin2hex(random_bytes(8));
+            $filename = sprintf('%s.%0.8s', $basename, $extension);
+            
+            $directory = __DIR__ . '/../../../../public/uploads/profiles';
+            $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
+            
+            $updateData['profile_image'] = '/uploads/profiles/' . $filename;
+        }
+
+        $employee = $this->users->update($employeeId, $updateData);
+
+        $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
+        
+        $oobHtml = '<tbody hx-swap-oob="outerHTML:#employee-row-' . $employeeId . '">' . $rowHtml . '</tbody>';
+        
+        $response->getBody()->write($oobHtml);
+        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Employee updated successfully!</div></div>');
+        
+        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
     }
 }

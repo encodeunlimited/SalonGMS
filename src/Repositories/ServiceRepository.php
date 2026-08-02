@@ -25,4 +25,25 @@ class ServiceRepository extends BaseRepository
         $insertData['id'] = $this->db->lastInsertId();
         return $insertData;
     }
+
+    public function update(int $id, array $data): array
+    {
+        $stmt = $this->db->prepare("
+            UPDATE {$this->table} 
+            SET name = :name, description = :description, duration_minutes = :duration_minutes, price = :price
+            WHERE id = :id AND tenant_id = :tenant_id
+        ");
+        
+        $updateData = [
+            'id' => $id,
+            'tenant_id' => $this->getTenantId(),
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'duration_minutes' => $data['duration_minutes'] ?? 30,
+            'price' => $data['price'] ?? 0.00
+        ];
+        
+        $stmt->execute($updateData);
+        return $updateData;
+    }
 }

@@ -12,10 +12,14 @@ class AppointmentRepository extends BaseRepository
     {
         // Override because we want specific columns mapped and ordering
         $stmt = $this->db->prepare("
-            SELECT id, customer_name as customer, service, stylist, apt_date as date, apt_time as time, status
-            FROM {$this->table}
-            WHERE tenant_id = :tenant_id
-            ORDER BY apt_date DESC, apt_time DESC
+            SELECT a.id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.status,
+                   c.profile_image as customer_image,
+                   u.profile_image as stylist_image
+            FROM {$this->table} a
+            LEFT JOIN customers c ON a.customer_id = c.id
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.tenant_id = :tenant_id
+            ORDER BY a.apt_date DESC, a.apt_time DESC
         ");
         $stmt->execute(['tenant_id' => $this->getTenantId()]);
         return $stmt->fetchAll();

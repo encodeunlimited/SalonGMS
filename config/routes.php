@@ -26,18 +26,26 @@ return function (App $app) {
         $group->get('/pos', \App\Web\Controllers\InvoiceController::class . ':pos');
         $group->post('/pos/checkout', \App\Web\Controllers\InvoiceController::class . ':checkout');
         
-        // Employees & Services
+        // Employees
         $group->get('/employees', \App\Web\Controllers\EmployeeController::class . ':index');
         $group->get('/employees/create', \App\Web\Controllers\EmployeeController::class . ':create');
         $group->post('/employees/create', \App\Web\Controllers\EmployeeController::class . ':store');
+        $group->get('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':edit');
+        $group->post('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':update');
+        
+        // Services
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
         $group->get('/services/create', \App\Web\Controllers\ServiceController::class . ':create');
         $group->post('/services/create', \App\Web\Controllers\ServiceController::class . ':store');
+        $group->get('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':edit');
+        $group->post('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':update');
         
         // Customers
         $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');
         $group->get('/customers/create', \App\Web\Controllers\CustomerController::class . ':create');
         $group->post('/customers/create', \App\Web\Controllers\CustomerController::class . ':store');
+        $group->get('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':edit');
+        $group->post('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':update');
         
         // Profile & Settings
         $group->get('/profile', \App\Web\Controllers\ProfileController::class . ':index');

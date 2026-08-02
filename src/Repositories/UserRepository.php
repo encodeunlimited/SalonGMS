@@ -25,8 +25,8 @@ class UserRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, role, name, email, password, commission_rate)
-            VALUES (:tenant_id, :role, :name, :email, :password, :commission_rate)
+            INSERT INTO {$this->table} (tenant_id, role, name, email, password, commission_rate, profile_image)
+            VALUES (:tenant_id, :role, :name, :email, :password, :commission_rate, :profile_image)
         ");
         
         $insertData = [
@@ -35,12 +35,44 @@ class UserRepository extends BaseRepository
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'commission_rate' => $data['commission_rate'] ?? 0.00
+            'commission_rate' => $data['commission_rate'] ?? 0.00,
+            'profile_image' => $data['profile_image'] ?? null
         ];
         
         $stmt->execute($insertData);
         $insertData['id'] = $this->db->lastInsertId();
         unset($insertData['password']); // Never return password
         return $insertData;
+    }
+
+    public function update(int $id, array $data): array
+    {
+        $sql = "UPDATE {$this->table} SET role = :role, name = :name, email = :email, commission_rate = :commission_rate";
+        
+        $updateData = [
+            'id' => $id,
+            'tenant_id' => $this->getTenantId(),
+            'role' => $data['role'] ?? 'stylist',
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'commission_rate' => $data['commission_rate'] ?? 0.00
+        ];
+
+        if (array_key_exists('profile_image', $data) && $data['profile_image'] !== null) {
+            $sql .= ", profile_image = :profile_image";
+            $updateData['profile_image'] = $data['profile_image'];
+        }
+
+        if (!empty($data['password'])) {
+            $sql .= ", password = :password";
+            $updateData['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        $sql .= " WHERE id = :id AND tenant_id = :tenant_id";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($updateData);
+        
+        return $this->getById($id);
     }
 }

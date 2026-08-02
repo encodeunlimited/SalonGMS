@@ -51,11 +51,54 @@ class ServiceController
 
         $rowHtml = $this->view->fetch('services/row.twig', ['service' => $service]);
         
-        // Remove empty state if it exists
         $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
         
         $response->getBody()->write($oobEmptyState . '<tbody hx-swap-oob="beforeend:#services-table-body">' . $rowHtml . '</tbody>');
+        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Service added successfully!</div></div>');
         
-        return $response->withHeader('HX-Trigger', 'close-modal');
+        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+    }
+
+    public function edit(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->services->setTenantId($tenantId);
+        
+        $serviceId = (int) $args['id'];
+        $service = $this->services->getById($serviceId);
+        
+        if (!$service) {
+            return $response->withStatus(404);
+        }
+
+        $html = $this->view->fetch('services/modal.twig', ['service' => $service]);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->services->setTenantId($tenantId);
+        
+        $serviceId = (int) $args['id'];
+        $data = $request->getParsedBody();
+        
+        $service = $this->services->update($serviceId, [
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'duration_minutes' => (int)$data['duration_minutes'],
+            'price' => (float)$data['price']
+        ]);
+
+        $rowHtml = $this->view->fetch('services/row.twig', ['service' => $service]);
+        
+        // Return updated row wrapped in OOB swap for the specific ID
+        $oobHtml = '<tbody hx-swap-oob="outerHTML:#service-row-' . $serviceId . '">' . $rowHtml . '</tbody>';
+        
+        $response->getBody()->write($oobHtml);
+        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Service updated successfully!</div></div>');
+        
+        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
     }
 }

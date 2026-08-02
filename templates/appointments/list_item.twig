@@ -4,12 +4,32 @@
         <div class="text-xs text-gray-500">{{ appointment.date }}</div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm font-bold text-gray-900">{{ appointment.customer }}</div>
-        <div class="text-xs text-gray-500">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                {{ appointment.service }}
-            </span>
-            &bull; {{ appointment.stylist }}
+        <div class="flex items-center">
+            {% if appointment.customer_image %}
+                <img src="{{ appointment.customer_image }}" alt="{{ appointment.customer }}" class="w-8 h-8 rounded-full object-cover mr-3 shadow-sm">
+            {% else %}
+                <div class="w-8 h-8 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-xs mr-3 shadow-sm">
+                    {{ appointment.customer|slice(0, 1)|upper }}
+                </div>
+            {% endif %}
+            <div>
+                <div class="text-sm font-bold text-gray-900">{{ appointment.customer }}</div>
+                <div class="text-xs text-gray-500 mt-1 flex items-center">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+                        {{ appointment.service }}
+                    </span>
+                    <span class="flex items-center">
+                        {% if appointment.stylist_image %}
+                            <img src="{{ appointment.stylist_image }}" class="w-4 h-4 rounded-full mr-1 object-cover" title="{{ appointment.stylist }}">
+                        {% else %}
+                            <div class="w-4 h-4 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center font-bold mr-1" style="font-size: 0.5rem;" title="{{ appointment.stylist }}">
+                                {{ appointment.stylist|slice(0, 1)|upper }}
+                            </div>
+                        {% endif %}
+                        {{ appointment.stylist }}
+                    </span>
+                </div>
+            </div>
         </div>
     </td>
 </tr>

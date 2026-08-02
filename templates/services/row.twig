@@ -1,10 +1,10 @@
-<tr class="hover:bg-gray-50 transition-colors">
+<tr id="service-row-{{ service.id }}" class="hover:bg-gray-50 transition-colors">
     <td class="px-6 py-4 font-medium text-gray-900">{{ service.name }}</td>
     <td class="px-6 py-4 text-gray-500">{{ service.description|default('No description provided.') }}</td>
     <td class="px-6 py-4 text-gray-600">{{ service.duration_minutes }} mins</td>
     <td class="px-6 py-4 text-gray-900 font-semibold">${{ service.price|number_format(2) }}</td>
     <td class="px-6 py-4 text-right">
-        <button class="text-gray-400 hover:text-salon-accent transition-colors">
+        <button hx-get="/web/services/{{ service.id }}/edit" hx-target="#modal-container" class="text-gray-400 hover:text-salon-accent transition-colors">
             <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
         </button>
     </td>

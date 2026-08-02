@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title ?? 'Dashboard' }} - SalonMS</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <!-- FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        salon: {
+                            dark: '#0f172a',    // deep navy/slate 900
+                            navy: '#1e293b',    // slate 800
+                            accent: '#d4af37',  // soft gold
+                            light: '#f8fafc',   // slate 50
+                            border: '#e2e8f0'   // slate 200
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth transitions for HTMX */
+        .htmx-indicator{
+            display:none;
+        }
+        .htmx-request .htmx-indicator{
+            display:inline;
+        }
+        .htmx-request.htmx-indicator{
+            display:inline;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-salon-light text-gray-800 antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar (Charcoal/Navy) -->
+    <aside class="w-64 bg-salon-dark text-slate-300 flex flex-col shadow-xl z-20 transition-all duration-300 flex-shrink-0">
+        <!-- Logo Area -->
+        <div class="h-16 flex items-center px-6 border-b border-salon-navy/50 bg-salon-dark">
+            <svg class="w-8 h-8 text-salon-accent mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+            <span class="text-xl font-bold text-white tracking-wide">Salon<span class="text-salon-accent">MS</span></span>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 space-y-1 px-3">
+            <a href="/web/dashboard" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'dashboard' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
+                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'dashboard' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
+            </a>
+            <a href="/web/appointments" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'appointments' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
+                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'appointments' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Appointments
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group text-slate-400">
+                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Customers
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group text-slate-400">
+                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                POS System
+            </a>
+        </nav>
+        
+        <!-- Bottom Settings/Logout -->
+        <div class="p-4 border-t border-salon-navy/50">
+            <a href="#" class="flex items-center px-3 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-salon-light">
+        <!-- Top Header -->
+        <header class="h-16 bg-white border-b border-salon-border flex items-center justify-between px-6 z-10 flex-shrink-0">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center text-sm font-medium text-gray-500">
+                <span class="text-gray-400">Salon</span>
+                <svg class="w-4 h-4 mx-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-gray-800">{{ title ?? 'Dashboard' }}</span>
+            </div>
+            
+            <!-- Right Actions -->
+            <div class="flex items-center space-x-6">
+                <!-- Notifications -->
+                <button class="relative text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+                </button>
+                
+                <!-- Profile Dropdown (Alpine) -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-3 focus:outline-none">
+                        <div class="w-9 h-9 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-salon-border">
+                            A
+                        </div>
+                        <div class="hidden md:block text-left">
+                            <p class="text-sm font-medium text-gray-700">Admin User</p>
+                            <p class="text-xs text-gray-500">Manager</p>
+                        </div>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <!-- Dropdown -->
+                    <div x-show="open" x-transition.opacity class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50" style="display: none;">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Your Profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign out</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

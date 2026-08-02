@@ -1,0 +1,69 @@
+<?php
+
+use DI\ContainerBuilder;
+use Psr\Container\ContainerInterface;
+use Slim\Views\Twig;
+use PDO;
+
+return function (ContainerBuilder $containerBuilder) {
+    $containerBuilder->addDefinitions([
+        'settings' => function () {
+            return require __DIR__ . '/settings.php';
+        },
+
+        PDO::class => function (ContainerInterface $c) {
+            $settings = $c->get('settings')['db'];
+            
+            if (($settings['connection'] ?? 'mysql') === 'sqlite') {
+                // SQLite Connection
+                $dbPath = __DIR__ . '/../data/database.sqlite';
+                $pdo = new PDO("sqlite:$dbPath");
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                // Enable foreign keys for SQLite
+                $pdo->exec('PRAGMA foreign_keys = ON;');
+                return $pdo;
+            }
+
+            // MySQL Connection
+            $host = $settings['host'];
+            $dbname = $settings['dbname'];
+            $port = $settings['port'];
+            
+            $dsn = "mysql:host=$host;dbname=$dbname;port=$port;charset=utf8mb4";
+            return new PDO($dsn, $settings['user'], $settings['pass'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+        },
+
+        Twig::class => function (ContainerInterface $c) {
+            return Twig::create(__DIR__ . '/../templates', ['cache' => false]);
+        },
+
+        PDO::class => function (ContainerInterface $c) {
+            $settings = $c->get('settings')['db'];
+            $connection = $settings['connection'];
+            
+            if ($connection === 'sqlite') {
+                $dbPath = __DIR__ . '/../' . $settings['database'];
+                // Ensure data directory exists
+                if (!file_exists(dirname($dbPath))) {
+                    mkdir(dirname($dbPath), 0755, true);
+                }
+                $dsn = "sqlite:" . $dbPath;
+                $pdo = new PDO($dsn);
+            } else {
+                // MySQL / PostgreSQL
+                $dsn = "$connection:host={$settings['host']};port={$settings['port']};dbname={$settings['database']};charset=utf8mb4";
+                $pdo = new PDO($dsn, $settings['username'], $settings['password']);
+            }
+            
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            
+            return $pdo;
+        },
+    ]);
+};

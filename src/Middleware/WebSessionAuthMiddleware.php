@@ -11,11 +11,20 @@ class WebSessionAuthMiddleware
 {
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        // TODO: Implement Session verification
-        // If unauthenticated:
-        // $response = new SlimResponse();
-        // return $response->withHeader('Location', '/web/login')->withStatus(302);
-        
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['tenant_id'])) {
+            $response = new SlimResponse();
+            return $response->withHeader('Location', '/web/login')->withStatus(302);
+        }
+
+        // Inject the tenant_id and user_id into the request attributes
+        $request = $request->withAttribute('tenant_id', $_SESSION['tenant_id']);
+        $request = $request->withAttribute('user_id', $_SESSION['user_id']);
+        $request = $request->withAttribute('role', $_SESSION['role'] ?? 'stylist');
+
         return $handler->handle($request);
     }
 }

@@ -20,8 +20,7 @@ class DashboardController
 
     public function index(Request $request, Response $response): Response
     {
-        // Mock tenant ID for now
-        $tenantId = 1;
+        $tenantId = (int)$request->getAttribute('tenant_id');
         
         $this->analytics->setTenantId($tenantId);
         

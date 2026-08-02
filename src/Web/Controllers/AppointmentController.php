@@ -25,8 +25,7 @@ class AppointmentController
 
     public function index(Request $request, Response $response): Response
     {
-        // For Phase 3/4, we mock the tenant_id as 1.
-        $tenantId = 1;
+        $tenantId = (int)$request->getAttribute('tenant_id');
         
         $this->appointments->setTenantId($tenantId);
         $appointments = $this->appointments->getAllForTenant();
@@ -41,7 +40,7 @@ class AppointmentController
     public function store(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $tenantId = 1; // Mock tenant ID for now
+        $tenantId = (int)$request->getAttribute('tenant_id');
         
         $this->appointmentService->setTenantId($tenantId);
         

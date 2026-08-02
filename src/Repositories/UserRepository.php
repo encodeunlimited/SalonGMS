@@ -14,6 +14,14 @@ class UserRepository extends BaseRepository
         return $result ?: null;
     }
 
+    public function getByEmailGlobal(string $email): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = :email LIMIT 1");
+        $stmt->execute(['email' => $email]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("

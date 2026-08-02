@@ -20,7 +20,7 @@ class EmployeeController
 
     public function index(Request $request, Response $response): Response
     {
-        $tenantId = 1;
+        $tenantId = (int)$request->getAttribute('tenant_id');
         $this->users->setTenantId($tenantId);
         $employees = $this->users->getAll();
 
@@ -29,5 +29,33 @@ class EmployeeController
             'active_menu' => 'employees',
             'employees' => $employees
         ]);
+    }
+
+    public function create(Request $request, Response $response): Response
+    {
+        return $this->view->render($response, 'employees/modal.twig');
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->users->setTenantId($tenantId);
+        
+        $data = $request->getParsedBody();
+        $employee = $this->users->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => $data['role'],
+            'commission_rate' => (float)$data['commission_rate']
+        ]);
+
+        $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
+        
+        $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
+        
+        $response->getBody()->write($oobEmptyState . '<tbody hx-swap-oob="beforeend:#employees-table-body">' . $rowHtml . '</tbody>');
+        
+        return $response->withHeader('HX-Trigger', 'close-modal');
     }
 }

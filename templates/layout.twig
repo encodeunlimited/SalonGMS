@@ -151,10 +151,13 @@
         </header>
 
         <!-- Dynamic Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 md:p-8">
+        <main class="flex-1 overflow-y-auto p-6 md:p-8" @close-modal.window="document.getElementById('modal-container').innerHTML = ''">
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    <!-- Global Modal Container -->
+    <div id="modal-container"></div>
 
     {% block scripts %}{% endblock %}
 </body>

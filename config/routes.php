@@ -9,6 +9,11 @@ return function (App $app) {
     // ---------------------------------------------------------
     // WEB ROUTES (HTMX + Sessions)
     // ---------------------------------------------------------
+    $app->get('/web/login', \App\Web\Controllers\AuthController::class . ':showLogin');
+    $app->post('/web/login', \App\Web\Controllers\AuthController::class . ':processLogin');
+    $app->post('/web/logout', \App\Web\Controllers\AuthController::class . ':logout');
+    $app->get('/web/logout', \App\Web\Controllers\AuthController::class . ':logout'); // Fallback for simple links
+    
     $app->group('/web', function (RouteCollectorProxy $group) {
         // Dashboard
         $group->get('/dashboard', \App\Web\Controllers\DashboardController::class . ':index');
@@ -23,9 +28,18 @@ return function (App $app) {
         
         // Employees & Services
         $group->get('/employees', \App\Web\Controllers\EmployeeController::class . ':index');
+        $group->get('/employees/create', \App\Web\Controllers\EmployeeController::class . ':create');
+        $group->post('/employees/create', \App\Web\Controllers\EmployeeController::class . ':store');
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
+        $group->get('/services/create', \App\Web\Controllers\ServiceController::class . ':create');
+        $group->post('/services/create', \App\Web\Controllers\ServiceController::class . ':store');
         
-    })/*->add(\App\Middleware\WebSessionAuthMiddleware::class)*/;
+        // Customers
+        $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');
+        $group->get('/customers/create', \App\Web\Controllers\CustomerController::class . ':create');
+        $group->post('/customers/create', \App\Web\Controllers\CustomerController::class . ':store');
+        
+    })->add(\App\Middleware\WebSessionAuthMiddleware::class);
 
     // ---------------------------------------------------------
     // API ROUTES (Flutter App + JWT)

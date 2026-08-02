@@ -24,7 +24,7 @@ class InvoiceController
 
     public function pos(Request $request, Response $response): Response
     {
-        $tenantId = 1; // Mock tenant ID for Phase 5
+        $tenantId = (int)$request->getAttribute('tenant_id');
         $this->serviceRepo->setTenantId($tenantId);
         
         $services = $this->serviceRepo->getAll();
@@ -39,7 +39,7 @@ class InvoiceController
     public function checkout(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $tenantId = 1;
+        $tenantId = (int)$request->getAttribute('tenant_id');
         
         $this->invoiceService->setTenantId($tenantId);
         

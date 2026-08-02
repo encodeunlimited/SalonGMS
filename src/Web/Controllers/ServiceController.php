@@ -20,7 +20,7 @@ class ServiceController
 
     public function index(Request $request, Response $response): Response
     {
-        $tenantId = 1;
+        $tenantId = (int)$request->getAttribute('tenant_id');
         $this->services->setTenantId($tenantId);
         $servicesList = $this->services->getAll();
 
@@ -29,5 +29,33 @@ class ServiceController
             'active_menu' => 'services',
             'services' => $servicesList
         ]);
+    }
+
+    public function create(Request $request, Response $response): Response
+    {
+        return $this->view->render($response, 'services/modal.twig');
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->services->setTenantId($tenantId);
+        
+        $data = $request->getParsedBody();
+        $service = $this->services->create([
+            'name' => $data['name'],
+            'description' => $data['description'],
+            'duration_minutes' => (int)$data['duration_minutes'],
+            'price' => (float)$data['price']
+        ]);
+
+        $rowHtml = $this->view->fetch('services/row.twig', ['service' => $service]);
+        
+        // Remove empty state if it exists
+        $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
+        
+        $response->getBody()->write($oobEmptyState . '<tbody hx-swap-oob="beforeend:#services-table-body">' . $rowHtml . '</tbody>');
+        
+        return $response->withHeader('HX-Trigger', 'close-modal');
     }
 }

@@ -12,8 +12,18 @@ return function (App $app) {
     $app->group('/web', function (RouteCollectorProxy $group) {
         // Dashboard
         $group->get('/dashboard', \App\Web\Controllers\DashboardController::class . ':index');
+        
+        // Appointments
         $group->get('/appointments', \App\Web\Controllers\AppointmentController::class . ':index');
         $group->post('/appointments', \App\Web\Controllers\AppointmentController::class . ':store');
+        
+        // POS & Billing
+        $group->get('/pos', \App\Web\Controllers\InvoiceController::class . ':pos');
+        $group->post('/pos/checkout', \App\Web\Controllers\InvoiceController::class . ':checkout');
+        
+        // Employees & Services
+        $group->get('/employees', \App\Web\Controllers\EmployeeController::class . ':index');
+        $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
         
     })/*->add(\App\Middleware\WebSessionAuthMiddleware::class)*/;
 

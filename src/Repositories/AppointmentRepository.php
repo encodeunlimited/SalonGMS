@@ -4,47 +4,54 @@ namespace App\Repositories;
 
 use PDO;
 
-class AppointmentRepository
+class AppointmentRepository extends BaseRepository
 {
-    private PDO $pdo;
+    protected string $table = 'appointments';
 
-    public function __construct(PDO $pdo)
+    public function getAllForTenant(): array
     {
-        $this->pdo = $pdo;
-    }
-
-    public function getAllForTenant(int $tenantId): array
-    {
-        $stmt = $this->pdo->prepare("
+        // Override because we want specific columns mapped and ordering
+        $stmt = $this->db->prepare("
             SELECT id, customer_name as customer, service, stylist, apt_date as date, apt_time as time, status
-            FROM appointments
+            FROM {$this->table}
             WHERE tenant_id = :tenant_id
             ORDER BY apt_date DESC, apt_time DESC
         ");
-        $stmt->execute(['tenant_id' => $tenantId]);
+        $stmt->execute(['tenant_id' => $this->getTenantId()]);
         return $stmt->fetchAll();
     }
 
-    public function create(int $tenantId, array $data): array
+    public function getByDateAndStylist(string $date, string $stylist): array
     {
-        $stmt = $this->pdo->prepare("
-            INSERT INTO appointments (tenant_id, customer_name, service, stylist, apt_date, apt_time, status)
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = :tenant_id AND apt_date = :date AND stylist = :stylist");
+        $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'date' => $date,
+            'stylist' => $stylist
+        ]);
+        return $stmt->fetchAll();
+    }
+
+    public function create(array $data): array
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO {$this->table} (tenant_id, customer_name, service, stylist, apt_date, apt_time, status)
             VALUES (:tenant_id, :customer, :service, :stylist, :date, :time, :status)
         ");
         
         $insertData = [
-            'tenant_id' => $tenantId,
+            'tenant_id' => $this->getTenantId(),
             'customer' => $data['customer_name'] ?? 'Unknown',
             'service' => $data['service'] ?? 'Unknown',
             'stylist' => $data['stylist'] ?? 'Unknown',
             'date' => $data['date'] ?? date('Y-m-d'),
-            'time' => $data['time'] ?? '12:00 PM',
+            'time' => $data['time'] ?? '12:00',
             'status' => 'pending'
         ];
         
         $stmt->execute($insertData);
         
-        $insertData['id'] = $this->pdo->lastInsertId();
+        $insertData['id'] = $this->db->lastInsertId();
         return $insertData;
     }
 }

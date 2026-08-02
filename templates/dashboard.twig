@@ -77,7 +77,7 @@
         var revenueOptions = {
             series: [{
                 name: 'Revenue',
-                data: [400, 850, 1100, 900, 1500, 2100, 1250]
+                data: {{ charts.weekly_revenue|raw }}
             }],
             chart: {
                 type: 'bar',
@@ -113,13 +113,13 @@
 
         // Services Donut Chart
         var servicesOptions = {
-            series: [44, 55, 13, 33],
+            series: {{ charts.services_series|raw }},
             chart: {
                 type: 'donut',
                 height: 320,
                 fontFamily: 'Inter, sans-serif'
             },
-            labels: ['Haircut', 'Coloring', 'Manicure', 'Spa'],
+            labels: {{ charts.services_labels|raw }},
             colors: ['#0f172a', '#d4af37', '#94a3b8', '#475569'],
             plotOptions: {
                 pie: {

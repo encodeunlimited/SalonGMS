@@ -56,7 +56,13 @@ return function (ContainerBuilder $containerBuilder) {
             } else {
                 // MySQL / PostgreSQL
                 $dsn = "$connection:host={$settings['host']};port={$settings['port']};dbname={$settings['database']};charset=utf8mb4";
-                $pdo = new PDO($dsn, $settings['username'], $settings['password']);
+                
+                $options = [];
+                if (!empty($settings['ssl_ca'])) {
+                    $options[PDO::MYSQL_ATTR_SSL_CA] = $settings['ssl_ca'];
+                }
+                
+                $pdo = new PDO($dsn, $settings['username'], $settings['password'], $options);
             }
             
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

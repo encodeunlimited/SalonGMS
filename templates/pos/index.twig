@@ -1,0 +1,154 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Point of Sale</h2>
+        <p class="text-sm text-gray-500 mt-1">Quick checkout for walk-ins and appointments.</p>
+    </div>
+</div>
+
+<div id="pos-alerts"></div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="posSystem()">
+    <!-- Left: Service Selection -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-[700px] flex flex-col">
+            <div class="p-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+                <input type="text" placeholder="Search services..." class="w-full focus:ring-salon-accent focus:border-salon-accent block shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {% for service in services %}
+                    <div @click="addItem('{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group">
+                        <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </div>
+                        <h4 class="font-medium text-gray-900 text-sm">{{ service.name }}</h4>
+                        <p class="text-salon-accent font-bold mt-1">${{ service.price|number_format(2) }}</p>
+                    </div>
+                    {% else %}
+                        <!-- Fallback mock services if DB is empty -->
+                        <div @click="addItem('Haircut', 45.00)" class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group">
+                            <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">✂️</div>
+                            <h4 class="font-medium text-gray-900 text-sm">Haircut</h4>
+                            <p class="text-salon-accent font-bold mt-1">$45.00</p>
+                        </div>
+                        <div @click="addItem('Coloring', 120.00)" class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group">
+                            <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">🎨</div>
+                            <h4 class="font-medium text-gray-900 text-sm">Coloring</h4>
+                            <p class="text-salon-accent font-bold mt-1">$120.00</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Cart & Checkout -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[700px]">
+        <div class="p-6 border-b border-gray-100 flex-shrink-0 bg-salon-dark text-white rounded-t-xl">
+            <h3 class="text-lg font-bold">Current Order</h3>
+        </div>
+        
+        <!-- Cart Items -->
+        <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+            <template x-if="items.length === 0">
+                <div class="text-center text-gray-400 py-10">
+                    <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <p>Select services to add to cart</p>
+                </div>
+            </template>
+            <template x-for="(item, index) in items" :key="index">
+                <div class="flex justify-between items-center mb-4 bg-white p-3 rounded shadow-sm border border-gray-100">
+                    <div>
+                        <h4 class="font-medium text-sm text-gray-900" x-text="item.name"></h4>
+                        <p class="text-xs text-gray-500">$<span x-text="item.price.toFixed(2)"></span> x <span x-text="item.quantity"></span></p>
+                    </div>
+                    <div class="flex items-center">
+                        <p class="font-bold text-sm text-gray-900 mr-4">$<span x-text="(item.price * item.quantity).toFixed(2)"></span></p>
+                        <button @click="removeItem(index)" class="text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Checkout Section -->
+        <div class="p-6 border-t border-gray-200 bg-white rounded-b-xl">
+            <div class="flex justify-between text-base font-medium text-gray-900 mb-2">
+                <p>Subtotal</p>
+                <p>$<span x-text="subtotal.toFixed(2)"></span></p>
+            </div>
+            <div class="flex justify-between text-base font-medium text-gray-900 mb-4">
+                <p>Tax (0%)</p>
+                <p>$0.00</p>
+            </div>
+            <div class="flex justify-between text-xl font-bold text-salon-dark mb-6 border-t pt-4">
+                <p>Total</p>
+                <p>$<span x-text="subtotal.toFixed(2)"></span></p>
+            </div>
+
+            <!-- HTMX Form bridging Alpine data -->
+            <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:before-request="prepareForm($event)" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                    <select name="payment_method" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                        <option value="cash">Cash</option>
+                        <option value="card">Credit Card</option>
+                    </select>
+                </div>
+                
+                <div id="hidden-inputs-container"></div>
+                
+                <button type="submit" :disabled="items.length === 0" class="w-full bg-salon-accent text-white py-3 rounded-lg font-bold hover:bg-yellow-600 shadow-md transition-colors disabled:opacity-50 flex items-center justify-center">
+                    Pay $<span x-text="subtotal.toFixed(2)" class="ml-1"></span>
+                    <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function posSystem() {
+    return {
+        items: [],
+        get subtotal() {
+            return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        },
+        addItem(name, price) {
+            const existing = this.items.find(i => i.name === name);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                this.items.push({ name, price, quantity: 1 });
+            }
+        },
+        removeItem(index) {
+            this.items.splice(index, 1);
+        },
+        clearCart() {
+            this.items = [];
+        },
+        prepareForm(event) {
+            // Bridge Alpine JS array to HTMX form data before it sends
+            const container = document.getElementById('hidden-inputs-container');
+            container.innerHTML = ''; // clear
+            
+            this.items.forEach((item, index) => {
+                container.innerHTML += `<input type="hidden" name="items[${index}][name]" value="${item.name}">`;
+                container.innerHTML += `<input type="hidden" name="items[${index}][price]" value="${item.price}">`;
+                container.innerHTML += `<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`;
+            });
+        }
+    }
+}
+</script>
+{% endblock %}

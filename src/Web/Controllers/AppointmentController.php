@@ -6,22 +6,25 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 
+use App\Repositories\AppointmentRepository;
+
 class AppointmentController
 {
     private Twig $view;
+    private AppointmentRepository $appointments;
 
-    public function __construct(Twig $view)
+    public function __construct(Twig $view, AppointmentRepository $appointments)
     {
         $this->view = $view;
+        $this->appointments = $appointments;
     }
 
     public function index(Request $request, Response $response): Response
     {
-        // Dummy data for the calendar and list
-        $appointments = [
-            ['id' => 1, 'customer' => 'Jane Doe', 'service' => 'Haircut', 'stylist' => 'Anna', 'date' => date('Y-m-d'), 'time' => '10:00 AM'],
-            ['id' => 2, 'customer' => 'John Smith', 'service' => 'Coloring', 'stylist' => 'Marcus', 'date' => date('Y-m-d'), 'time' => '1:00 PM'],
-        ];
+        // For Phase 3, we mock the tenant_id as 1.
+        $tenantId = 1;
+        
+        $appointments = $this->appointments->getAllForTenant($tenantId);
 
         return $this->view->render($response, 'appointments/index.twig', [
             'title' => 'Appointments',
@@ -33,17 +36,9 @@ class AppointmentController
     public function store(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
+        $tenantId = 1; // Mock tenant ID for now
         
-        // In a real app, we'd save to the database here.
-        // For now, we'll just mock the created appointment.
-        $newAppointment = [
-            'id' => rand(100, 999),
-            'customer' => $data['customer_name'] ?? 'Unknown',
-            'service' => $data['service'] ?? 'Unknown',
-            'stylist' => $data['stylist'] ?? 'Unknown',
-            'date' => $data['date'] ?? date('Y-m-d'),
-            'time' => $data['time'] ?? '12:00 PM',
-        ];
+        $newAppointment = $this->appointments->create($tenantId, $data);
 
         return $this->view->render($response, 'appointments/list_item.twig', [
             'appointment' => $newAppointment

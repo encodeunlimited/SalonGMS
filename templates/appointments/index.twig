@@ -130,22 +130,16 @@
             slotMinTime: '08:00:00',
             slotMaxTime: '20:00:00',
             allDaySlot: false,
-            // Mocking events for now
+            // Fetching from DB
             events: [
+                {% for apt in appointments %}
                 {
-                    title: 'Haircut - Jane Doe',
-                    start: new Date().toISOString().split('T')[0] + 'T10:00:00',
-                    end: new Date().toISOString().split('T')[0] + 'T11:00:00',
-                    backgroundColor: '#d4af37',
-                    borderColor: '#d4af37'
-                },
-                {
-                    title: 'Coloring - John Smith',
-                    start: new Date().toISOString().split('T')[0] + 'T13:00:00',
-                    end: new Date().toISOString().split('T')[0] + 'T15:00:00',
+                    title: '{{ apt.service|escape('js') }} - {{ apt.customer|escape('js') }}',
+                    start: '{{ apt.date }}T{{ apt.time|date("H:i:s", timezone="UTC") }}',
                     backgroundColor: '#1e293b',
                     borderColor: '#1e293b'
-                }
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
             ]
         });
         calendar.render();

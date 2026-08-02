@@ -3,7 +3,6 @@
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Slim\Views\Twig;
-use PDO;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([

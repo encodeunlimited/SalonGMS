@@ -39,6 +39,10 @@ return function (App $app) {
         $group->get('/customers/create', \App\Web\Controllers\CustomerController::class . ':create');
         $group->post('/customers/create', \App\Web\Controllers\CustomerController::class . ':store');
         
+        // Profile & Settings
+        $group->get('/profile', \App\Web\Controllers\ProfileController::class . ':index');
+        $group->get('/settings', \App\Web\Controllers\SettingsController::class . ':index');
+        
     })->add(\App\Middleware\WebSessionAuthMiddleware::class);
 
     // ---------------------------------------------------------

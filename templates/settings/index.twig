@@ -1,0 +1,42 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">System Settings</h2>
+        <p class="text-sm text-gray-500 mt-1">Manage global preferences and configurations.</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">General Configuration</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Salon Name</label>
+                    <input type="text" value="My Awesome Salon" class="mt-1 w-full max-w-md px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Currency</label>
+                    <select class="mt-1 w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm bg-white">
+                        <option>USD ($)</option>
+                        <option>EUR (€)</option>
+                        <option>GBP (£)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Features</label>
+                    <div class="flex items-center">
+                        <input type="checkbox" checked class="h-4 w-4 text-salon-accent focus:ring-salon-accent border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-gray-600">Enable online booking (Coming soon)</span>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-100">
+                    <button class="bg-salon-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-salon-navy transition-colors">
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

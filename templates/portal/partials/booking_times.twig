@@ -1,43 +1,48 @@
 <div id="step3-inner">
-    <h3 style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3>
+    <h3 class="text-lg text-brand-accent font-semibold mb-4 mt-0">3. Select Booking Type, Date & Time</h3>
     
-    <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 500; margin-bottom: 0.75rem; color: var(--text-muted);">Booking Type</label>
+    <div class="mb-6">
+        <label class="block text-sm font-medium text-brand-textMuted mb-2">Booking Type</label>
         <div class="grid grid-cols-2 gap-4" id="booking_type_container">
             {% for type in booking_types|default(['In Salon', 'Home Visit']) %}
-            <label class="card type-card" style="padding: 0.75rem; cursor: pointer; border-width: 2px; text-align: center; margin: 0; border-color: var(--border-color);">
-                <input type="radio" name="booking_type" value="{{ type }}" required style="position: absolute; opacity: 0; pointer-events: none;"
-                       {% if (booking_type|default('In Salon')) == type %}checked{% endif %} onchange="loadTimes()">
-                <div style="font-weight: 600;">{{ type }}</div>
+            <label class="type-book-item p-3 rounded-xl border border-brand-border bg-brand-card hover:border-brand-accent/50 cursor-pointer transition-all flex items-center justify-center text-center group m-0"
+                   :class="'{{ booking_type|default('In Salon') }}' == '{{ type }}' ? 'bg-brand-accent/10 border-brand-accent text-brand-text' : 'text-brand-textMuted'">
+                <input type="radio" name="booking_type" value="{{ type }}" required class="hidden"
+                       {% if (booking_type|default('In Salon')) == type %}checked{% endif %} 
+                       onchange="document.querySelectorAll('.type-book-item').forEach(el => { el.classList.remove('border-brand-accent', 'text-brand-text'); el.style.backgroundColor='#1F2937'; el.classList.add('border-brand-border', 'text-brand-textMuted'); }); this.parentElement.classList.remove('border-brand-border', 'text-brand-textMuted'); this.parentElement.classList.add('border-brand-accent', 'text-brand-text'); this.parentElement.style.backgroundColor='rgba(234, 179, 8, 0.1)'; loadTimes();">
+                <div class="font-semibold" {% if (booking_type|default('In Salon')) == type %}style="color: #F9FAFB;"{% endif %}
+                     onchange="this.style.color='#F9FAFB'; document.querySelectorAll('.type-book-item .font-semibold').forEach(el => { if(el !== this) el.style.color=''; });">{{ type }}</div>
             </label>
             {% endfor %}
         </div>
     </div>
 
-    <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 500; margin-bottom: 0.75rem; color: var(--text-muted);" for="date">Select Date</label>
-        <input type="date" id="date" name="date" class="form-input" style="cursor: pointer; max-width: 100%;" required min="{{ 'now'|date('Y-m-d') }}" value="{{ date }}">
+    <div class="mb-6">
+        <label class="block text-sm font-medium text-brand-textMuted mb-2" for="date">Select Date</label>
+        <input type="date" id="date" name="date" 
+               class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent sm:text-sm transition-colors [color-scheme:dark]" 
+               required min="{{ 'now'|date('Y-m-d') }}" value="{{ date }}">
     </div>
 
-    <div style="margin-bottom: 1.5rem;" id="time-dropdown-container">
-        <label style="display: block; font-weight: 500; margin-bottom: 0.75rem; color: var(--text-muted);" for="time">Select Time</label>
+    <div class="mb-6" id="time-dropdown-container">
+        <label class="block text-sm font-medium text-brand-textMuted mb-2" for="time">Select Time</label>
         
         {% if times is defined %}
             {% if times|length > 0 %}
-                <select id="time" name="time" class="form-input" required>
+                <select id="time" name="time" class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent sm:text-sm transition-colors [color-scheme:dark]" required>
                     <option value="">Select a time</option>
                     {% for t in times %}
                         <option value="{{ t }}">{{ t }}</option>
                     {% endfor %}
                 </select>
             {% else %}
-                <select id="time" name="time" class="form-input" required disabled>
+                <select id="time" name="time" class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted opacity-50 cursor-not-allowed sm:text-sm transition-colors [color-scheme:dark]" required disabled>
                     <option value="">No slots available</option>
                 </select>
-                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">No available slots on this date.</div>
+                <div class="text-red-400 text-sm mt-2">No available slots on this date.</div>
             {% endif %}
         {% else %}
-            <select id="time" name="time" class="form-input" required disabled>
+            <select id="time" name="time" class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted opacity-50 cursor-not-allowed sm:text-sm transition-colors [color-scheme:dark]" required disabled>
                 <option value="">Select a specialist first</option>
             </select>
         {% endif %}

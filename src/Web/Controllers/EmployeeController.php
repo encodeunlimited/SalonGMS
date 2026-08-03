@@ -86,28 +86,39 @@ class EmployeeController
             $profileImagePath = '/uploads/profiles/' . $filename;
         }
 
-        $employee = $this->users->create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'role' => $data['role'],
-            'commission_rate' => (float)$data['commission_rate'],
-            'profile_image' => $profileImagePath,
-            'specialist_areas' => $data['specialist_areas'] ?? []
-        ]);
+        try {
+            $employee = $this->users->create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'role' => $data['role'],
+                'commission_rate' => (float)$data['commission_rate'],
+                'profile_image' => $profileImagePath,
+                'specialist_areas' => $data['specialist_areas'] ?? []
+            ]);
 
-        $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
-        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="beforeend:#employees-table-body" id=', $rowHtml);
-        
-        $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
-        
-        $response->getBody()->write($oobEmptyState . $rowHtmlWithOob);
-        
-        return $response->withHeader('Content-Type', 'text/html')
-                        ->withHeader('HX-Trigger', json_encode([
-                            'close-modal' => true,
-                            'show-toast' => ['message' => 'Employee added successfully!']
-                        ]));
+            $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
+            $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="beforeend:#employees-table-body" id=', $rowHtml);
+            
+            $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
+            
+            $response->getBody()->write($oobEmptyState . $rowHtmlWithOob);
+            
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'close-modal' => true,
+                                'show-toast' => ['message' => 'Employee added successfully!']
+                            ]));
+        } catch (\Exception $e) {
+            $errorMsg = 'Error adding employee: ' . $e->getMessage();
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $errorMsg = 'Error: Email already exists!';
+            }
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => $errorMsg, 'type' => 'error']
+                            ]));
+        }
     }
 
     public function edit(Request $request, Response $response, array $args): Response
@@ -169,17 +180,54 @@ class EmployeeController
             $updateData['profile_image'] = '/uploads/profiles/' . $filename;
         }
 
-        $employee = $this->users->update($employeeId, $updateData);
+        try {
+            $employee = $this->users->update($employeeId, $updateData);
 
-        $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
-        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#employee-row-' . $employeeId . '" id=', $rowHtml);
+            $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
+            $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#employee-row-' . $employeeId . '" id=', $rowHtml);
+            
+            $response->getBody()->write($rowHtmlWithOob);
+            
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'close-modal' => true,
+                                'show-toast' => ['message' => 'Employee updated successfully!']
+                            ]));
+        } catch (\Exception $e) {
+            $errorMsg = 'Error updating employee: ' . $e->getMessage();
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $errorMsg = 'Error: Email already exists!';
+            }
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => $errorMsg, 'type' => 'error']
+                            ]));
+        }
+    }
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $role = $request->getAttribute('role');
+        if ($role !== 'admin') {
+            return $response->withStatus(403);
+        }
         
-        $response->getBody()->write($rowHtmlWithOob);
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->users->setTenantId($tenantId);
         
-        return $response->withHeader('Content-Type', 'text/html')
-                        ->withHeader('HX-Trigger', json_encode([
-                            'close-modal' => true,
-                            'show-toast' => ['message' => 'Employee updated successfully!']
-                        ]));
+        $employeeId = (int) $args['id'];
+        
+        try {
+            $this->users->delete($employeeId);
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Employee deleted successfully!']
+                            ]));
+        } catch (\Exception $e) {
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Error deleting employee: ' . $e->getMessage(), 'type' => 'error']
+                            ]));
+        }
     }
 }

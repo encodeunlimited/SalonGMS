@@ -203,4 +203,29 @@ class ServiceController
         
         return $imagePaths;
     }
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $role = $request->getAttribute('role');
+        if ($role !== 'admin') {
+            return $response->withStatus(403);
+        }
+        
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->services->setTenantId($tenantId);
+        
+        $serviceId = (int) $args['id'];
+        
+        try {
+            $this->services->delete($serviceId);
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Service deleted successfully!']
+                            ]));
+        } catch (\Exception $e) {
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Error deleting service: ' . $e->getMessage(), 'type' => 'error']
+                            ]));
+        }
+    }
 }

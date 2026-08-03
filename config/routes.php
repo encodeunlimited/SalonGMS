@@ -48,6 +48,7 @@ return function (App $app) {
         $group->post('/employees/create', \App\Web\Controllers\EmployeeController::class . ':store');
         $group->get('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':edit');
         $group->post('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':update');
+        $group->delete('/employees/{id}', \App\Web\Controllers\EmployeeController::class . ':delete');
         
         // Services
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
@@ -56,6 +57,7 @@ return function (App $app) {
         $group->get('/services/{id}', \App\Web\Controllers\ServiceController::class . ':show');
         $group->get('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':edit');
         $group->post('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':update');
+        $group->delete('/services/{id}', \App\Web\Controllers\ServiceController::class . ':delete');
         
         // Customers
         $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');
@@ -64,6 +66,7 @@ return function (App $app) {
         $group->post('/api/customers', \App\Web\Controllers\CustomerController::class . ':apiStore');
         $group->get('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':edit');
         $group->post('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':update');
+        $group->delete('/customers/{id}', \App\Web\Controllers\CustomerController::class . ':delete');
         
         // Profile
         $group->get('/profile', \App\Web\Controllers\ProfileController::class . ':index');

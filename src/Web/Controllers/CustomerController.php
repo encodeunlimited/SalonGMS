@@ -172,4 +172,29 @@ class CustomerController
         $response->getBody()->write(json_encode($customer));
         return $response->withHeader('Content-Type', 'application/json');
     }
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $role = $request->getAttribute('role');
+        if ($role !== 'admin') {
+            return $response->withStatus(403);
+        }
+        
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->customers->setTenantId($tenantId);
+        
+        $customerId = (int) $args['id'];
+        
+        try {
+            $this->customers->delete($customerId);
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Customer deleted successfully!']
+                            ]));
+        } catch (\Exception $e) {
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Error deleting customer: ' . $e->getMessage(), 'type' => 'error']
+                            ]));
+        }
+    }
 }

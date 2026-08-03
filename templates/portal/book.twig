@@ -205,6 +205,10 @@
                         <p class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider mb-1 mt-0">Specialist</p>
                         <p id="summary-specialist" class="text-sm font-medium text-brand-text m-0">Not selected</p>
                     </div>
+                    <div id="summary-booking-type-container" style="display: none;">
+                        <p class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider mb-1 mt-0">Booking Type</p>
+                        <p id="summary-booking-type" class="text-sm font-medium text-brand-text m-0">In Salon</p>
+                    </div>
                     <div>
                         <p class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider mb-1 mt-0">Date &amp; Time</p>
                         <p id="summary-datetime" class="text-sm font-medium text-brand-text m-0">Not selected</p>
@@ -225,11 +229,21 @@
         const dateInput = document.getElementById('date');
         const timeInput = document.getElementById('time');
         const datetimeEl = document.getElementById('summary-datetime');
+        const bookingTypeRadio = document.querySelector('input[name="booking_type"]:checked');
+        const bookingTypeEl = document.getElementById('summary-booking-type');
+        const bookingTypeContainer = document.getElementById('summary-booking-type-container');
         
         if (dateInput && timeInput && dateInput.value && timeInput.value) {
             datetimeEl.textContent = dateInput.value + ' at ' + timeInput.value;
         } else {
             datetimeEl.textContent = 'Not selected';
+        }
+
+        if (bookingTypeRadio && bookingTypeEl && bookingTypeContainer) {
+            bookingTypeEl.textContent = bookingTypeRadio.value;
+            bookingTypeContainer.style.display = 'block';
+        } else if (bookingTypeContainer) {
+            bookingTypeContainer.style.display = 'none';
         }
     }
 
@@ -253,7 +267,7 @@
         
         const timeContainer = document.getElementById('time-dropdown-container');
         if (timeContainer) {
-            timeContainer.innerHTML = '<label class="block text-sm font-medium text-brand-textMuted mb-2" for="time">Select Time</label><select id="time" name="time" class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent sm:text-sm transition-colors" required disabled><option value="">Select a specialist first</option></select>';
+            timeContainer.innerHTML = '<label class="block text-sm font-medium text-brand-textMuted mb-2" for="time">Select Time</label><select id="time" name="time" class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent sm:text-sm transition-colors [color-scheme:dark]" required disabled><option value="">Select a specialist first</option></select>';
         }
         updateSummary();
         
@@ -266,6 +280,20 @@
 
     function selectEmployee(employeeId, name) {
         document.getElementById('employee_' + employeeId).checked = true;
+        
+        document.querySelectorAll('.employee-book-item').forEach(el => {
+            el.classList.remove('border-brand-accent');
+            el.style.backgroundColor = '#1F2937'; // bg-brand-card
+            el.classList.add('border-brand-border');
+        });
+        
+        const selectedLabel = document.getElementById('employee_' + employeeId).closest('label');
+        if (selectedLabel) {
+            selectedLabel.classList.remove('border-brand-border');
+            selectedLabel.classList.add('border-brand-accent');
+            selectedLabel.style.backgroundColor = 'rgba(234, 179, 8, 0.1)'; // bg-brand-accent/10
+        }
+
         if(name) {
             document.getElementById('summary-specialist').textContent = name;
         }

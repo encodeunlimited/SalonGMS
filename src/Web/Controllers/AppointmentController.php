@@ -11,6 +11,7 @@ use Exception;
 use App\Repositories\CustomerRepository;
 use App\Repositories\ServiceRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\TenantSettingRepository;
 
 class AppointmentController
 {
@@ -20,6 +21,7 @@ class AppointmentController
     private CustomerRepository $customers;
     private ServiceRepository $services;
     private UserRepository $users;
+    private TenantSettingRepository $settings;
 
     public function __construct(
         Twig $view, 
@@ -27,7 +29,8 @@ class AppointmentController
         AppointmentService $appointmentService,
         CustomerRepository $customers,
         ServiceRepository $services,
-        UserRepository $users
+        UserRepository $users,
+        TenantSettingRepository $settings
     ) {
         $this->view = $view;
         $this->appointments = $appointments;
@@ -35,6 +38,7 @@ class AppointmentController
         $this->customers = $customers;
         $this->services = $services;
         $this->users = $users;
+        $this->settings = $settings;
     }
 
     public function index(Request $request, Response $response): Response
@@ -45,19 +49,26 @@ class AppointmentController
         $this->customers->setTenantId($tenantId);
         $this->services->setTenantId($tenantId);
         $this->users->setTenantId($tenantId);
+        $this->settings->setTenantId($tenantId);
 
         $appointments = $this->appointments->getAllForTenant();
         $customersList = $this->customers->getAll();
         $servicesList = $this->services->getAll();
-        $stylistsList = $this->users->getAll(); // In real app, might filter by role
+        $usersList = $this->users->getAll();
+        
+        $openTime = $this->settings->get('open_time', '09:00');
+        $closeTime = $this->settings->get('close_time', '17:00');
+        $openHour = (int) explode(':', $openTime)[0];
+        $closeHour = (int) explode(':', $closeTime)[0];
 
         return $this->view->render($response, 'appointments/index.twig', [
-            'title' => 'Appointments',
             'active_menu' => 'appointments',
             'appointments' => $appointments,
             'customers' => $customersList,
             'services' => $servicesList,
-            'stylists' => $stylistsList
+            'users' => $usersList,
+            'open_hour' => $openHour,
+            'close_hour' => $closeHour
         ]);
     }
 
@@ -132,15 +143,15 @@ class AppointmentController
         $this->users->setTenantId($tenantId);
         $allUsers = $this->users->getAll();
         
-        $options = '<option value="">Select a stylist...</option>';
+        $html = '<option value="">Select a stylist...</option>';
         foreach ($allUsers as $user) {
             // Include roles that might act as stylists if needed, or just check specialist areas
             if (in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
-                $options .= '<option value="' . $user['id'] . '">' . htmlspecialchars($user['name']) . '</option>';
+                $html .= '<option value="' . $user['id'] . '">' . htmlspecialchars($user['name']) . '</option>';
             }
         }
 
-        $response->getBody()->write($options);
+        $response->getBody()->write($html);
         return $response->withStatus(200);
     }
 }

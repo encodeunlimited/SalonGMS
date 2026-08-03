@@ -1,41 +1,47 @@
-{% extends "layout.twig" %}
+{% extends 'layout.twig' %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">System Settings</h2>
-        <p class="text-sm text-gray-500 mt-1">Manage global preferences and configurations.</p>
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+    <div class="sm:flex sm:items-center mb-8">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-bold text-gray-900">Salon Settings</h1>
+            <p class="mt-2 text-sm text-gray-700">Configure your salon's business hours and other preferences.</p>
+        </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">General Configuration</h3>
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Salon Name</label>
-                    <input type="text" value="My Awesome Salon" class="mt-1 w-full max-w-md px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Currency</label>
-                    <select x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" class="mt-1 w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm bg-white">
-                        <option>USD ($)</option>
-                        <option>EUR (€)</option>
-                        <option>GBP (£)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Features</label>
-                    <div class="flex items-center">
-                        <input type="checkbox" checked class="h-4 w-4 text-salon-accent focus:ring-salon-accent border-gray-300 rounded">
-                        <span class="ml-2 text-sm text-gray-600">Enable online booking (Coming soon)</span>
+    <div class="bg-white shadow sm:rounded-lg max-w-3xl">
+        <div class="px-4 py-5 sm:p-6">
+            <form hx-post="/web/settings" hx-target="#form-messages" hx-swap="outerHTML">
+                <div id="form-messages"></div>
+                
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Business Hours</h3>
+                
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div class="sm:col-span-3">
+                        <label for="open_time" class="block text-sm font-medium text-gray-700">Opening Time</label>
+                        <div class="mt-1">
+                            <input type="time" name="open_time" id="open_time" value="{{ settings.open_time|default('09:00') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label for="close_time" class="block text-sm font-medium text-gray-700">Closing Time</label>
+                        <div class="mt-1">
+                            <input type="time" name="close_time" id="close_time" value="{{ settings.close_time|default('17:00') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                        </div>
                     </div>
                 </div>
-                <div class="pt-4 border-t border-gray-100">
-                    <button class="bg-salon-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-salon-navy transition-colors">
+
+                <div class="mt-6">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-salon-dark py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-salon-navy focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">
                         Save Settings
+                        <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>

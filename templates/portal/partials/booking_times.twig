@@ -1,10 +1,17 @@
 <div id="step3-inner">
-    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Date & Time</h3>
-    <div class="grid grid-cols-2 gap-4 mb-8">
+    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="form-group">
+            <label class="form-label" for="booking_type">Booking Type</label>
+            <select id="booking_type" name="booking_type" class="form-input" required>
+                <option value="In Salon" {% if booking_type == 'In Salon' %}selected{% endif %}>In Salon</option>
+                <option value="Home Visit" {% if booking_type == 'Home Visit' %}selected{% endif %}>Home Visit</option>
+            </select>
+        </div>
         <div class="form-group">
             <label class="form-label" for="date">Date</label>
             <input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ date }}"
-                   hx-get="/portal/book/times" hx-target="#step3-container" hx-include="[name='service_id'], [name='employee_id'], #date">
+                   hx-get="/portal/book/times" hx-target="#step3-container" hx-include="[name='service_id'], [name='employee_id'], #date, #booking_type">
         </div>
         <div class="form-group" id="time-dropdown-container">
             <label class="form-label" for="time">Time</label>

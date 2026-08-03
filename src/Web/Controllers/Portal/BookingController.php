@@ -8,6 +8,7 @@ use Slim\Views\Twig;
 use App\Repositories\ServiceRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\TenantSettingRepository;
 
 class BookingController
 {
@@ -15,13 +16,20 @@ class BookingController
     private ServiceRepository $serviceRepo;
     private AppointmentRepository $appointmentRepo;
     private UserRepository $userRepo;
+    private TenantSettingRepository $settings;
 
-    public function __construct(Twig $view, ServiceRepository $serviceRepo, AppointmentRepository $appointmentRepo, UserRepository $userRepo)
-    {
+    public function __construct(
+        Twig $view, 
+        ServiceRepository $serviceRepo, 
+        AppointmentRepository $appointmentRepo, 
+        UserRepository $userRepo,
+        TenantSettingRepository $settings
+    ) {
         $this->view = $view;
         $this->serviceRepo = $serviceRepo;
         $this->appointmentRepo = $appointmentRepo;
         $this->userRepo = $userRepo;
+        $this->settings = $settings;
     }
 
     public function step1(Request $request, Response $response): Response
@@ -91,12 +99,16 @@ class BookingController
             }
         }
 
-        // Generate time slots from 09:00 to 17:00
-        $availableTimes = [];
-        $startTime = strtotime("$date 09:00:00");
-        $endTime = strtotime("$date 17:00:00");
+        $this->settings->setTenantId($tenantId);
+        $openTime = $this->settings->get('open_time', '09:00');
+        $closeTime = $this->settings->get('close_time', '17:00');
 
-        for ($time = $startTime; $time < $endTime; $time += 30 * 60) {
+        // Generate time slots from settings
+        $availableTimes = [];
+        $startTime = strtotime("$date $openTime:00");
+        $endTime = strtotime("$date $closeTime:00");
+
+        for ($time = $startTime; $time < $endTime; $time += 15 * 60) {
             $slotEnd = $time + ($durationMinutes * 60);
             
             $isBooked = false;
@@ -112,9 +124,12 @@ class BookingController
             }
         }
 
+        $bookingType = $queryParams['booking_type'] ?? 'In Salon';
+
         return $this->view->render($response, 'portal/partials/booking_times.twig', [
             'times' => $availableTimes,
-            'date' => $date
+            'date' => $date,
+            'booking_type' => $bookingType
         ]);
     }
 
@@ -129,6 +144,7 @@ class BookingController
         $employeeId = $data['employee_id'] ?? null;
         $date = $data['date'] ?? null;
         $time = $data['time'] ?? null;
+        $bookingType = $data['booking_type'] ?? 'In Salon';
 
         if (!$serviceId || !$employeeId || !$date || !$time) {
             $response->getBody()->write('
@@ -170,7 +186,8 @@ class BookingController
                 'stylist_name' => $employee['name'],
                 'date' => $date,
                 'time' => $time,
-                'end_time' => $endTime
+                'end_time' => $endTime,
+                'booking_type' => $bookingType
             ]);
 
             return $response->withHeader('HX-Redirect', '/portal/dashboard')->withStatus(200);

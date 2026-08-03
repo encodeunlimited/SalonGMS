@@ -47,7 +47,7 @@
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Service</label>
-                                        <select name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" 
+                                        <select name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML"
                                                 x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" 
                                                 class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                             <option value="">Select a service...</option>
@@ -60,10 +60,18 @@
                                         <label class="block text-sm font-medium text-gray-700">Stylist</label>
                                         <select id="stylist_id" name="stylist_id" required 
                                                 x-data="{ tom: null }" 
-                                                x-init="tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})"
-                                                @htmx:after-swap.window="if ($event.detail.target.id === 'stylist_id') { tom.sync(); tom.clear(); }"
+                                                x-init="if (!$el.tomselect) { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
+                                                @htmx:before-swap.window="if ($event.detail.target.id === 'stylist_id' && tom) { tom.destroy(); tom = null; }"
+                                                @htmx:after-swap.window="if ($event.detail.target.id === 'stylist_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
                                                 class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                             <option value="">Select a service first...</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700">Booking Type</label>
+                                        <select name="booking_type" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                            <option value="In Salon">In Salon</option>
+                                            <option value="Home Visit">Home Visit</option>
                                         </select>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -73,7 +81,14 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700">Time</label>
-                                            <input type="time" name="time" required class="mt-1 focus:ring-salon-accent focus:border-salon-accent block w-full shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                                            <select name="time" required class="mt-1 focus:ring-salon-accent focus:border-salon-accent block w-full shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                                                <option value="">Select time...</option>
+                                                {% for hour in open_hour..close_hour %}
+                                                    {% for min in ['00', '15', '30', '45'] %}
+                                                        <option value="{{ '%02d'|format(hour) }}:{{ min }}">{{ '%02d'|format(hour) }}:{{ min }}</option>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">

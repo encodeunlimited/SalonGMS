@@ -5,17 +5,20 @@ namespace App\Web\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
+use App\Repositories\ServiceRepository;
 use App\Repositories\UserRepository;
 
 class EmployeeController
 {
     private Twig $view;
     private UserRepository $users;
+    private ServiceRepository $services;
 
-    public function __construct(Twig $view, UserRepository $users)
+    public function __construct(Twig $view, UserRepository $users, ServiceRepository $services)
     {
         $this->view = $view;
         $this->users = $users;
+        $this->services = $services;
     }
 
     public function index(Request $request, Response $response): Response
@@ -50,7 +53,13 @@ class EmployeeController
 
     public function create(Request $request, Response $response): Response
     {
-        return $this->view->render($response, 'employees/modal.twig');
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->services->setTenantId($tenantId);
+        $services = $this->services->getAll();
+
+        return $this->view->render($response, 'employees/modal.twig', [
+            'services' => $services
+        ]);
     }
 
     public function store(Request $request, Response $response): Response
@@ -83,7 +92,8 @@ class EmployeeController
             'password' => $data['password'],
             'role' => $data['role'],
             'commission_rate' => (float)$data['commission_rate'],
-            'profile_image' => $profileImagePath
+            'profile_image' => $profileImagePath,
+            'specialist_areas' => $data['specialist_areas'] ?? []
         ]);
 
         $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
@@ -104,6 +114,7 @@ class EmployeeController
     {
         $tenantId = $request->getAttribute('tenant_id');
         $this->users->setTenantId($tenantId);
+        $this->services->setTenantId($tenantId);
         
         $employeeId = (int) $args['id'];
         $employee = $this->users->getById($employeeId);
@@ -112,7 +123,12 @@ class EmployeeController
             return $response->withStatus(404);
         }
 
-        $html = $this->view->fetch('employees/modal.twig', ['employee' => $employee]);
+        $services = $this->services->getAll();
+
+        $html = $this->view->fetch('employees/modal.twig', [
+            'employee' => $employee,
+            'services' => $services
+        ]);
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html');
     }
@@ -130,7 +146,8 @@ class EmployeeController
             'name' => $data['name'],
             'email' => $data['email'],
             'role' => $data['role'],
-            'commission_rate' => (float)$data['commission_rate']
+            'commission_rate' => (float)$data['commission_rate'],
+            'specialist_areas' => $data['specialist_areas'] ?? []
         ];
         
         if (!empty($data['password'])) {

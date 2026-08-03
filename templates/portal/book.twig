@@ -31,8 +31,15 @@
 
             <div id="step3-container">
                 <div id="step3-inner">
-                    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Date & Time</h3>
-                    <div class="grid grid-cols-2 gap-4 mb-8">
+                    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div class="form-group">
+                            <label class="form-label" for="booking_type">Booking Type</label>
+                            <select id="booking_type" name="booking_type" class="form-input" required>
+                                <option value="In Salon">In Salon</option>
+                                <option value="Home Visit">Home Visit</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label class="form-label" for="date">Date</label>
                             <input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}">
@@ -56,7 +63,7 @@
     function selectService(serviceId) {
         document.getElementById('service_' + serviceId).checked = true;
         document.getElementById('step2-container').innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading specialists...</div>';
-        document.getElementById('step3-container').innerHTML = '<div id="step3-inner"><h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Date & Time</h3><div class="grid grid-cols-2 gap-4 mb-8"><div class="form-group"><label class="form-label" for="date">Date</label><input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}"></div><div class="form-group"><label class="form-label" for="time">Time</label><select id="time" name="time" class="form-input" required disabled><option value="">Select a specialist first</option></select></div></div></div>';
+        document.getElementById('step3-container').innerHTML = '<div id="step3-inner"><h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"><div class="form-group"><label class="form-label" for="booking_type">Booking Type</label><select id="booking_type" name="booking_type" class="form-input" required><option value="In Salon">In Salon</option><option value="Home Visit">Home Visit</option></select></div><div class="form-group"><label class="form-label" for="date">Date</label><input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}"></div><div class="form-group"><label class="form-label" for="time">Time</label><select id="time" name="time" class="form-input" required disabled><option value="">Select a specialist first</option></select></div></div></div>';
         
         fetch('/portal/book/employees?service_id=' + serviceId)
             .then(response => response.text())
@@ -74,15 +81,17 @@
         const serviceRadio = document.querySelector('input[name="service_id"]:checked');
         const employeeRadio = document.querySelector('input[name="employee_id"]:checked');
         const dateInput = document.getElementById('date');
+        const bookingTypeInput = document.getElementById('booking_type');
         
         if (serviceRadio && employeeRadio && dateInput) {
             const serviceId = serviceRadio.value;
             const employeeId = employeeRadio.value;
             const date = dateInput.value;
+            const bookingType = bookingTypeInput ? bookingTypeInput.value : 'In Salon';
             
             document.getElementById('step3-container').style.opacity = '0.5';
             
-            fetch('/portal/book/times?service_id=' + serviceId + '&employee_id=' + employeeId + '&date=' + date)
+            fetch('/portal/book/times?service_id=' + serviceId + '&employee_id=' + employeeId + '&date=' + date + '&booking_type=' + encodeURIComponent(bookingType))
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('step3-container').innerHTML = html;

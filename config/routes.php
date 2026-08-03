@@ -15,8 +15,11 @@ return function (App $app) {
     $app->get('/web/logout', \App\Web\Controllers\AuthController::class . ':logout'); // Fallback for simple links
     
     $app->group('/web', function (RouteCollectorProxy $group) {
-        // Dashboard
-        $group->get('/dashboard', \App\Web\Controllers\DashboardController::class . ':index');
+        $group->get('/dashboard', [\App\Web\Controllers\DashboardController::class, 'index']);
+        
+        // Settings
+        $group->get('/settings', [\App\Web\Controllers\SettingsController::class, 'index']);
+        $group->post('/settings', [\App\Web\Controllers\SettingsController::class, 'store']);
         
         // Appointments
         $group->get('/appointments', \App\Web\Controllers\AppointmentController::class . ':index');
@@ -50,9 +53,8 @@ return function (App $app) {
         $group->get('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':edit');
         $group->post('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':update');
         
-        // Profile & Settings
+        // Profile
         $group->get('/profile', \App\Web\Controllers\ProfileController::class . ':index');
-        $group->get('/settings', \App\Web\Controllers\SettingsController::class . ':index');
         
     })->add(\App\Middleware\WebSessionAuthMiddleware::class);
 

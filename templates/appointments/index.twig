@@ -123,7 +123,7 @@
     </div>
 
     <!-- Data Table View -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[600px]">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[600px]" id="appointments-list-container">
         <div class="p-6 border-b border-gray-100 flex-shrink-0">
             <h3 class="text-base font-bold text-gray-900">Upcoming</h3>
         </div>
@@ -141,6 +141,9 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="px-4 pb-4">
+            {% include "partials/pagination.twig" with {'hx_url': '/web/appointments', 'hx_target': '#appointments-list-container', 'hx_select': '#appointments-list-container'} %}
         </div>
     </div>
 </div>

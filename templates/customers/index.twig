@@ -71,6 +71,9 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="px-6 pb-4">
+            {% include "partials/pagination.twig" with {'hx_url': '/web/customers'} %}
+        </div>
     </div>
 </div>
 {% endblock %}

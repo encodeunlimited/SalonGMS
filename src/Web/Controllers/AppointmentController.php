@@ -55,7 +55,18 @@ class AppointmentController
         $this->settings->setTenantId($tenantId);
         $this->bookingTypes->setTenantId($tenantId);
 
-        $appointments = $this->appointments->getAllForTenant();
+        $params = $request->getQueryParams();
+        $options = [
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
+            'filters' => []
+        ];
+        
+        if (!empty($params['date'])) {
+            $options['filters']['date'] = $params['date'];
+        }
+
+        $paginated = $this->appointments->getPaginatedAppointments($options);
         $customersList = $this->customers->getAll();
         $servicesList = $this->services->getAll();
         $usersList = $this->users->getAll();
@@ -70,7 +81,8 @@ class AppointmentController
 
         return $this->view->render($response, 'appointments/index.twig', [
             'active_menu' => 'appointments',
-            'appointments' => $appointments,
+            'appointments' => $paginated['data'],
+            'pagination' => $paginated,
             'customers' => $customersList,
             'services' => $servicesList,
             'users' => $usersList,

@@ -37,7 +37,8 @@ class CustomerSessionAuthMiddleware
         $this->view->getEnvironment()->addGlobal('auth_customer', [
             'id' => $_SESSION['customer_id'],
             'name' => $_SESSION['customer_name'] ?? 'Customer',
-            'tenant_id' => $_SESSION['tenant_id']
+            'tenant_id' => $_SESSION['tenant_id'],
+            'profile_image' => $_SESSION['customer_profile_image'] ?? null
         ]);
 
         return $handler->handle($request);

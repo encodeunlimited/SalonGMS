@@ -28,15 +28,18 @@ class CustomerController
             'search' => $params['search'] ?? '',
             'sort' => $params['sort'] ?? 'id',
             'dir' => $params['dir'] ?? 'desc',
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
             'filters' => []
         ];
         
-        $customersList = $this->customers->getAll($options);
+        $paginated = $this->customers->getPaginated($options);
 
         return $this->view->render($response, 'customers/index.twig', [
             'title' => 'Customers',
             'active_menu' => 'customers',
-            'customers' => $customersList,
+            'customers' => $paginated['data'],
+            'pagination' => $paginated,
             'search' => $options['search'],
             'sort' => $options['sort'],
             'dir' => $options['dir']

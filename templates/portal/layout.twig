@@ -245,7 +245,16 @@
                 {% if auth_customer %}
                     <a href="/portal/dashboard">Dashboard</a>
                     <a href="/portal/book">Book Appointment</a>
-                    <a href="/portal/logout" class="nav-button" style="background-color: var(--bg-elevated); color: var(--text-main) !important; box-shadow: none;">Logout</a>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-left: 0.5rem; padding-left: 1rem; border-left: 1px solid var(--border-color);">
+                        {% if auth_customer.profile_image %}
+                            <img src="{{ auth_customer.profile_image }}" alt="Profile" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                        {% else %}
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--bg-elevated); color: var(--text-main); display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--primary);">
+                                {{ auth_customer.name|slice(0, 1)|default('C') }}
+                            </div>
+                        {% endif %}
+                        <a href="/portal/logout" class="nav-button" style="background-color: var(--bg-elevated); color: var(--text-main) !important; box-shadow: none; padding: 0.4rem 1rem;">Logout</a>
+                    </div>
                 {% else %}
                     <a href="/web/login">Staff Login</a>
                     <a href="/portal/login">Sign In</a>

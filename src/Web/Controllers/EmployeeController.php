@@ -31,6 +31,8 @@ class EmployeeController
             'search' => $params['search'] ?? '',
             'sort' => $params['sort'] ?? 'id',
             'dir' => $params['dir'] ?? 'desc',
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
             'filters' => []
         ];
         
@@ -38,12 +40,13 @@ class EmployeeController
             $options['filters']['role'] = $params['role'];
         }
         
-        $employeesList = $this->users->getAll($options);
+        $paginated = $this->users->getPaginated($options);
 
         return $this->view->render($response, 'employees/index.twig', [
             'title' => 'Employees',
             'active_menu' => 'employees',
-            'employees' => $employeesList,
+            'employees' => $paginated['data'],
+            'pagination' => $paginated,
             'search' => $options['search'],
             'sort' => $options['sort'],
             'dir' => $options['dir'],

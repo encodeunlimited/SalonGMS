@@ -53,6 +53,7 @@ class AuthController
             $_SESSION['customer_id'] = $customer['id'];
             $_SESSION['tenant_id'] = $customer['tenant_id'];
             $_SESSION['customer_name'] = $customer['name'];
+            $_SESSION['customer_profile_image'] = $customer['profile_image'] ?? null;
 
             // Since it's HTMX, we can redirect client-side via HX-Redirect
             return $response->withHeader('HX-Redirect', '/portal/dashboard')->withStatus(200);
@@ -120,6 +121,7 @@ class AuthController
             $_SESSION['customer_id'] = $customer['id'];
             $_SESSION['tenant_id'] = $customer['tenant_id'];
             $_SESSION['customer_name'] = $customer['name'];
+            $_SESSION['customer_profile_image'] = $customer['profile_image'] ?? null;
 
             return $response->withHeader('HX-Redirect', '/portal/dashboard')->withStatus(200);
 

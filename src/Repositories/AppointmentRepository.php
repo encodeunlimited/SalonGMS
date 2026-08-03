@@ -25,6 +25,57 @@ class AppointmentRepository extends BaseRepository
         return $stmt->fetchAll();
     }
 
+    public function getPaginatedAppointments(array $options = []): array
+    {
+        $baseSql = "FROM {$this->table} a
+            LEFT JOIN customers c ON a.customer_id = c.id
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.tenant_id = :tenant_id";
+        
+        $params = ['tenant_id' => $this->getTenantId()];
+
+        // Filter by date if needed
+        if (!empty($options['filters']['date'])) {
+            $baseSql .= " AND a.apt_date = :date";
+            $params['date'] = $options['filters']['date'];
+        }
+
+        $countSql = "SELECT COUNT(*) " . $baseSql;
+        $countStmt = $this->db->prepare($countSql);
+        $countStmt->execute($params);
+        $total = (int)$countStmt->fetchColumn();
+
+        $page = (int)($options['page'] ?? 1);
+        if ($page < 1) $page = 1;
+        $limit = (int)($options['limit'] ?? 10);
+        if ($limit < 1) $limit = 10;
+        
+        $offset = ($page - 1) * $limit;
+        $totalPages = ceil($total / $limit);
+
+        $dataSql = "SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
+                   c.profile_image as customer_image,
+                   u.profile_image as stylist_image " 
+                   . $baseSql . 
+                   " ORDER BY a.apt_date DESC, a.apt_time DESC LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($dataSql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue(":$key", $val);
+        }
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return [
+            'data' => $stmt->fetchAll(),
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => (int)$totalPages
+        ];
+    }
+
     public function getByDateAndStylist(string $date, string $stylist): array
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = :tenant_id AND apt_date = :date AND stylist = :stylist");

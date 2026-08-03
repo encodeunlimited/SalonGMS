@@ -48,6 +48,7 @@ class AuthController
             $_SESSION['tenant_id'] = $user['tenant_id'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['name'] = $user['name'];
+            $_SESSION['profile_image'] = $user['profile_image'] ?? null;
 
             // Since it's HTMX, we can redirect client-side via HX-Redirect
             return $response->withHeader('HX-Redirect', '/web/dashboard')->withStatus(200);

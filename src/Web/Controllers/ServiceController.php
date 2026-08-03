@@ -30,15 +30,18 @@ class ServiceController
             'search' => $params['search'] ?? '',
             'sort' => $params['sort'] ?? 'id',
             'dir' => $params['dir'] ?? 'desc',
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
             'filters' => []
         ];
         
-        $servicesList = $this->services->getAll($options);
+        $paginated = $this->services->getPaginated($options);
 
         return $this->view->render($response, 'services/index.twig', [
             'title' => 'Services',
             'active_menu' => 'services',
-            'services' => $servicesList,
+            'services' => $paginated['data'],
+            'pagination' => $paginated,
             'search' => $options['search'],
             'sort' => $options['sort'],
             'dir' => $options['dir']

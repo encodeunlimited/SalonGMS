@@ -1,0 +1,16 @@
+<li class="p-3 flex items-center justify-between" id="{{ type }}-{{ item.id }}">
+    <div class="flex-1" x-data="{ editing: false, newName: '{{ item.name|escape('js') }}' }">
+        <div x-show="!editing" class="flex items-center justify-between">
+            <span class="text-sm text-gray-900">{{ item.name }}</span>
+            <div class="flex items-center space-x-3">
+                <button type="button" @click="editing = true" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Edit</button>
+                <button type="button" hx-delete="/web/settings/{{ path|default(type ~ '-types') }}/{{ item.id }}" hx-target="#{{ type }}-{{ item.id }}" hx-swap="outerHTML" class="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>
+            </div>
+        </div>
+        <div x-show="editing" class="flex gap-2 mr-4" style="display: none;">
+            <input type="text" name="name" x-model="newName" class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-1 px-2 border" @keydown.enter.prevent="$refs.saveBtn.click()">
+            <button type="button" x-ref="saveBtn" hx-put="/web/settings/{{ path|default(type ~ '-types') }}/{{ item.id }}" hx-target="#{{ type }}-{{ item.id }}" hx-swap="outerHTML" hx-include="previous input" class="text-sm text-green-600 hover:text-green-900 font-medium">Save</button>
+            <button type="button" @click="editing = false; newName = '{{ item.name|escape('js') }}'" class="text-sm text-gray-500 hover:text-gray-700 font-medium">Cancel</button>
+        </div>
+    </div>
+</li>

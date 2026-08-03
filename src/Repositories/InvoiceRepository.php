@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use PDO;
+
 class InvoiceRepository extends BaseRepository
 {
     protected string $table = 'invoices';
@@ -25,5 +27,12 @@ class InvoiceRepository extends BaseRepository
         $stmt->execute($insertData);
         $insertData['id'] = $this->db->lastInsertId();
         return $insertData;
+    }
+
+    public function getDistinctPaymentMethods(): array
+    {
+        $stmt = $this->db->prepare("SELECT DISTINCT payment_method FROM {$this->table} WHERE tenant_id = :tenant_id AND payment_method IS NOT NULL AND payment_method != ''");
+        $stmt->execute(['tenant_id' => $this->getTenantId()]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
     }
 }

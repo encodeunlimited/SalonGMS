@@ -38,6 +38,11 @@
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                         Service Name {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
+                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/services?sort=category&dir={{ sort == 'category' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
+                        Category {% if sort == 'category' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
                     <th class="px-6 py-4 font-medium">Description</th>
                     <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/services?sort=duration_minutes&dir={{ sort == 'duration_minutes' and dir == 'asc' ? 'desc' : 'asc' }}"

@@ -9,6 +9,7 @@ use App\Repositories\ServiceRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\TenantSettingRepository;
+use App\Repositories\BookingTypeRepository;
 
 class BookingController
 {
@@ -17,33 +18,50 @@ class BookingController
     private AppointmentRepository $appointmentRepo;
     private UserRepository $userRepo;
     private TenantSettingRepository $settings;
+    private BookingTypeRepository $bookingTypeRepo;
 
     public function __construct(
         Twig $view, 
         ServiceRepository $serviceRepo, 
         AppointmentRepository $appointmentRepo, 
         UserRepository $userRepo,
-        TenantSettingRepository $settings
+        TenantSettingRepository $settings,
+        BookingTypeRepository $bookingTypeRepo
     ) {
         $this->view = $view;
         $this->serviceRepo = $serviceRepo;
         $this->appointmentRepo = $appointmentRepo;
         $this->userRepo = $userRepo;
         $this->settings = $settings;
+        $this->bookingTypeRepo = $bookingTypeRepo;
     }
 
     public function step1(Request $request, Response $response): Response
     {
         $tenantId = $request->getAttribute('tenant_id', 1);
         $this->serviceRepo->setTenantId($tenantId);
+        $this->bookingTypeRepo->setTenantId($tenantId);
         
-        $services = $this->serviceRepo->getAll();
+        $servicesRaw = $this->serviceRepo->getAll();
+        
+        $servicesByCategory = [];
+        foreach ($servicesRaw as $service) {
+            $cat = $service['category'] ?: 'Uncategorized';
+            if (!isset($servicesByCategory[$cat])) {
+                $servicesByCategory[$cat] = [];
+            }
+            $servicesByCategory[$cat][] = $service;
+        }
+        
+        $bookingTypesRaw = $this->bookingTypeRepo->getAll();
+        $bookingTypes = array_column($bookingTypesRaw, 'name');
         
         $queryParams = $request->getQueryParams();
         $selectedServiceId = isset($queryParams['service_id']) ? (int)$queryParams['service_id'] : null;
 
         return $this->view->render($response, 'portal/book.twig', [
-            'services' => $services,
+            'services_by_category' => $servicesByCategory,
+            'booking_types' => $bookingTypes,
             'selected_service_id' => $selectedServiceId
         ]);
     }
@@ -126,10 +144,15 @@ class BookingController
 
         $bookingType = $queryParams['booking_type'] ?? 'In Salon';
 
+        $this->bookingTypeRepo->setTenantId($tenantId);
+        $bookingTypesRaw = $this->bookingTypeRepo->getAll();
+        $bookingTypes = array_column($bookingTypesRaw, 'name');
+
         return $this->view->render($response, 'portal/partials/booking_times.twig', [
             'times' => $availableTimes,
             'date' => $date,
-            'booking_type' => $bookingType
+            'booking_type' => $bookingType,
+            'booking_types' => $bookingTypes
         ]);
     }
 

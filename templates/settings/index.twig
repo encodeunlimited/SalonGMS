@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <div class="mt-6">
+                <div class="mt-6 mb-8">
                     <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-salon-dark py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-salon-navy focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">
                         Save Settings
                         <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -42,6 +42,60 @@
                     </button>
                 </div>
             </form>
+
+            <hr class="my-6 border-gray-200">
+            
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Booking Types</h3>
+            <div class="mb-8">
+                <form hx-post="/web/settings/booking-types" hx-target="#booking-types-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newBookingInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
+                    <input type="text" name="name" x-ref="newBookingInput" placeholder="Add new booking type" required class="flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                </form>
+                
+                <ul id="booking-types-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                    {% for item in bookingTypes %}
+                        {% include 'settings/type_item.twig' with {'item': item, 'type': 'booking'} %}
+                    {% else %}
+                        <li class="p-3 text-sm text-gray-500 text-center">No booking types added yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <hr class="my-6 border-gray-200">
+            
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Payment Types</h3>
+            <div class="mb-8">
+                <form hx-post="/web/settings/payment-types" hx-target="#payment-types-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newPaymentInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
+                    <input type="text" name="name" x-ref="newPaymentInput" placeholder="Add new payment type" required class="flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                </form>
+                
+                <ul id="payment-types-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                    {% for item in paymentTypes %}
+                        {% include 'settings/type_item.twig' with {'item': item, 'type': 'payment'} %}
+                    {% else %}
+                        <li class="p-3 text-sm text-gray-500 text-center">No payment types added yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <hr class="my-6 border-gray-200">
+            
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Service Categories</h3>
+            <div class="mb-8">
+                <form hx-post="/web/settings/service-categories" hx-target="#service-categories-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newServiceCategoryInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
+                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                </form>
+                
+                <ul id="service-categories-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                    {% for item in serviceCategories %}
+                        {% include 'settings/type_item.twig' with {'item': item, 'type': 'service-categories', 'path': 'service-categories'} %}
+                    {% else %}
+                        <li class="p-3 text-sm text-gray-500 text-center">No service categories added yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 </div>

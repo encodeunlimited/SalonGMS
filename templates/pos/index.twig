@@ -17,18 +17,25 @@
             <div class="p-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
                 <input type="text" placeholder="Search services..." class="w-full focus:ring-salon-accent focus:border-salon-accent block shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {% for service in services %}
-                    <div @click="addItem('{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group">
-                        <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            <div class="p-4 flex-1 overflow-y-auto space-y-6">
+                {% for category, services in services_by_category %}
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">{{ category }}</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {% for service in services %}
+                        <div @click="addItem('{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group">
+                            <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </div>
+                            <h4 class="font-medium text-gray-900 text-sm">{{ service.name }}</h4>
+                            <p class="text-salon-accent font-bold mt-1">${{ service.price|number_format(2) }}</p>
                         </div>
-                        <h4 class="font-medium text-gray-900 text-sm">{{ service.name }}</h4>
-                        <p class="text-salon-accent font-bold mt-1">${{ service.price|number_format(2) }}</p>
+                        {% endfor %}
                     </div>
-                    {% else %}
-                        <!-- Fallback mock services if DB is empty -->
+                </div>
+                {% else %}
+                    <!-- Fallback mock services if DB is empty -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <div @click="addItem('Haircut', 45.00)" class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group">
                             <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">✂️</div>
                             <h4 class="font-medium text-gray-900 text-sm">Haircut</h4>
@@ -39,8 +46,8 @@
                             <h4 class="font-medium text-gray-900 text-sm">Coloring</h4>
                             <p class="text-salon-accent font-bold mt-1">$120.00</p>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -95,9 +102,9 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                     <select name="payment_method" x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
-                        <option value="credit_card">Credit Card</option>
-                        <option value="cash">Cash</option>
-                        <option value="bank_transfer">Bank Transfer</option>
+                        {% for ptype in payment_types %}
+                            <option value="{{ ptype }}">{{ ptype }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 

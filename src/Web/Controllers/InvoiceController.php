@@ -7,6 +7,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Services\InvoiceService;
 use App\Repositories\ServiceRepository;
+use App\Repositories\TenantSettingRepository;
+use App\Repositories\PaymentTypeRepository;
 use Exception;
 
 class InvoiceController
@@ -14,25 +16,44 @@ class InvoiceController
     private Twig $view;
     private InvoiceService $invoiceService;
     private ServiceRepository $serviceRepo;
+    private TenantSettingRepository $settingsRepo;
+    private PaymentTypeRepository $paymentTypeRepo;
 
-    public function __construct(Twig $view, InvoiceService $invoiceService, ServiceRepository $serviceRepo)
+    public function __construct(Twig $view, InvoiceService $invoiceService, ServiceRepository $serviceRepo, TenantSettingRepository $settingsRepo, PaymentTypeRepository $paymentTypeRepo)
     {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
         $this->serviceRepo = $serviceRepo;
+        $this->settingsRepo = $settingsRepo;
+        $this->paymentTypeRepo = $paymentTypeRepo;
     }
 
     public function pos(Request $request, Response $response): Response
     {
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->serviceRepo->setTenantId($tenantId);
+        $this->settingsRepo->setTenantId($tenantId);
+        $this->paymentTypeRepo->setTenantId($tenantId);
         
-        $services = $this->serviceRepo->getAll();
+        $servicesRaw = $this->serviceRepo->getAll();
+        
+        $servicesByCategory = [];
+        foreach ($servicesRaw as $service) {
+            $cat = $service['category'] ?: 'Uncategorized';
+            if (!isset($servicesByCategory[$cat])) {
+                $servicesByCategory[$cat] = [];
+            }
+            $servicesByCategory[$cat][] = $service;
+        }
+        
+        $paymentTypesRaw = $this->paymentTypeRepo->getAll();
+        $paymentTypes = array_column($paymentTypesRaw, 'name');
 
         return $this->view->render($response, 'pos/index.twig', [
             'title' => 'Point of Sale',
             'active_menu' => 'pos',
-            'services' => $services
+            'services_by_category' => $servicesByCategory,
+            'payment_types' => $paymentTypes
         ]);
     }
 

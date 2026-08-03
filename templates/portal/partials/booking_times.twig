@@ -1,29 +1,45 @@
 <div id="step3-inner">
-    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="form-group">
-            <label class="form-label" for="booking_type">Booking Type</label>
-            <select id="booking_type" name="booking_type" class="form-input" required>
-                <option value="In Salon" {% if booking_type == 'In Salon' %}selected{% endif %}>In Salon</option>
-                <option value="Home Visit" {% if booking_type == 'Home Visit' %}selected{% endif %}>Home Visit</option>
-            </select>
+    <h3 style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3>
+    
+    <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 500; margin-bottom: 0.75rem; color: var(--text-muted);">Booking Type</label>
+        <div class="grid grid-cols-2 gap-4" id="booking_type_container">
+            {% for type in booking_types|default(['In Salon', 'Home Visit']) %}
+            <label class="card type-card" style="padding: 0.75rem; cursor: pointer; border-width: 2px; text-align: center; margin: 0; border-color: var(--border-color);">
+                <input type="radio" name="booking_type" value="{{ type }}" required style="position: absolute; opacity: 0; pointer-events: none;"
+                       {% if (booking_type|default('In Salon')) == type %}checked{% endif %} onchange="loadTimes()">
+                <div style="font-weight: 600;">{{ type }}</div>
+            </label>
+            {% endfor %}
         </div>
-        <div class="form-group">
-            <label class="form-label" for="date">Date</label>
-            <input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ date }}"
-                   hx-get="/portal/book/times" hx-target="#step3-container" hx-include="[name='service_id'], [name='employee_id'], #date, #booking_type">
-        </div>
-        <div class="form-group" id="time-dropdown-container">
-            <label class="form-label" for="time">Time</label>
-            <select id="time" name="time" class="form-input" required>
-                <option value="">Select a time</option>
-                {% for t in times %}
-                    <option value="{{ t }}">{{ t }}</option>
-                {% endfor %}
-            </select>
-            {% if times|length == 0 %}
-                <p style="font-size: 0.8rem; color: #dc2626; margin-top: 0.5rem;">No available slots on this date.</p>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 500; margin-bottom: 0.75rem; color: var(--text-muted);" for="date">Select Date</label>
+        <input type="date" id="date" name="date" class="form-input" style="cursor: pointer; max-width: 100%;" required min="{{ 'now'|date('Y-m-d') }}" value="{{ date }}">
+    </div>
+
+    <div style="margin-bottom: 1.5rem;" id="time-dropdown-container">
+        <label style="display: block; font-weight: 500; margin-bottom: 0.75rem; color: var(--text-muted);" for="time">Select Time</label>
+        
+        {% if times is defined %}
+            {% if times|length > 0 %}
+                <select id="time" name="time" class="form-input" required>
+                    <option value="">Select a time</option>
+                    {% for t in times %}
+                        <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <select id="time" name="time" class="form-input" required disabled>
+                    <option value="">No slots available</option>
+                </select>
+                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">No available slots on this date.</div>
             {% endif %}
-        </div>
+        {% else %}
+            <select id="time" name="time" class="form-input" required disabled>
+                <option value="">Select a specialist first</option>
+            </select>
+        {% endif %}
     </div>
 </div>

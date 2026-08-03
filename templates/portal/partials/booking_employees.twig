@@ -3,7 +3,7 @@
 <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
     {% for employee in employees %}
     <label class="card" style="flex: 0 1 180px; padding: 1rem; cursor: pointer; border-width: 2px; position: relative; display: flex; flex-direction: column; align-items: center; border-color: var(--border-color); text-align: center;"
-           onclick="selectEmployee({{ employee.id }})">
+           onclick="selectEmployee({{ employee.id }}, '{{ employee.name|escape('js') }}')">
         <input type="radio" id="employee_{{ employee.id }}" name="employee_id" value="{{ employee.id }}" required style="position: absolute; opacity: 0; pointer-events: none;">
         
         {% if employee.profile_image %}

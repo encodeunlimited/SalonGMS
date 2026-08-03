@@ -51,10 +51,11 @@ try {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tenant_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NULL,
         description TEXT,
         images TEXT,
-        base_duration_minutes INTEGER NOT NULL,
-        base_price DECIMAL(10,2) NOT NULL,
+        duration_minutes INTEGER NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
     );
 
@@ -67,6 +68,22 @@ try {
         avg_cost DECIMAL(10,2) DEFAULT 0.00,
         price DECIMAL(10,2) NOT NULL,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS booking_types (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (tenant_id, name)
+    );
+
+    CREATE TABLE IF NOT EXISTS service_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (tenant_id, name)
     );
 
     CREATE TABLE IF NOT EXISTS appointments (

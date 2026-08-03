@@ -11,11 +11,13 @@ class ServiceController
 {
     private Twig $view;
     private ServiceRepository $services;
+    private \App\Repositories\ServiceCategoryRepository $serviceCategoryRepo;
 
-    public function __construct(Twig $view, ServiceRepository $services)
+    public function __construct(Twig $view, ServiceRepository $services, \App\Repositories\ServiceCategoryRepository $serviceCategoryRepo)
     {
         $this->view = $view;
         $this->services = $services;
+        $this->serviceCategoryRepo = $serviceCategoryRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -45,7 +47,13 @@ class ServiceController
 
     public function create(Request $request, Response $response): Response
     {
-        return $this->view->render($response, 'services/modal.twig');
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->serviceCategoryRepo->setTenantId($tenantId);
+        $categories = $this->serviceCategoryRepo->getAll();
+
+        return $this->view->render($response, 'services/modal.twig', [
+            'categories' => $categories
+        ]);
     }
 
     public function store(Request $request, Response $response): Response
@@ -60,6 +68,7 @@ class ServiceController
 
         $service = $this->services->create([
             'name' => $data['name'],
+            'category' => $data['category'] ?? null,
             'description' => $data['description'],
             'images' => $imagePaths,
             'duration_minutes' => (int)$data['duration_minutes'],
@@ -109,7 +118,13 @@ class ServiceController
             return $response->withStatus(404);
         }
 
-        $html = $this->view->fetch('services/modal.twig', ['service' => $service]);
+        $this->serviceCategoryRepo->setTenantId($tenantId);
+        $categories = $this->serviceCategoryRepo->getAll();
+
+        $html = $this->view->fetch('services/modal.twig', [
+            'service' => $service,
+            'categories' => $categories
+        ]);
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html');
     }
@@ -125,6 +140,7 @@ class ServiceController
         
         $updateData = [
             'name' => $data['name'],
+            'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'duration_minutes' => (int)$data['duration_minutes'],
             'price' => (float)$data['price']

@@ -37,6 +37,16 @@ return function (ContainerBuilder $containerBuilder) {
             ]);
         },
 
+        \App\Repositories\BookingTypeRepository::class => function (ContainerInterface $c) {
+            return new \App\Repositories\BookingTypeRepository($c->get(PDO::class));
+        },
+        \App\Repositories\PaymentTypeRepository::class => function (ContainerInterface $c) {
+            return new \App\Repositories\PaymentTypeRepository($c->get(PDO::class));
+        },
+        \App\Repositories\ServiceCategoryRepository::class => function (ContainerInterface $c) {
+            return new \App\Repositories\ServiceCategoryRepository($c->get(PDO::class));
+        },
+
         Twig::class => function (ContainerInterface $c) {
             return Twig::create(__DIR__ . '/../templates', ['cache' => false]);
         },

@@ -23,6 +23,24 @@ try {
     
     $pdo->exec("USE `$dbname`");
     
+    // Create booking_types table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS booking_types (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tenant_id INT NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY tenant_name (tenant_id, name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // Create service_categories table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS service_categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tenant_id INT NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY tenant_name (tenant_id, name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
     // Core Schema
     $schema = "
     CREATE TABLE IF NOT EXISTS tenants (
@@ -59,10 +77,11 @@ try {
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         tenant_id BIGINT NOT NULL,
         name VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NULL,
         description TEXT,
         images JSON NULL,
-        base_duration_minutes INT NOT NULL,
-        base_price DECIMAL(10,2) NOT NULL,
+        duration_minutes INT NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
     );
 

@@ -1,5 +1,55 @@
 {% extends 'portal/layout.twig' %}
 
+{% block head %}
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  corePlugins: { preflight: false },
+  theme: {
+    extend: {
+      colors: {
+        "secondary": "#bec7db", "primary": "#f2ca50", "tertiary-fixed": "#d9e3f9", "tertiary-fixed-dim": "#bdc7dc",
+        "inverse-surface": "#dae2fd", "on-error-container": "#ffdad6", "outline-variant": "#4d4635",
+        "surface-bright": "#31394d", "background": "#0b1326", "outline": "#99907c", "secondary-fixed": "#dae3f7",
+        "on-secondary-container": "#acb5c9", "tertiary": "#c4cee4", "on-primary-fixed-variant": "#574500",
+        "inverse-on-surface": "#283044", "surface": "#0b1326", "on-secondary-fixed": "#131c2a",
+        "on-surface-variant": "#d0c5af", "surface-container-highest": "#2d3449", "secondary-container": "#3e4758",
+        "on-background": "#dae2fd", "secondary-fixed-dim": "#bec7db", "on-error": "#690005",
+        "on-secondary-fixed-variant": "#3e4758", "on-primary": "#3c2f00", "on-tertiary-fixed": "#121c2c",
+        "on-tertiary": "#273141", "error-container": "#93000a", "primary-fixed": "#ffe088", "primary-fixed-dim": "#e9c349",
+        "inverse-primary": "#735c00", "surface-dim": "#0b1326", "tertiary-container": "#a9b3c8",
+        "on-primary-container": "#554300", "surface-container-high": "#222a3d", "on-secondary": "#283140",
+        "on-tertiary-container": "#3b4557", "on-primary-fixed": "#241a00", "surface-container": "#171f33",
+        "on-tertiary-fixed-variant": "#3d4759", "on-surface": "#dae2fd", "error": "#ffb4ab", "primary-container": "#d4af37",
+        "surface-tint": "#e9c349", "surface-container-lowest": "#060e20", "surface-container-low": "#131b2e", "surface-variant": "#2d3449"
+      },
+      fontFamily: {
+        "headline-md": ["Montserrat"], "headline-lg-mobile": ["Montserrat"], "body-md": ["Inter"],
+        "body-lg": ["Inter"], "headline-lg": ["Montserrat"], "label-sm": ["Inter"], "headline-xl": ["Montserrat"], "label-md": ["Inter"]
+      },
+      fontSize: {
+        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+        "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+      }
+    }
+  }
+}
+</script>
+<style>
+.card-hover-border { transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+.card-hover-border:hover { border-color: rgba(212, 175, 55, 0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
 <div class="hero-section animate-fade-in" style="
@@ -51,72 +101,103 @@
 </div>
 
 <!-- Services Section -->
-<div class="animate-fade-in" style="animation-delay: 0.1s; margin-bottom: 4rem;">
-    <h2 class="text-center" style="font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem;">Our Services</h2>
-    <div class="grid grid-cols-2 gap-4">
-        {% if services and services|length > 0 %}
-            {% for service in services %}
-            <div class="card glass" style="padding: 0; border-color: var(--border-color); display: flex; flex-direction: column; overflow: hidden;">
-                <!-- Image Slider -->
-                {% if service.images and service.images|length > 0 %}
-                    <div x-data="{ activeSlide: 0, slides: {{ service.images|length }} }" 
-                         x-init="if(slides > 1) { setInterval(() => activeSlide = activeSlide === slides - 1 ? 0 : activeSlide + 1, 3500) }"
-                         class="w-full overflow-hidden" style="height: 200px; position: relative; background-color: var(--bg-elevated); flex-shrink: 0;">
-                        
-                        {% for img in service.images %}
-                            <div x-show="activeSlide === {{ loop.index0 }}"
-                                 x-transition:enter="transition ease-in-out duration-500"
-                                 x-transition:enter-start="opacity-0"
-                                 x-transition:enter-end="opacity-100"
-                                 x-transition:leave="transition ease-in-out duration-500"
-                                 x-transition:leave-start="opacity-100"
-                                 x-transition:leave-end="opacity-0"
-                                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                                <img src="{{ img }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ service.name }}">
-                            </div>
+<div class="animate-fade-in" style="animation-delay: 0.1s; margin-bottom: 4rem;" x-data="{ activeCategory: '{{ services_by_category|keys|first }}', searchQuery: '' }">
+    
+    <!-- Hero & Search Section -->
+    <section class="w-full flex flex-col items-center justify-center py-12 rounded-xl relative overflow-hidden mb-12" style="min-height: 300px;">
+        <div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15) 0%, rgba(11, 19, 38, 1) 70%);"></div>
+        <div class="absolute inset-0 z-0 opacity-5 pointer-events-none bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAtVtJYwKkHBsmUp4C5eLVFMpCYpoaV2vjQtq7YrvNXhqSkjB3KCQd1obEZU76kjf_sXGwGwsq85OmYHoqMcLmKT8JS8xn1Qz0-KRYZ_blMn8xCdFyhKzYtHRl_6W-qqo2Jr0_yNeMBvup8dXb6hHqD15gNK00MNUzif5hG1mYBwZ2uIOP1uqzqTE4a9awSjYuv-ViasgkTeW1rjRL3OINOF2B6_6gA_AujBAvtx1yakj1bU53y1UjMa22IolJIxsXIGc0'); filter: grayscale(100%) blur(4px);"></div>
+        <div class="relative z-10 w-full max-w-3xl flex flex-col items-center gap-6 text-center">
+            <h1 class="font-headline-xl text-headline-xl text-on-surface m-0">Explore Our Services</h1>
+            <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl m-0">
+                Discover a curated selection of premium treatments designed to elevate your style and rejuvenate your senses.
+            </p>
+            <!-- Search Bar -->
+            <div class="w-full max-w-2xl relative mt-4">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                <input class="w-full bg-surface-container rounded-full py-4 pl-12 pr-6 border border-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-on-surface font-body-lg transition-colors placeholder:text-on-surface-variant/50 shadow-[0_4px_24px_rgba(0,0,0,0.2)]" placeholder="Search for treatments, stylists, or categories..." type="text" x-model="searchQuery"/>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Layout (Sidebar + Grid) -->
+    <section class="flex flex-col md:flex-row gap-8 w-full">
+        <!-- Category Sidebar -->
+        <aside class="w-full md:w-64 flex-shrink-0">
+            <div class="sticky top-[104px] bg-surface-container rounded-xl border border-surface-variant overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+                <div class="p-4 border-b border-surface-variant bg-surface-container-high">
+                    <h3 class="font-headline-md text-[18px] text-on-surface m-0">Categories</h3>
+                </div>
+                <ul class="flex flex-col font-label-md text-label-md m-0 p-0" style="list-style-type: none;">
+                    {% for category, services in services_by_category %}
+                        <li>
+                            <button @click="activeCategory = '{{ category }}'; searchQuery = '';" 
+                                    class="w-full text-left px-6 py-4 flex items-center justify-between transition-colors border-l-2 cursor-pointer outline-none bg-transparent"
+                                    :class="activeCategory === '{{ category }}' ? 'bg-primary/10 text-primary border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface border-transparent'"
+                                    style="border-top: none; border-right: none; border-bottom: none;">
+                                {{ category }}
+                                <span x-show="activeCategory === '{{ category }}'" class="material-symbols-outlined text-[16px]">chevron_right</span>
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Services Grid Canvas -->
+        <div class="flex-grow">
+            {% for category, services in services_by_category %}
+                <div x-show="activeCategory === '{{ category }}' || (searchQuery.length > 0 && Array.from($el.querySelectorAll('.service-card-item')).some(item => item.getAttribute('data-name').toLowerCase().includes(searchQuery.toLowerCase())))" x-transition>
+                    <div class="flex justify-between items-end mb-6 border-b border-surface-variant pb-4">
+                        <div>
+                            <h2 class="font-headline-lg text-headline-lg text-on-surface m-0">{{ category }} Treatments</h2>
+                            <p class="font-body-md text-body-md text-on-surface-variant mt-1 mb-0">Showing {{ services|length }} available services</p>
+                        </div>
+                        <!-- Filters/Sort Placeholder -->
+                        <button class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors bg-transparent border-none cursor-pointer outline-none">
+                            <span class="material-symbols-outlined">filter_list</span>
+                            Filter & Sort
+                        </button>
+                    </div>
+
+                    <!-- Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for service in services %}
+                            <article class="service-card-item bg-[#1A2332] rounded-xl border border-[#2D3748] p-4 md:p-6 flex flex-col gap-4 card-hover-border group cursor-pointer h-full justify-between"
+                                     data-name="{{ service.name }}"
+                                     x-show="searchQuery.length === 0 || '{{ service.name|lower }}'.includes(searchQuery.toLowerCase())">
+                                
+                                <div>
+                                    <!-- Service Image -->
+                                    <div class="w-full h-48 mb-5 overflow-hidden rounded-lg">
+                                        {# Using a curated unsplash beauty/salon image placeholder #}
+                                        <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&h=400&fit=crop" alt="{{ service.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out">
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h3 class="font-headline-md text-[20px] text-on-surface group-hover:text-primary transition-colors m-0">{{ service.name }}</h3>
+                                        <span class="font-headline-md text-[18px] text-primary m-0">${{ service.price|number_format(0) }}</span>
+                                    </div>
+                                    <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 m-0">
+                                        {{ service.description ?: 'A premium salon treatment designed to refresh and enhance your style.' }}
+                                    </p>
+                                </div>
+                                <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-variant">
+                                    <div class="flex items-center gap-4 text-on-surface-variant font-label-sm text-label-sm">
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> {{ service.duration_minutes }} Min</span>
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">person</span> Senior Stylist</span>
+                                    </div>
+                                    <a href="/portal/book?service_id={{ service.id }}" class="bg-primary-container text-on-primary-container font-label-md text-label-md px-4 py-2 rounded-lg hover:bg-primary-fixed-dim transition-colors scale-95 active:opacity-80 inline-block text-center border-none no-underline">
+                                        Book Now
+                                    </a>
+                                </div>
+                            </article>
                         {% endfor %}
-                        
-                        {% if service.images|length > 1 %}
-                        <!-- Navigation Dots -->
-                        <div class="absolute bottom-3 left-0 right-0 flex justify-center space-x-2 z-10">
-                            {% for img in service.images %}
-                                <button @click="activeSlide = {{ loop.index0 }}" 
-                                        class="w-2 h-2 rounded-full transition-colors"
-                                        :class="activeSlide === {{ loop.index0 }} ? 'bg-salon-accent' : 'bg-white/50 hover:bg-white'"></button>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <!-- Placeholder if no image -->
-                    <div style="width: 100%; height: 200px; background-color: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
-                        No Image Available
-                    </div>
-                {% endif %}
-                
-                <!-- Content -->
-                <div style="padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1;">
-                    <div style="flex-grow: 1;">
-                        <h3 style="font-weight: 600; font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--primary);">{{ service.name }}</h3>
-                        <p class="text-muted" style="font-size: 0.95rem; margin-bottom: 1rem;">{{ service.description }}</p>
-                    </div>
-                    
-                    <div style="margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <span style="font-size: 1.5rem; font-weight: 700; color: white;">${{ service.price }}</span>
-                            <span class="text-muted" style="font-size: 0.875rem;">⏱ {{ service.duration_minutes }} mins</span>
-                        </div>
-                        <a href="/portal/book?service_id={{ service.id }}" class="btn-primary" style="display: block; text-align: center; width: 100%;">Book Now</a>
                     </div>
                 </div>
-            </div>
             {% endfor %}
-        {% else %}
-            <div class="card glass text-center text-muted" style="grid-column: span 2; padding: 2rem;">
-                Check back soon for our updated service list!
-            </div>
-        {% endif %}
-    </div>
+        </div>
+    </section>
 </div>
 
 <!-- Features Section -->
@@ -141,6 +222,50 @@
         </div>
     </div>
 </div>
+
+<!-- Testimonials Section -->
+<div class="animate-fade-in" style="animation-delay: 0.3s; margin-bottom: 4rem;">
+    <h2 class="text-center" style="font-size: 2.5rem; font-weight: 700; margin-bottom: 3rem;">What Our Clients Say</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Testimonial 1 -->
+        <div class="card glass" style="padding: 2rem; display: flex; flex-direction: column;">
+            <div style="color: var(--primary); font-size: 1.25rem; margin-bottom: 1rem; letter-spacing: 2px;">★★★★★</div>
+            <p class="text-muted mb-6 flex-grow" style="font-style: italic; font-size: 1.05rem;">"Absolutely loved my experience! The staff is so friendly and my hair has never looked better. Highly recommend!"</p>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-top: auto;">
+                <div style="width: 45px; height: 45px; border-radius: 50%; background-color: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">S</div>
+                <div>
+                    <div style="font-weight: 600; color: white;">Sarah Jenkins</div>
+                    <div class="text-muted" style="font-size: 0.85rem;">Regular Client</div>
+                </div>
+            </div>
+        </div>
+        <!-- Testimonial 2 -->
+        <div class="card glass" style="padding: 2rem; display: flex; flex-direction: column;">
+            <div style="color: var(--primary); font-size: 1.25rem; margin-bottom: 1rem; letter-spacing: 2px;">★★★★★</div>
+            <p class="text-muted mb-6 flex-grow" style="font-style: italic; font-size: 1.05rem;">"The best salon in town. The attention to detail during my manicure was incredible. I will definitely be back."</p>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-top: auto;">
+                <div style="width: 45px; height: 45px; border-radius: 50%; background-color: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">M</div>
+                <div>
+                    <div style="font-weight: 600; color: white;">Maria Rodriguez</div>
+                    <div class="text-muted" style="font-size: 0.85rem;">First-time Visitor</div>
+                </div>
+            </div>
+        </div>
+        <!-- Testimonial 3 -->
+        <div class="card glass" style="padding: 2rem; display: flex; flex-direction: column;">
+            <div style="color: var(--primary); font-size: 1.25rem; margin-bottom: 1rem; letter-spacing: 2px;">★★★★★</div>
+            <p class="text-muted mb-6 flex-grow" style="font-style: italic; font-size: 1.05rem;">"Booking is so easy and the stylists are true professionals. The facial left my skin glowing for days!"</p>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-top: auto;">
+                <div style="width: 45px; height: 45px; border-radius: 50%; background-color: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">E</div>
+                <div>
+                    <div style="font-weight: 600; color: white;">Emily Chen</div>
+                    <div class="text-muted" style="font-size: 0.85rem;">Loyal Member</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Call to Action -->
 <div class="card glass animate-fade-in text-center" style="animation-delay: 0.4s; padding: 4rem 2rem; margin-bottom: 2rem; border-color: var(--primary);">

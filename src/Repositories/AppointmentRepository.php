@@ -63,4 +63,11 @@ class AppointmentRepository extends BaseRepository
         $insertData['id'] = $this->db->lastInsertId();
         return $insertData;
     }
+
+    public function getDistinctBookingTypes(): array
+    {
+        $stmt = $this->db->prepare("SELECT DISTINCT booking_type FROM {$this->table} WHERE tenant_id = :tenant_id AND booking_type IS NOT NULL AND booking_type != ''");
+        $stmt->execute(['tenant_id' => $this->getTenantId()]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+    }
 }

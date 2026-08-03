@@ -70,8 +70,9 @@
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Booking Type</label>
                                         <select name="booking_type" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
-                                            <option value="In Salon">In Salon</option>
-                                            <option value="Home Visit">Home Visit</option>
+                                            {% for btype in booking_types %}
+                                                <option value="{{ btype }}">{{ btype }}</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 mb-4">

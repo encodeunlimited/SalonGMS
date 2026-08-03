@@ -21,6 +21,18 @@ return function (App $app) {
         $group->get('/settings', [\App\Web\Controllers\SettingsController::class, 'index']);
         $group->post('/settings', [\App\Web\Controllers\SettingsController::class, 'store']);
         
+        $group->post('/settings/booking-types', [\App\Web\Controllers\SettingsController::class, 'storeBookingType']);
+        $group->put('/settings/booking-types/{id}', [\App\Web\Controllers\SettingsController::class, 'updateBookingType']);
+        $group->delete('/settings/booking-types/{id}', [\App\Web\Controllers\SettingsController::class, 'deleteBookingType']);
+
+        $group->post('/settings/payment-types', [\App\Web\Controllers\SettingsController::class, 'storePaymentType']);
+        $group->put('/settings/payment-types/{id}', [\App\Web\Controllers\SettingsController::class, 'updatePaymentType']);
+        $group->delete('/settings/payment-types/{id}', [\App\Web\Controllers\SettingsController::class, 'deletePaymentType']);
+
+        $group->post('/settings/service-categories', [\App\Web\Controllers\SettingsController::class, 'storeServiceCategory']);
+        $group->put('/settings/service-categories/{id}', [\App\Web\Controllers\SettingsController::class, 'updateServiceCategory']);
+        $group->delete('/settings/service-categories/{id}', [\App\Web\Controllers\SettingsController::class, 'deleteServiceCategory']);
+        
         // Appointments
         $group->get('/appointments', \App\Web\Controllers\AppointmentController::class . ':index');
         $group->get('/appointments/stylists', \App\Web\Controllers\AppointmentController::class . ':getStylistsForService');
@@ -84,10 +96,19 @@ return function (App $app) {
         
         // Use tenant ID 1 for public portal by default
         $serviceRepo->setTenantId(1);
-        $services = $serviceRepo->getAll();
+        $servicesRaw = $serviceRepo->getAll();
+
+        $servicesByCategory = [];
+        foreach ($servicesRaw as $service) {
+            $cat = $service['category'] ?: 'Uncategorized';
+            if (!isset($servicesByCategory[$cat])) {
+                $servicesByCategory[$cat] = [];
+            }
+            $servicesByCategory[$cat][] = $service;
+        }
         
         return $view->render($response, 'portal/home.twig', [
-            'services' => $services
+            'services_by_category' => $servicesByCategory
         ]);
     });
 

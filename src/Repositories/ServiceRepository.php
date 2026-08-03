@@ -32,8 +32,8 @@ class ServiceRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, name, description, images, duration_minutes, price)
-            VALUES (:tenant_id, :name, :description, :images, :duration_minutes, :price)
+            INSERT INTO {$this->table} (tenant_id, name, category, description, images, duration_minutes, price)
+            VALUES (:tenant_id, :name, :category, :description, :images, :duration_minutes, :price)
         ");
         
         $imagesJson = null;
@@ -44,6 +44,7 @@ class ServiceRepository extends BaseRepository
         $insertData = [
             'tenant_id' => $this->getTenantId(),
             'name' => $data['name'],
+            'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'images' => $imagesJson,
             'duration_minutes' => $data['duration_minutes'] ?? 30,

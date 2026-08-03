@@ -42,9 +42,45 @@
                             <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">{% if service.id %}Edit Service{% else %}Add New Service{% endif %}</h3>
                             
                             <div class="mt-4 space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Service Name</label>
-                                    <input type="text" name="name" value="{{ service.name }}" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Service Name</label>
+                                        <input type="text" name="name" value="{{ service.name }}" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                    </div>
+                                    <div x-data="{ 
+                                        open: false, 
+                                        search: '{{ service.category|escape('js') }}', 
+                                        options: [
+                                            {% for cat in categories %}
+                                                '{{ cat.name|escape('js') }}'{% if not loop.last %},{% endif %}
+                                            {% endfor %}
+                                        ],
+                                        get filteredOptions() {
+                                            if (this.search === '') return this.options;
+                                            return this.options.filter(i => i.toLowerCase().includes(this.search.toLowerCase()));
+                                        },
+                                        selectOption(option) {
+                                            this.search = option;
+                                            this.open = false;
+                                        }
+                                    }" class="relative">
+                                        <label class="block text-sm font-medium text-gray-700">Category</label>
+                                        <div class="relative mt-1">
+                                            <input type="text" name="category" x-model="search" @focus="open = true" @click.away="open = false" autocomplete="off" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm" placeholder="e.g. Hair, Massage">
+                                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
+                                        <div x-show="open && filteredOptions.length > 0" 
+                                             class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg max-h-60 overflow-auto border border-gray-200" 
+                                             style="display: none;">
+                                            <ul class="py-1 text-sm text-gray-700">
+                                                <template x-for="option in filteredOptions" :key="option">
+                                                    <li @click="selectOption(option)" class="cursor-pointer px-4 py-2 hover:bg-salon-light hover:text-salon-accent transition-colors" x-text="option"></li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Description</label>

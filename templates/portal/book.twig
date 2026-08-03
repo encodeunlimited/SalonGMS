@@ -1,69 +1,261 @@
 {% extends 'portal/layout.twig' %}
 
+{% block head %}
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      corePlugins: { preflight: false },
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              bg: '#111827',
+              card: '#1F2937',
+              cardHover: '#374151',
+              accent: '#EAB308',
+              accentHover: '#CA8A04',
+              text: '#F9FAFB',
+              textMuted: '#9CA3AF',
+              border: '#374151',
+            }
+          }
+        }
+      }
+    }
+</script>
+<style data-purpose="utilities">
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="animate-fade-in" style="max-width: 800px; margin: 2rem auto;">
-    <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem; text-align: center;">Book an Appointment</h1>
+<div class="animate-fade-in font-sans antialiased text-brand-text max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full"
+     x-data="{ step: 1, activeCategory: '{{ services_by_category|keys|first }}', searchQuery: '' }">
     
-    <div class="card glass">
-        <form hx-post="/portal/book/confirm" hx-target="#booking-error" hx-swap="outerHTML">
-            <div id="booking-error"></div>
-
-            <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">1. Select Service</h3>
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                {% for service in services %}
-                <label class="card" style="padding: 1rem; cursor: pointer; border-width: 2px; position: relative; display: block; border-color: var(--border-color);"
-                       onclick="selectService({{ service.id }})">
-                    <input type="radio" id="service_{{ service.id }}" name="service_id" value="{{ service.id }}" required style="position: absolute; opacity: 0; pointer-events: none;" 
-                           {% if selected_service_id == service.id %}checked{% endif %}>
-                    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.25rem;">{{ service.name }}</div>
-                    <div class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">{{ service.description }}</div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-                        <span style="color: var(--primary); font-weight: 600;">${{ service.price }}</span>
-                        <span>{{ service.duration_minutes }} mins</span>
-                    </div>
-                </label>
-                {% endfor %}
-            </div>
-
-            <div id="step2-container">
-                <!-- Employees will be loaded here -->
-            </div>
-
-            <div id="step3-container">
-                <div id="step3-inner">
-                    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        <div class="form-group">
-                            <label class="form-label" for="booking_type">Booking Type</label>
-                            <select id="booking_type" name="booking_type" class="form-input" required>
-                                <option value="In Salon">In Salon</option>
-                                <option value="Home Visit">Home Visit</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="date">Date</label>
-                            <input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}">
-                        </div>
-                        <div class="form-group" id="time-dropdown-container">
-                            <label class="form-label" for="time">Time</label>
-                            <select id="time" name="time" class="form-input" required disabled>
-                                <option value="">Select a specialist first</option>
-                            </select>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        <!-- Left Column: Booking Flow -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Header & Progress -->
+            <div>
+                <h1 class="text-3xl font-bold mb-8 mt-0 text-white">Book an Appointment</h1>
+                <!-- Progress Tracker -->
+                <div class="flex items-center text-sm font-medium">
+                    <button type="button" @click="step = 1" class="flex items-center focus:outline-none bg-transparent border-none cursor-pointer p-0">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2 text-xs font-bold transition-colors border"
+                             :class="step === 1 ? 'bg-brand-accent text-brand-bg border-brand-accent' : 'border-brand-border text-brand-textMuted'">1</div>
+                        <span class="transition-colors" :class="step === 1 ? 'text-brand-text font-bold' : 'text-brand-textMuted'">Services</span>
+                    </button>
+                    
+                    <div class="w-12 h-px bg-brand-border mx-4"></div>
+                    
+                    <button type="button" @click="if(document.querySelector('input[name=\'service_id\']:checked')) step = 2" class="flex items-center focus:outline-none bg-transparent border-none cursor-pointer p-0">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2 text-xs font-bold transition-colors border"
+                             :class="step === 2 ? 'bg-brand-accent text-brand-bg border-brand-accent' : 'border-brand-border text-brand-textMuted'">2</div>
+                        <span class="transition-colors" :class="step === 2 ? 'text-brand-text font-bold' : 'text-brand-textMuted'">Specialist</span>
+                    </button>
+                    
+                    <div class="w-12 h-px bg-brand-border mx-4"></div>
+                    
+                    <button type="button" @click="if(document.querySelector('input[name=\'employee_id\']:checked')) step = 3" class="flex items-center focus:outline-none bg-transparent border-none cursor-pointer p-0">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2 text-xs font-bold transition-colors border"
+                             :class="step === 3 ? 'bg-brand-accent text-brand-bg border-brand-accent' : 'border-brand-border text-brand-textMuted'">3</div>
+                        <span class="transition-colors" :class="step === 3 ? 'text-brand-text font-bold' : 'text-brand-textMuted'">Date & Time</span>
+                    </button>
                 </div>
             </div>
+            
+            <form hx-post="/portal/book/confirm" hx-target="#booking-error" hx-swap="outerHTML" id="booking-form">
+                <div id="booking-error"></div>
+                
+                <div class="bg-brand-card rounded-2xl border border-brand-border p-6 shadow-lg">
+                    
+                    <!-- Step 1: Select Service -->
+                    <div x-show="step === 1" x-transition>
+                        
+                        <!-- Search -->
+                        <div class="relative mb-6">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-brand-textMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                            <input x-model="searchQuery" class="block w-full pl-10 pr-3 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent sm:text-sm transition-colors" placeholder="Search for a service..." type="text"/>
+                        </div>
+                        
+                        <!-- Categories -->
+                        <div class="flex overflow-x-auto pb-4 mb-2 space-x-2 custom-scrollbar">
+                            {% for category, services in services_by_category %}
+                                <button type="button" @click="activeCategory = '{{ category }}'; searchQuery = '';" 
+                                        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer border shrink-0"
+                                        :class="activeCategory === '{{ category }}' ? 'bg-brand-accent text-brand-bg border-brand-accent' : 'border-brand-border text-brand-textMuted hover:text-brand-text hover:border-brand-textMuted bg-transparent'">
+                                    {{ category }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Service List -->
+                        <div class="space-y-4 mb-8 min-h-[350px]">
+                            {% for category, services in services_by_category %}
+                                <div x-show="activeCategory === '{{ category }}' || (searchQuery.length > 0 && Array.from($el.querySelectorAll('.service-book-item')).some(item => item.getAttribute('data-name').toLowerCase().includes(searchQuery.toLowerCase())))" x-transition>
+                                    <h3 x-show="searchQuery.length > 0" class="text-lg text-brand-text font-semibold mb-4 mt-0">{{ category }}</h3>
+                                    
+                                    <div class="space-y-4 flex flex-col gap-4">
+                                        {% for service in services %}
+                                            <label class="service-book-item flex items-center p-4 rounded-xl border hover:border-brand-accent/50 cursor-pointer transition-all group m-0 w-full"
+                                                   :class="'{{ selected_service_id }}' == '{{ service.id }}' ? 'bg-brand-accent/10 border-brand-accent' : 'bg-brand-bg border-brand-border'"
+                                                   data-name="{{ service.name }}"
+                                                   x-show="searchQuery.length === 0 || '{{ service.name|lower }}'.includes(searchQuery.toLowerCase())"
+                                                   onclick="selectService({{ service.id }}, '{{ service.name|escape('js') }}', {{ service.price }}, this)">
+                                                
+                                                <input type="radio" id="service_{{ service.id }}" name="service_id" value="{{ service.id }}" required class="hidden" 
+                                                       {% if selected_service_id == service.id %}checked{% endif %}
+                                                       onchange="document.querySelectorAll('.service-book-item').forEach(el => { el.classList.remove('border-brand-accent'); el.style.backgroundColor='#111827'; el.classList.add('border-brand-border'); }); this.parentElement.classList.remove('border-brand-border'); this.parentElement.classList.add('border-brand-accent'); this.parentElement.style.backgroundColor='rgba(234, 179, 8, 0.1)';">
+                                                
+                                                <div class="w-12 h-12 rounded-lg bg-brand-card flex items-center justify-center mr-4 text-brand-accent shrink-0">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                                </div>
+                                                <div class="flex-grow pr-4">
+                                                    <h3 class="text-base font-semibold text-brand-text group-hover:text-brand-accent transition-colors m-0">{{ service.name }}</h3>
+                                                    <p class="text-sm text-brand-textMuted mt-1 m-0 leading-snug">{{ service.description }}</p>
+                                                    <div class="flex items-center mt-2 text-xs text-brand-textMuted">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                                        {{ service.duration_minutes }} mins
+                                                    </div>
+                                                </div>
+                                                <div class="text-lg font-bold text-brand-text shrink-0">
+                                                    ${{ service.price|number_format(2) }}
+                                                </div>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Bottom Action -->
+                        <div class="pt-6 border-t border-brand-border">
+                            <button type="button" @click="if(document.querySelector('input[name=\'service_id\']:checked')) step = 2" class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-brand-bg bg-brand-accent hover:bg-brand-accentHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent focus:ring-offset-brand-bg transition-colors cursor-pointer m-0">
+                                Next Step &rarr;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Select Specialist -->
+                    <div x-show="step === 2" style="display: none;" x-transition>
+                        <div id="step2-container" class="min-h-[350px]">
+                            <div class="text-center p-16 text-brand-textMuted">
+                                <div class="text-5xl mb-4">🧑‍🎨</div>
+                                <div>Please select a service first to view available specialists.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between mt-7 gap-4 pt-6 border-t border-brand-border">
+                            <button type="button" @click="step = 1" class="px-6 py-3 border border-brand-border text-brand-text rounded-lg hover:bg-brand-card transition-colors font-semibold cursor-pointer m-0 bg-transparent">&larr; Back</button>
+                            <button type="button" @click="if(document.querySelector('input[name=\'employee_id\']:checked')) step = 3" class="px-8 py-3 bg-brand-accent text-brand-bg rounded-lg hover:bg-brand-accentHover transition-colors font-medium shadow-sm cursor-pointer border-none m-0">Next Step &rarr;</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Date & Time -->
+                    <div x-show="step === 3" style="display: none;" x-transition>
+                        <div id="step3-container" class="min-h-[350px]">
+                            {% include 'portal/partials/booking_times.twig' with {'date': 'now'|date('Y-m-d')} %}
+                        </div>
+                        
+                        <div class="flex justify-between mt-7 gap-4 pt-6 border-t border-brand-border">
+                            <button type="button" @click="step = 2" class="px-6 py-3 border border-brand-border text-brand-text rounded-lg hover:bg-brand-card transition-colors font-semibold cursor-pointer m-0 bg-transparent">&larr; Back</button>
+                            <button type="submit" class="px-8 py-3 bg-brand-accent text-brand-bg rounded-lg hover:bg-brand-accentHover transition-colors font-medium shadow-sm cursor-pointer border-none m-0">Confirm Booking</button>
+                        </div>
+                    </div>
 
-            <button type="submit" class="btn-primary" style="font-size: 1.1rem; padding: 1rem;">Confirm Booking</button>
-        </form>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Right Column: Booking Summary -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-24 bg-brand-card rounded-2xl border border-brand-border p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-brand-accent mb-6 pb-4 border-b border-brand-border mt-0">Booking Summary</h2>
+                <div class="space-y-6 flex flex-col gap-6">
+                    <div>
+                        <p class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider mb-1 mt-0">Service</p>
+                        <p id="summary-service" class="text-sm font-medium text-brand-text m-0">Not selected</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider mb-1 mt-0">Specialist</p>
+                        <p id="summary-specialist" class="text-sm font-medium text-brand-text m-0">Not selected</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider mb-1 mt-0">Date &amp; Time</p>
+                        <p id="summary-datetime" class="text-sm font-medium text-brand-text m-0">Not selected</p>
+                    </div>
+                </div>
+                <div class="mt-8 pt-6 border-t border-brand-border flex items-center justify-between">
+                    <p class="text-base font-semibold text-brand-text m-0">Total</p>
+                    <p id="summary-total" class="text-xl font-bold text-brand-accent m-0">$0.00</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    function selectService(serviceId) {
+    function updateSummary() {
+        const dateInput = document.getElementById('date');
+        const timeInput = document.getElementById('time');
+        const datetimeEl = document.getElementById('summary-datetime');
+        
+        if (dateInput && timeInput && dateInput.value && timeInput.value) {
+            datetimeEl.textContent = dateInput.value + ' at ' + timeInput.value;
+        } else {
+            datetimeEl.textContent = 'Not selected';
+        }
+    }
+
+    function selectService(serviceId, name, price, element) {
         document.getElementById('service_' + serviceId).checked = true;
-        document.getElementById('step2-container').innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading specialists...</div>';
-        document.getElementById('step3-container').innerHTML = '<div id="step3-inner"><h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Booking Type, Date & Time</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"><div class="form-group"><label class="form-label" for="booking_type">Booking Type</label><select id="booking_type" name="booking_type" class="form-input" required><option value="In Salon">In Salon</option><option value="Home Visit">Home Visit</option></select></div><div class="form-group"><label class="form-label" for="date">Date</label><input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}"></div><div class="form-group"><label class="form-label" for="time">Time</label><select id="time" name="time" class="form-input" required disabled><option value="">Select a specialist first</option></select></div></div></div>';
+        
+        document.querySelectorAll('.service-book-item').forEach(el => {
+            el.classList.remove('border-brand-accent');
+            el.style.backgroundColor = '#111827'; // bg-brand-bg
+            el.classList.add('border-brand-border');
+        });
+        element.classList.remove('border-brand-border');
+        element.classList.add('border-brand-accent');
+        element.style.backgroundColor = 'rgba(234, 179, 8, 0.1)'; // bg-brand-accent/10
+        
+        document.getElementById('summary-service').textContent = name;
+        document.getElementById('summary-total').textContent = '$' + parseFloat(price).toFixed(2);
+        document.getElementById('summary-specialist').textContent = 'Not selected';
+        
+        document.getElementById('step2-container').innerHTML = '<div class="text-center p-16 text-brand-textMuted"><div class="spinner"></div>Loading specialists...</div>';
+        
+        const timeContainer = document.getElementById('time-dropdown-container');
+        if (timeContainer) {
+            timeContainer.innerHTML = '<label class="block text-sm font-medium text-brand-textMuted mb-2" for="time">Select Time</label><select id="time" name="time" class="block w-full pl-3 pr-10 py-2.5 border border-brand-border rounded-lg leading-5 bg-brand-bg text-brand-text placeholder-brand-textMuted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent sm:text-sm transition-colors" required disabled><option value="">Select a specialist first</option></select>';
+        }
+        updateSummary();
         
         fetch('/portal/book/employees?service_id=' + serviceId)
             .then(response => response.text())
@@ -72,8 +264,11 @@
             });
     }
 
-    function selectEmployee(employeeId) {
+    function selectEmployee(employeeId, name) {
         document.getElementById('employee_' + employeeId).checked = true;
+        if(name) {
+            document.getElementById('summary-specialist').textContent = name;
+        }
         loadTimes();
     }
     
@@ -81,13 +276,13 @@
         const serviceRadio = document.querySelector('input[name="service_id"]:checked');
         const employeeRadio = document.querySelector('input[name="employee_id"]:checked');
         const dateInput = document.getElementById('date');
-        const bookingTypeInput = document.getElementById('booking_type');
+        const bookingTypeRadio = document.querySelector('input[name="booking_type"]:checked');
         
         if (serviceRadio && employeeRadio && dateInput) {
             const serviceId = serviceRadio.value;
             const employeeId = employeeRadio.value;
             const date = dateInput.value;
-            const bookingType = bookingTypeInput ? bookingTypeInput.value : 'In Salon';
+            const bookingType = bookingTypeRadio ? bookingTypeRadio.value : 'In Salon';
             
             document.getElementById('step3-container').style.opacity = '0.5';
             
@@ -96,36 +291,56 @@
                 .then(html => {
                     document.getElementById('step3-container').innerHTML = html;
                     document.getElementById('step3-container').style.opacity = '1';
+                    
+                    const newTimeInput = document.getElementById('time');
+                    if(newTimeInput) {
+                        newTimeInput.addEventListener('change', updateSummary);
+                    }
+                    updateSummary();
                 });
         }
     }
     
     document.addEventListener('DOMContentLoaded', function() {
-        // Pre-load if a service is already checked
         const checkedService = document.querySelector('input[name="service_id"]:checked');
         if (checkedService) {
-            selectService(checkedService.value);
+            const label = checkedService.closest('.service-book-item');
+            if (label) {
+                const name = label.getAttribute('data-name');
+                const priceMatch = label.innerHTML.match(/\$([\d\.]+)/);
+                const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                selectService(checkedService.value, name, price, label);
+            }
         }
         
-        // Listen to date changes
         document.body.addEventListener('change', function(e) {
             if (e.target && e.target.id === 'date') {
                 loadTimes();
+                updateSummary();
+            }
+            if (e.target && e.target.id === 'time') {
+                updateSummary();
             }
         });
+        
+        const timeInput = document.getElementById('time');
+        if(timeInput) {
+            timeInput.addEventListener('change', updateSummary);
+        }
     });
 </script>
 
 <style>
-    /* Add some specific styles for the radio cards */
-    input[type="radio"]:checked + div,
-    input[type="radio"]:checked ~ div {
-        color: var(--primary);
+    .spinner {
+        border: 3px solid rgba(255,255,255,0.1);
+        border-top-color: #EAB308;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
     }
-    
-    label.card:has(input[type="radio"]:checked) {
-        border-color: var(--primary);
-        background-color: rgba(212, 175, 55, 0.05);
-    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
+
 {% endblock %}

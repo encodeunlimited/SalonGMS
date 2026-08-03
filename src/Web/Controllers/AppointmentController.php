@@ -22,6 +22,7 @@ class AppointmentController
     private ServiceRepository $services;
     private UserRepository $users;
     private TenantSettingRepository $settings;
+    private \App\Repositories\BookingTypeRepository $bookingTypes;
 
     public function __construct(
         Twig $view, 
@@ -30,7 +31,8 @@ class AppointmentController
         CustomerRepository $customers,
         ServiceRepository $services,
         UserRepository $users,
-        TenantSettingRepository $settings
+        TenantSettingRepository $settings,
+        \App\Repositories\BookingTypeRepository $bookingTypes
     ) {
         $this->view = $view;
         $this->appointments = $appointments;
@@ -39,6 +41,7 @@ class AppointmentController
         $this->services = $services;
         $this->users = $users;
         $this->settings = $settings;
+        $this->bookingTypes = $bookingTypes;
     }
 
     public function index(Request $request, Response $response): Response
@@ -50,6 +53,7 @@ class AppointmentController
         $this->services->setTenantId($tenantId);
         $this->users->setTenantId($tenantId);
         $this->settings->setTenantId($tenantId);
+        $this->bookingTypes->setTenantId($tenantId);
 
         $appointments = $this->appointments->getAllForTenant();
         $customersList = $this->customers->getAll();
@@ -61,6 +65,9 @@ class AppointmentController
         $openHour = (int) explode(':', $openTime)[0];
         $closeHour = (int) explode(':', $closeTime)[0];
 
+        $bookingTypesRaw = $this->bookingTypes->getAll();
+        $bookingTypes = array_column($bookingTypesRaw, 'name');
+
         return $this->view->render($response, 'appointments/index.twig', [
             'active_menu' => 'appointments',
             'appointments' => $appointments,
@@ -68,7 +75,8 @@ class AppointmentController
             'services' => $servicesList,
             'users' => $usersList,
             'open_hour' => $openHour,
-            'close_hour' => $closeHour
+            'close_hour' => $closeHour,
+            'booking_types' => $bookingTypes
         ]);
     }
 

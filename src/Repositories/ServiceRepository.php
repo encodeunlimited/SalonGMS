@@ -9,17 +9,43 @@ class ServiceRepository extends BaseRepository
     protected function getSearchableFields(): array { return ['name', 'description']; }
     protected function getSortableFields(): array { return ['id', 'name', 'duration_minutes', 'price']; }
 
+    public function getById(int $id): ?array
+    {
+        $service = parent::getById($id);
+        if ($service && isset($service['images']) && is_string($service['images'])) {
+            $service['images'] = json_decode($service['images'], true);
+        }
+        return $service;
+    }
+
+    public function getAll(array $options = []): array
+    {
+        $services = parent::getAll($options);
+        foreach ($services as &$service) {
+            if (isset($service['images']) && is_string($service['images'])) {
+                $service['images'] = json_decode($service['images'], true);
+            }
+        }
+        return $services;
+    }
+
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, name, description, duration_minutes, price)
-            VALUES (:tenant_id, :name, :description, :duration_minutes, :price)
+            INSERT INTO {$this->table} (tenant_id, name, description, images, duration_minutes, price)
+            VALUES (:tenant_id, :name, :description, :images, :duration_minutes, :price)
         ");
+        
+        $imagesJson = null;
+        if (!empty($data['images']) && is_array($data['images'])) {
+            $imagesJson = json_encode($data['images']);
+        }
         
         $insertData = [
             'tenant_id' => $this->getTenantId(),
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
+            'images' => $imagesJson,
             'duration_minutes' => $data['duration_minutes'] ?? 30,
             'price' => $data['price'] ?? 0.00
         ];
@@ -31,11 +57,7 @@ class ServiceRepository extends BaseRepository
 
     public function update(int $id, array $data): array
     {
-        $stmt = $this->db->prepare("
-            UPDATE {$this->table} 
-            SET name = :name, description = :description, duration_minutes = :duration_minutes, price = :price
-            WHERE id = :id AND tenant_id = :tenant_id
-        ");
+        $sql = "UPDATE {$this->table} SET name = :name, description = :description, duration_minutes = :duration_minutes, price = :price";
         
         $updateData = [
             'id' => $id,
@@ -46,7 +68,16 @@ class ServiceRepository extends BaseRepository
             'price' => $data['price'] ?? 0.00
         ];
         
+        if (array_key_exists('images', $data)) {
+            $sql .= ", images = :images";
+            $updateData['images'] = !empty($data['images']) ? json_encode($data['images']) : null;
+        }
+
+        $sql .= " WHERE id = :id AND tenant_id = :tenant_id";
+        
+        $stmt = $this->db->prepare($sql);
+        
         $stmt->execute($updateData);
-        return $updateData;
+        return $this->getById($id);
     }
 }

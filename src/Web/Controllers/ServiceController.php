@@ -54,21 +54,47 @@ class ServiceController
         $this->services->setTenantId($tenantId);
         
         $data = $request->getParsedBody();
+        $uploadedFiles = $request->getUploadedFiles();
+        
+        $imagePaths = $this->handleImageUploads($uploadedFiles);
+
         $service = $this->services->create([
             'name' => $data['name'],
             'description' => $data['description'],
+            'images' => $imagePaths,
             'duration_minutes' => (int)$data['duration_minutes'],
             'price' => (float)$data['price']
         ]);
 
         $rowHtml = $this->view->fetch('services/row.twig', ['service' => $service]);
+        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="beforeend:#services-table-body" id=', $rowHtml);
         
         $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
         
-        $response->getBody()->write($oobEmptyState . '<tbody hx-swap-oob="beforeend:#services-table-body">' . $rowHtml . '</tbody>');
-        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Service added successfully!</div></div>');
+        $response->getBody()->write($oobEmptyState . $rowHtmlWithOob);
         
-        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+        return $response->withHeader('Content-Type', 'text/html')
+                        ->withHeader('HX-Trigger', json_encode([
+                            'close-modal' => true,
+                            'show-toast' => ['message' => 'Service added successfully!']
+                        ]));
+    }
+
+    public function show(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->services->setTenantId($tenantId);
+        
+        $serviceId = (int) $args['id'];
+        $service = $this->services->getById($serviceId);
+        
+        if (!$service) {
+            return $response->withStatus(404);
+        }
+
+        $html = $this->view->fetch('services/view.twig', ['service' => $service]);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html');
     }
 
     public function edit(Request $request, Response $response, array $args): Response
@@ -95,22 +121,70 @@ class ServiceController
         
         $serviceId = (int) $args['id'];
         $data = $request->getParsedBody();
+        $uploadedFiles = $request->getUploadedFiles();
         
-        $service = $this->services->update($serviceId, [
+        $updateData = [
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
             'duration_minutes' => (int)$data['duration_minutes'],
             'price' => (float)$data['price']
-        ]);
+        ];
+
+        $newImagePaths = $this->handleImageUploads($uploadedFiles);
+        
+        // If there are new images, or we want to support deleting images, we need to handle existing images.
+        // For simplicity now, we append new images if they exist, or overwrite if requested.
+        // The HTML form can send an array of existing images to keep.
+        $existingImages = $data['existing_images'] ?? [];
+        if (!is_array($existingImages)) {
+            $existingImages = [$existingImages]; // Ensure it's an array if only one
+        }
+        
+        // Combine existing and new
+        $finalImages = array_merge($existingImages, $newImagePaths);
+        $updateData['images'] = $finalImages;
+
+        $service = $this->services->update($serviceId, $updateData);
 
         $rowHtml = $this->view->fetch('services/row.twig', ['service' => $service]);
+        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#service-row-' . $serviceId . '" id=', $rowHtml);
         
-        // Return updated row wrapped in OOB swap for the specific ID
-        $oobHtml = '<tbody hx-swap-oob="outerHTML:#service-row-' . $serviceId . '">' . $rowHtml . '</tbody>';
+        $response->getBody()->write($rowHtmlWithOob);
         
-        $response->getBody()->write($oobHtml);
-        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Service updated successfully!</div></div>');
+        return $response->withHeader('Content-Type', 'text/html')
+                        ->withHeader('HX-Trigger', json_encode([
+                            'close-modal' => true,
+                            'show-toast' => ['message' => 'Service updated successfully!']
+                        ]));
+    }
+
+    private function handleImageUploads(array $uploadedFiles): array
+    {
+        $imagePaths = [];
+        $uploadDir = __DIR__ . '/../../../public/uploads/services';
         
-        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        if (isset($uploadedFiles['images'])) {
+            $files = $uploadedFiles['images'];
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+
+            foreach ($files as $file) {
+                if ($file->getError() === UPLOAD_ERR_OK) {
+                    $extension = pathinfo($file->getClientFilename(), PATHINFO_EXTENSION);
+                    $basename = bin2hex(random_bytes(8));
+                    $filename = sprintf('%s.%0.8s', $basename, $extension);
+                    
+                    $file->moveTo($uploadDir . DIRECTORY_SEPARATOR . $filename);
+                    $imagePaths[] = '/uploads/services/' . $filename;
+                }
+            }
+        }
+        
+        return $imagePaths;
     }
 }

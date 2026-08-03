@@ -160,13 +160,37 @@
         </header>
 
         <!-- Dynamic Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 md:p-8" @close-modal.window="document.getElementById('modal-container').innerHTML = ''">
+        <main class="flex-1 overflow-y-auto p-6 md:p-8">
             {% block content %}{% endblock %}
         </main>
     </div>
 
     <!-- Global Modal Container -->
-    <div id="modal-container"></div>
+    <div id="modal-container" x-data @close-modal.window="setTimeout(() => $el.innerHTML = '', 100)"></div>
+
+    <!-- Global Toast Notification -->
+    <div x-data="{ show: false, message: '', type: 'success' }" 
+         @show-toast.window="
+            console.log('Toast event received:', $event.detail);
+            let val = $event.detail.value || $event.detail;
+            message = (typeof val === 'object' && val.message) ? val.message : val;
+            show = true; 
+            setTimeout(() => show = false, 3000);
+         "
+         class="fixed bottom-6 right-6 z-50">
+        <div x-show="show" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-y-4"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform translate-y-4"
+             class="bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl font-medium flex items-center gap-3"
+             style="display: none;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span x-text="message"></span>
+        </div>
+    </div>
 
     {% block scripts %}{% endblock %}
 </body>

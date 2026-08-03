@@ -22,14 +22,38 @@ class UserRepository extends BaseRepository
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         $result = $stmt->fetch();
+        
+        if ($result && isset($result['specialist_areas'])) {
+            $result['specialist_areas'] = json_decode($result['specialist_areas'], true) ?: [];
+        }
         return $result ?: null;
+    }
+
+    public function getAll(array $options = []): array
+    {
+        $users = parent::getAll($options);
+        foreach ($users as &$user) {
+            if (isset($user['specialist_areas'])) {
+                $user['specialist_areas'] = json_decode($user['specialist_areas'], true) ?: [];
+            }
+        }
+        return $users;
+    }
+
+    public function getById(int $id): ?array
+    {
+        $user = parent::getById($id);
+        if ($user && isset($user['specialist_areas'])) {
+            $user['specialist_areas'] = json_decode($user['specialist_areas'], true) ?: [];
+        }
+        return $user;
     }
 
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, role, name, email, password, commission_rate, profile_image)
-            VALUES (:tenant_id, :role, :name, :email, :password, :commission_rate, :profile_image)
+            INSERT INTO {$this->table} (tenant_id, role, name, email, password, commission_rate, profile_image, specialist_areas)
+            VALUES (:tenant_id, :role, :name, :email, :password, :commission_rate, :profile_image, :specialist_areas)
         ");
         
         $insertData = [
@@ -39,7 +63,8 @@ class UserRepository extends BaseRepository
             'email' => $data['email'],
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
             'commission_rate' => $data['commission_rate'] ?? 0.00,
-            'profile_image' => $data['profile_image'] ?? null
+            'profile_image' => $data['profile_image'] ?? null,
+            'specialist_areas' => isset($data['specialist_areas']) ? json_encode($data['specialist_areas']) : null
         ];
         
         $stmt->execute($insertData);
@@ -50,7 +75,7 @@ class UserRepository extends BaseRepository
 
     public function update(int $id, array $data): array
     {
-        $sql = "UPDATE {$this->table} SET role = :role, name = :name, email = :email, commission_rate = :commission_rate";
+        $sql = "UPDATE {$this->table} SET role = :role, name = :name, email = :email, commission_rate = :commission_rate, specialist_areas = :specialist_areas";
         
         $updateData = [
             'id' => $id,
@@ -58,7 +83,8 @@ class UserRepository extends BaseRepository
             'role' => $data['role'] ?? 'stylist',
             'name' => $data['name'],
             'email' => $data['email'],
-            'commission_rate' => $data['commission_rate'] ?? 0.00
+            'commission_rate' => $data['commission_rate'] ?? 0.00,
+            'specialist_areas' => isset($data['specialist_areas']) ? json_encode($data['specialist_areas']) : null
         ];
 
         if (array_key_exists('profile_image', $data) && $data['profile_image'] !== null) {

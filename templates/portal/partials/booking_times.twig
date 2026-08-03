@@ -1,0 +1,22 @@
+<div id="step3-inner">
+    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Date & Time</h3>
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="form-group">
+            <label class="form-label" for="date">Date</label>
+            <input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ date }}"
+                   hx-get="/portal/book/times" hx-target="#step3-container" hx-include="[name='service_id'], [name='employee_id'], #date">
+        </div>
+        <div class="form-group" id="time-dropdown-container">
+            <label class="form-label" for="time">Time</label>
+            <select id="time" name="time" class="form-input" required>
+                <option value="">Select a time</option>
+                {% for t in times %}
+                    <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+            {% if times|length == 0 %}
+                <p style="font-size: 0.8rem; color: #dc2626; margin-top: 0.5rem;">No available slots on this date.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

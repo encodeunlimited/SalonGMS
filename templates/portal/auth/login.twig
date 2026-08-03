@@ -1,0 +1,30 @@
+{% extends 'portal/layout.twig' %}
+
+{% block content %}
+<div class="animate-fade-in" style="max-width: 450px; margin: 2rem auto;">
+    <div class="card glass">
+        <h2 class="text-center" style="font-size: 2rem; margin-bottom: 0.5rem;">Welcome Back</h2>
+        <p class="text-center text-muted mb-8">Sign in to manage your appointments</p>
+
+        <form hx-post="/portal/login" hx-target="#login-error" hx-swap="outerHTML">
+            <div id="login-error"></div>
+            
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input" required>
+            </div>
+            
+            <button type="submit" class="btn-primary mt-4">Sign In</button>
+        </form>
+        
+        <p class="text-center mt-4 text-sm text-muted">
+            Don't have an account? <a href="/portal/register">Sign Up</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

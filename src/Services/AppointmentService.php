@@ -36,11 +36,15 @@ class AppointmentService extends BaseService
         // Fetch existing appointments for that specific stylist on that day
         $existingAppointments = $this->repository->getByDateAndStylist($date, $stylist);
 
+        $newStart = strtotime("$date $time");
+        $newEnd = strtotime("$date " . ($data['end_time'] ?? date('H:i', strtotime("$time +1 hour"))));
+
         foreach ($existingAppointments as $apt) {
-            // For Phase 4, we do a simple exact-match time check.
-            // A full implementation would check overlap using service duration_minutes.
-            if ($apt['apt_time'] === $time) {
-                throw new Exception("Stylist '{$stylist}' is already booked at {$time} on {$date}. Please choose another time.");
+            $aptStart = strtotime($apt['apt_date'] . ' ' . $apt['apt_time']);
+            $aptEnd = strtotime($apt['apt_date'] . ' ' . ($apt['apt_end_time'] ?? date('H:i', strtotime($apt['apt_time'] . ' +1 hour'))));
+
+            if ($newStart < $aptEnd && $newEnd > $aptStart && strtolower($apt['status']) !== 'cancelled') {
+                throw new Exception("Stylist '{$stylist}' is already booked during this time on {$date}. Please choose another time.");
             }
         }
 

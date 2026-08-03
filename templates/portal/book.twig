@@ -1,0 +1,122 @@
+{% extends 'portal/layout.twig' %}
+
+{% block content %}
+<div class="animate-fade-in" style="max-width: 800px; margin: 2rem auto;">
+    <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem; text-align: center;">Book an Appointment</h1>
+    
+    <div class="card glass">
+        <form hx-post="/portal/book/confirm" hx-target="#booking-error" hx-swap="outerHTML">
+            <div id="booking-error"></div>
+
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">1. Select Service</h3>
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                {% for service in services %}
+                <label class="card" style="padding: 1rem; cursor: pointer; border-width: 2px; position: relative; display: block; border-color: var(--border-color);"
+                       onclick="selectService({{ service.id }})">
+                    <input type="radio" id="service_{{ service.id }}" name="service_id" value="{{ service.id }}" required style="position: absolute; opacity: 0; pointer-events: none;" 
+                           {% if selected_service_id == service.id %}checked{% endif %}>
+                    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.25rem;">{{ service.name }}</div>
+                    <div class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">{{ service.description }}</div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                        <span style="color: var(--primary); font-weight: 600;">${{ service.price }}</span>
+                        <span>{{ service.duration_minutes }} mins</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div id="step2-container">
+                <!-- Employees will be loaded here -->
+            </div>
+
+            <div id="step3-container">
+                <div id="step3-inner">
+                    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Date & Time</h3>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="form-group">
+                            <label class="form-label" for="date">Date</label>
+                            <input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}">
+                        </div>
+                        <div class="form-group" id="time-dropdown-container">
+                            <label class="form-label" for="time">Time</label>
+                            <select id="time" name="time" class="form-input" required disabled>
+                                <option value="">Select a specialist first</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="font-size: 1.1rem; padding: 1rem;">Confirm Booking</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function selectService(serviceId) {
+        document.getElementById('service_' + serviceId).checked = true;
+        document.getElementById('step2-container').innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading specialists...</div>';
+        document.getElementById('step3-container').innerHTML = '<div id="step3-inner"><h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary);">3. Select Date & Time</h3><div class="grid grid-cols-2 gap-4 mb-8"><div class="form-group"><label class="form-label" for="date">Date</label><input type="date" id="date" name="date" class="form-input" required min="{{ 'now'|date('Y-m-d') }}" value="{{ 'now'|date('Y-m-d') }}"></div><div class="form-group"><label class="form-label" for="time">Time</label><select id="time" name="time" class="form-input" required disabled><option value="">Select a specialist first</option></select></div></div></div>';
+        
+        fetch('/portal/book/employees?service_id=' + serviceId)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('step2-container').innerHTML = html;
+            });
+    }
+
+    function selectEmployee(employeeId) {
+        document.getElementById('employee_' + employeeId).checked = true;
+        loadTimes();
+    }
+    
+    function loadTimes() {
+        const serviceRadio = document.querySelector('input[name="service_id"]:checked');
+        const employeeRadio = document.querySelector('input[name="employee_id"]:checked');
+        const dateInput = document.getElementById('date');
+        
+        if (serviceRadio && employeeRadio && dateInput) {
+            const serviceId = serviceRadio.value;
+            const employeeId = employeeRadio.value;
+            const date = dateInput.value;
+            
+            document.getElementById('step3-container').style.opacity = '0.5';
+            
+            fetch('/portal/book/times?service_id=' + serviceId + '&employee_id=' + employeeId + '&date=' + date)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('step3-container').innerHTML = html;
+                    document.getElementById('step3-container').style.opacity = '1';
+                });
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pre-load if a service is already checked
+        const checkedService = document.querySelector('input[name="service_id"]:checked');
+        if (checkedService) {
+            selectService(checkedService.value);
+        }
+        
+        // Listen to date changes
+        document.body.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'date') {
+                loadTimes();
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Add some specific styles for the radio cards */
+    input[type="radio"]:checked + div,
+    input[type="radio"]:checked ~ div {
+        color: var(--primary);
+    }
+    
+    label.card:has(input[type="radio"]:checked) {
+        border-color: var(--primary);
+        background-color: rgba(212, 175, 55, 0.05);
+    }
+</style>
+{% endblock %}

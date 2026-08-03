@@ -1,0 +1,66 @@
+{% extends 'portal/layout.twig' %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 700;">Welcome, {{ customer.name }}</h1>
+        <a href="/portal/book" class="btn-primary" style="width: auto;">Book New Appointment</a>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Upcoming Appointments -->
+        <div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Upcoming Appointments</h2>
+            {% if upcoming_appointments|length > 0 %}
+                {% for app in upcoming_appointments %}
+                    <div class="card glass mb-4" style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span style="font-weight: 600; font-size: 1.1rem;">
+                                {{ app.start_time|date("l, F j, Y") }}
+                            </span>
+                            <span style="background-color: var(--primary); color: var(--bg-base); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.875rem; font-weight: 600;">
+                                {{ app.status }}
+                            </span>
+                        </div>
+                        <div class="text-muted">
+                            <div style="margin-bottom: 0.5rem;">
+                                🕒 {{ app.start_time|date("g:i A") }} - {{ app.end_time|date("g:i A") }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card glass text-center text-muted" style="padding: 2rem;">
+                    No upcoming appointments found.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Past Appointments -->
+        <div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Past Appointments</h2>
+            {% if past_appointments|length > 0 %}
+                {% for app in past_appointments %}
+                    <div class="card glass mb-4" style="padding: 1.5rem; opacity: 0.8;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-weight: 500;">
+                                {{ app.start_time|date("M j, Y") }}
+                            </span>
+                            <span class="text-muted" style="font-size: 0.875rem;">
+                                {{ app.status }}
+                            </span>
+                        </div>
+                        <div class="text-muted" style="font-size: 0.875rem;">
+                            {{ app.start_time|date("g:i A") }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card glass text-center text-muted" style="padding: 2rem;">
+                    No past appointments.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

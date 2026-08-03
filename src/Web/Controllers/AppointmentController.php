@@ -79,7 +79,16 @@ class AppointmentController
         
         if (!empty($data['service_id'])) {
             $service = $this->services->getById((int)$data['service_id']);
-            if ($service) $data['service_name'] = $service['name'];
+            if ($service) {
+                $data['service_name'] = $service['name'];
+                
+                // Calculate end time based on duration
+                $date = $data['date'] ?? date('Y-m-d');
+                $time = $data['time'] ?? '12:00';
+                $startDateTimeObj = new \DateTime("$date $time:00");
+                $startDateTimeObj->add(new \DateInterval('PT' . ($service['duration_minutes'] ?? 60) . 'M'));
+                $data['end_time'] = $startDateTimeObj->format('H:i');
+            }
         }
         
         if (!empty($data['stylist_id'])) {
@@ -113,5 +122,25 @@ class AppointmentController
             ');
             return $response->withStatus(200); // 200 required for HTMX standard swap
         }
+    }
+
+    public function getStylistsForService(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $serviceId = (int)$request->getQueryParams()['service_id'] ?? 0;
+
+        $this->users->setTenantId($tenantId);
+        $allUsers = $this->users->getAll();
+        
+        $options = '<option value="">Select a stylist...</option>';
+        foreach ($allUsers as $user) {
+            // Include roles that might act as stylists if needed, or just check specialist areas
+            if (in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
+                $options .= '<option value="' . $user['id'] . '">' . htmlspecialchars($user['name']) . '</option>';
+            }
+        }
+
+        $response->getBody()->write($options);
+        return $response->withStatus(200);
     }
 }

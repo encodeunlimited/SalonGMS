@@ -41,6 +41,7 @@ try {
         name VARCHAR(255) NOT NULL,
         phone VARCHAR(50),
         email VARCHAR(255),
+        password_hash VARCHAR(255) NULL,
         vip_status BOOLEAN DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
@@ -51,6 +52,7 @@ try {
         tenant_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        images TEXT,
         base_duration_minutes INTEGER NOT NULL,
         base_price DECIMAL(10,2) NOT NULL,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE

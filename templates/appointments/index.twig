@@ -28,7 +28,7 @@
                             </h3>
                             <div class="mt-4">
                                 <!-- HTMX Form -->
-                                <form hx-post="/web/appointments" hx-target="#appointment-table-body" hx-swap="afterbegin" @htmx:after-request="if($event.detail.successful && !$event.detail.xhr.response.includes('id=\'form-messages\'')) { modalOpen = false; $el.reset(); window.location.reload(); }">
+                                <form hx-post="/web/appointments" hx-target="#appointment-table-body" hx-swap="afterbegin" @htmx:after-request="if($event.detail.elt === $el && $event.detail.successful && !$event.detail.xhr.response.includes('id=\'form-messages\'')) { modalOpen = false; $el.reset(); window.location.reload(); }">
                                     <div id="form-messages" class="mb-4"></div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Customer</label>
@@ -47,7 +47,9 @@
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Service</label>
-                                        <select name="service_id" required x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                        <select name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" 
+                                                x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" 
+                                                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                             <option value="">Select a service...</option>
                                             {% for service in services %}
                                                 <option value="{{ service.id }}">{{ service.name }}</option>
@@ -56,11 +58,12 @@
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Stylist</label>
-                                        <select name="stylist_id" required x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
-                                            <option value="">Select a stylist...</option>
-                                            {% for stylist in stylists %}
-                                                <option value="{{ stylist.id }}">{{ stylist.name }}</option>
-                                            {% endfor %}
+                                        <select id="stylist_id" name="stylist_id" required 
+                                                x-data="{ tom: null }" 
+                                                x-init="tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})"
+                                                @htmx:after-swap.window="if ($event.detail.target.id === 'stylist_id') { tom.sync(); tom.clear(); }"
+                                                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                            <option value="">Select a service first...</option>
                                         </select>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -210,7 +213,8 @@
                 {% for apt in appointments %}
                 {
                     title: '{{ apt.service|escape('js') }} - {{ apt.customer|escape('js') }}',
-                    start: '{{ apt.date }}T{{ apt.time|date("H:i:s", timezone="UTC") }}',
+                    start: '{{ apt.date }}T{{ apt.time }}:00',
+                    {% if apt.end_time %}end: '{{ apt.date }}T{{ apt.end_time }}:00',{% endif %}
                     backgroundColor: '#1e293b',
                     borderColor: '#1e293b'
                 }{% if not loop.last %},{% endif %}

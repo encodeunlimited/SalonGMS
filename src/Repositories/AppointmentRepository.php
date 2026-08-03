@@ -12,7 +12,7 @@ class AppointmentRepository extends BaseRepository
     {
         // Override because we want specific columns mapped and ordering
         $stmt = $this->db->prepare("
-            SELECT a.id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.status,
+            SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status,
                    c.profile_image as customer_image,
                    u.profile_image as stylist_image
             FROM {$this->table} a
@@ -39,8 +39,8 @@ class AppointmentRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, customer_id, user_id, service_id, customer_name, service, stylist, apt_date, apt_time, status)
-            VALUES (:tenant_id, :customer_id, :user_id, :service_id, :customer_name, :service, :stylist, :date, :time, :status)
+            INSERT INTO {$this->table} (tenant_id, customer_id, user_id, service_id, customer_name, service, stylist, apt_date, apt_time, apt_end_time, status)
+            VALUES (:tenant_id, :customer_id, :user_id, :service_id, :customer_name, :service, :stylist, :date, :time, :end_time, :status)
         ");
         
         $insertData = [
@@ -53,6 +53,7 @@ class AppointmentRepository extends BaseRepository
             'stylist' => $data['stylist_name'] ?? 'Unknown',
             'date' => $data['date'] ?? date('Y-m-d'),
             'time' => $data['time'] ?? '12:00',
+            'end_time' => $data['end_time'] ?? date('H:i', strtotime(($data['time'] ?? '12:00') . ' +1 hour')),
             'status' => 'scheduled'
         ];
         

@@ -20,6 +20,7 @@ return function (App $app) {
         
         // Appointments
         $group->get('/appointments', \App\Web\Controllers\AppointmentController::class . ':index');
+        $group->get('/appointments/stylists', \App\Web\Controllers\AppointmentController::class . ':getStylistsForService');
         $group->post('/appointments', \App\Web\Controllers\AppointmentController::class . ':store');
         
         // POS & Billing
@@ -37,6 +38,7 @@ return function (App $app) {
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
         $group->get('/services/create', \App\Web\Controllers\ServiceController::class . ':create');
         $group->post('/services/create', \App\Web\Controllers\ServiceController::class . ':store');
+        $group->get('/services/{id}', \App\Web\Controllers\ServiceController::class . ':show');
         $group->get('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':edit');
         $group->post('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':update');
         
@@ -70,8 +72,34 @@ return function (App $app) {
         $group->get('/process-queue', \App\Internal\Controllers\JobQueueController::class . ':process');
     });//->add(\App\Middleware\InternalCronAuthMiddleware::class);
     
-    $app->get('/', function (Request $request, Response $response) {
-        $response->getBody()->write("SalonMS API is running. Access /web/dashboard for the web interface.");
-        return $response;
+    // ---------------------------------------------------------
+    // CUSTOMER PORTAL
+    // ---------------------------------------------------------
+    
+    $app->get('/', function (Request $request, Response $response) use ($app) {
+        $view = $app->getContainer()->get(\Slim\Views\Twig::class);
+        $serviceRepo = $app->getContainer()->get(\App\Repositories\ServiceRepository::class);
+        
+        // Use tenant ID 1 for public portal by default
+        $serviceRepo->setTenantId(1);
+        $services = $serviceRepo->getAll();
+        
+        return $view->render($response, 'portal/home.twig', [
+            'services' => $services
+        ]);
     });
+
+    $app->get('/portal/login', \App\Web\Controllers\Portal\AuthController::class . ':showLogin');
+    $app->post('/portal/login', \App\Web\Controllers\Portal\AuthController::class . ':processLogin');
+    $app->get('/portal/register', \App\Web\Controllers\Portal\AuthController::class . ':showRegister');
+    $app->post('/portal/register', \App\Web\Controllers\Portal\AuthController::class . ':processRegister');
+    $app->get('/portal/logout', \App\Web\Controllers\Portal\AuthController::class . ':logout');
+
+    $app->group('/portal', function (RouteCollectorProxy $group) {
+        $group->get('/dashboard', \App\Web\Controllers\Portal\DashboardController::class . ':index');
+        $group->get('/book', \App\Web\Controllers\Portal\BookingController::class . ':step1');
+        $group->get('/book/employees', \App\Web\Controllers\Portal\BookingController::class . ':getEmployeesForService');
+        $group->get('/book/times', \App\Web\Controllers\Portal\BookingController::class . ':getAvailableTimes');
+        $group->post('/book/confirm', \App\Web\Controllers\Portal\BookingController::class . ':confirm');
+    })->add(\App\Middleware\CustomerSessionAuthMiddleware::class);
 };

@@ -68,7 +68,10 @@ class EmployeeController
             $basename = bin2hex(random_bytes(8));
             $filename = sprintf('%s.%0.8s', $basename, $extension);
             
-            $directory = __DIR__ . '/../../../../public/uploads/profiles';
+            $directory = dirname(__DIR__, 3) . '/public/uploads/profiles';
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
             $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
             
             $profileImagePath = '/uploads/profiles/' . $filename;
@@ -84,13 +87,17 @@ class EmployeeController
         ]);
 
         $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
+        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="beforeend:#employees-table-body" id=', $rowHtml);
         
         $oobEmptyState = '<tr id="empty-state" hx-swap-oob="delete"></tr>';
         
-        $response->getBody()->write($oobEmptyState . '<tbody hx-swap-oob="beforeend:#employees-table-body">' . $rowHtml . '</tbody>');
-        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Employee added successfully!</div></div>');
+        $response->getBody()->write($oobEmptyState . $rowHtmlWithOob);
         
-        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+        return $response->withHeader('Content-Type', 'text/html')
+                        ->withHeader('HX-Trigger', json_encode([
+                            'close-modal' => true,
+                            'show-toast' => ['message' => 'Employee added successfully!']
+                        ]));
     }
 
     public function edit(Request $request, Response $response, array $args): Response
@@ -136,7 +143,10 @@ class EmployeeController
             $basename = bin2hex(random_bytes(8));
             $filename = sprintf('%s.%0.8s', $basename, $extension);
             
-            $directory = __DIR__ . '/../../../../public/uploads/profiles';
+            $directory = dirname(__DIR__, 3) . '/public/uploads/profiles';
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
             $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
             
             $updateData['profile_image'] = '/uploads/profiles/' . $filename;
@@ -145,12 +155,14 @@ class EmployeeController
         $employee = $this->users->update($employeeId, $updateData);
 
         $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
+        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#employee-row-' . $employeeId . '" id=', $rowHtml);
         
-        $oobHtml = '<tbody hx-swap-oob="outerHTML:#employee-row-' . $employeeId . '">' . $rowHtml . '</tbody>';
+        $response->getBody()->write($rowHtmlWithOob);
         
-        $response->getBody()->write($oobHtml);
-        $response->getBody()->write('<div id="form-messages" hx-swap-oob="true"><div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">Employee updated successfully!</div></div>');
-        
-        return $response->withHeader('Content-Type', 'text/html')->withHeader('HX-Trigger', 'close-modal');
+        return $response->withHeader('Content-Type', 'text/html')
+                        ->withHeader('HX-Trigger', json_encode([
+                            'close-modal' => true,
+                            'show-toast' => ['message' => 'Employee updated successfully!']
+                        ]));
     }
 }

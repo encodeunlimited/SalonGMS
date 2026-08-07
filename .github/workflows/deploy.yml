@@ -27,13 +27,10 @@ jobs:
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
+          server: 45.130.228.109
+          username: u600962660.ls.encodeunlimited.com
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           local-dir: ./build/
-          server-dir: /domains/ls.encodeunlimited.com/public_html/ # Or just /public_html/ depending on the FTP root
+          server-dir: ./
           # exclude: |
-          #   **/.git*
-          #   **/.git*/**
-          #   **/node_modules/**

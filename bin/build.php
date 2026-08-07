@@ -48,7 +48,28 @@ try {
     $phar->setStub($phar->createDefaultStub('public/index.php'));
     $phar->stopBuffering();
 
-    echo "PHAR built successfully at: $pharFile\n";
+    // ---------------------------------------------------------
+    // Create deployment wrapper files in the build directory
+    // ---------------------------------------------------------
+
+    // 1. Create index.php wrapper
+    $indexPhpContent = "<?php\nrequire_once __DIR__ . '/app.phar';\n";
+    file_put_contents($buildDir . '/index.php', $indexPhpContent);
+
+    // 2. Create .htaccess for URL rewriting
+    $htaccessContent = "RewriteEngine On\n"
+                     . "RewriteCond %{REQUEST_FILENAME} !-f\n"
+                     . "RewriteCond %{REQUEST_FILENAME} !-d\n"
+                     . "RewriteRule ^(.*)$ index.php [QSA,L]\n";
+    file_put_contents($buildDir . '/.htaccess', $htaccessContent);
+
+    // 3. Copy .env file if it exists (so it can be configured on the server)
+    if (file_exists($baseDir . '/.env')) {
+        copy($baseDir . '/.env', $buildDir . '/.env');
+    }
+
+    echo "PHAR and deployment files built successfully in the build/ directory.\n";
+    
     
 } catch (Exception $e) {
     echo "Error building PHAR: " . $e->getMessage() . "\n";

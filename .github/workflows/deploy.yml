@@ -1,0 +1,39 @@
+name: Deploy PHAR via FTP
+
+on:
+  push:
+    branches:
+      - main # Change this to your deployment branch if different
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2' # Update this to your PHP version
+          
+      - name: Install Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Build PHAR
+        run: php -d phar.readonly=0 bin/build.php
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 20
+          local-dir: ./build/
+          server-dir: /domains/ls.encodeunlimited.com/public_html/ # Or just /public_html/ depending on the FTP root
+          # exclude: |
+          #   **/.git*
+          #   **/.git*/**
+          #   **/node_modules/**

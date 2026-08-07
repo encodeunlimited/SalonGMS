@@ -30,7 +30,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 20
+          port: 21
           local-dir: ./build/
           server-dir: /domains/ls.encodeunlimited.com/public_html/ # Or just /public_html/ depending on the FTP root
           # exclude: |

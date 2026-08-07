@@ -29,9 +29,9 @@ try {
         
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir . '/' . $dir, FilesystemIterator::SKIP_DOTS));
         foreach ($iterator as $file) {
-            $path = str_replace($baseDir . DIRECTORY_SEPARATOR, '', $file->getPathname());
-            // Convert backslashes to forward slashes for the PHAR path
-            $path = str_replace('\\', '/', $path);
+            $normalizedFilePath = str_replace('\\', '/', $file->getPathname());
+            $normalizedBaseDir = str_replace('\\', '/', $baseDir) . '/';
+            $path = str_replace($normalizedBaseDir, '', $normalizedFilePath);
             $phar->addFile($file->getPathname(), $path);
         }
     }
@@ -67,6 +67,26 @@ try {
     if (file_exists($baseDir . '/.env')) {
         copy($baseDir . '/.env', $buildDir . '/.env');
     }
+
+    // 4. Copy static asset directories (images, uploads) so the web server can serve them directly
+    function copy_dir($src, $dst) {
+        if (!is_dir($src)) return;
+        if (!is_dir($dst)) mkdir($dst, 0777, true);
+        $dir = opendir($src);
+        while (false !== ($file = readdir($dir))) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($src . '/' . $file)) {
+                    copy_dir($src . '/' . $file, $dst . '/' . $file);
+                } else {
+                    copy($src . '/' . $file, $dst . '/' . $file);
+                }
+            }
+        }
+        closedir($dir);
+    }
+
+    copy_dir($baseDir . '/public/images', $buildDir . '/images');
+    copy_dir($baseDir . '/public/uploads', $buildDir . '/uploads');
 
     echo "PHAR and deployment files built successfully in the build/ directory.\n";
     

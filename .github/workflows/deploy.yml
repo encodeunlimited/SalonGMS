@@ -29,7 +29,7 @@ jobs:
         with:
           server: 45.130.228.109
           username: u600962660.ls.encodeunlimited.com
-          password: ${{ secrets.FTP_PASSWORD }}
+          password: ${{ secrets.PHAR_FTP_PASSWORD }}
           port: 21
           local-dir: ./build/
           server-dir: ./

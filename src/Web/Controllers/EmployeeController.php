@@ -80,7 +80,7 @@ class EmployeeController
             $basename = bin2hex(random_bytes(8));
             $filename = sprintf('%s.%0.8s', $basename, $extension);
             
-            $directory = dirname(__DIR__, 3) . '/public/uploads/profiles';
+            $directory = dirname($_SERVER['SCRIPT_FILENAME']) . '/uploads/profiles';
             if (!is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
@@ -174,7 +174,7 @@ class EmployeeController
             $basename = bin2hex(random_bytes(8));
             $filename = sprintf('%s.%0.8s', $basename, $extension);
             
-            $directory = dirname(__DIR__, 3) . '/public/uploads/profiles';
+            $directory = dirname($_SERVER['SCRIPT_FILENAME']) . '/uploads/profiles';
             if (!is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }

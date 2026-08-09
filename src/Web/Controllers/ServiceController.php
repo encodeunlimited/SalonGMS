@@ -180,7 +180,7 @@ class ServiceController
     private function handleImageUploads(array $uploadedFiles): array
     {
         $imagePaths = [];
-        $uploadDir = __DIR__ . '/../../../public/uploads/services';
+        $uploadDir = dirname($_SERVER['SCRIPT_FILENAME']) . '/uploads/services';
         
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);

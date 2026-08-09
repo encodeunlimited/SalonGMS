@@ -77,6 +77,7 @@ return function (App $app) {
         $group->get('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':edit');
         $group->post('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':update');
         $group->delete('/customers/{id}', \App\Web\Controllers\CustomerController::class . ':delete');
+        $group->get('/customers/{id}/profile', \App\Web\Controllers\CustomerController::class . ':profile');
         
         // Profile
         $group->get('/profile', \App\Web\Controllers\ProfileController::class . ':index');

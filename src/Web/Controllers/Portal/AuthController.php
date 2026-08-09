@@ -105,12 +105,30 @@ class AuthController
                 throw new Exception("Email is already registered. Please login.");
             }
 
+            // Handle profile image upload
+            $uploadedFiles = $request->getUploadedFiles();
+            $profileImagePath = null;
+            if (isset($uploadedFiles['profile_image']) && $uploadedFiles['profile_image']->getError() === UPLOAD_ERR_OK) {
+                $uploadedFile = $uploadedFiles['profile_image'];
+                $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
+                $basename = bin2hex(random_bytes(8));
+                $filename = sprintf('%s.%0.8s', $basename, $extension);
+                
+                $directory = dirname($_SERVER['SCRIPT_FILENAME']) . '/uploads/profiles';
+                if (!is_dir($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
+                $profileImagePath = '/uploads/profiles/' . $filename;
+            }
+
             // Create customer
             $customerData = [
                 'name' => $name,
                 'email' => $email,
                 'phone' => $phone,
                 'password' => $password,
+                'profile_image' => $profileImagePath,
             ];
             
             $customer = $this->customerRepo->create($customerData);

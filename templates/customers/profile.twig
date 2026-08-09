@@ -1,0 +1,217 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Customer Profile</h1>
+            <p class="text-gray-500 mt-1">View history, appointments, and billing for {{ customer.name }}</p>
+        </div>
+        <a href="/web/customers" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium">
+            &larr; Back to Customers
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Profile Card & Stats -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Profile Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex flex-col items-center text-center">
+                    {% if customer.profile_image %}
+                        <img src="{{ customer.profile_image }}" alt="{{ customer.name }}" class="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-50 shadow-sm">
+                    {% else %}
+                        <div class="w-24 h-24 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-3xl mb-4 border-4 border-gray-50 shadow-sm">
+                            {{ customer.name|slice(0, 1)|upper }}
+                        </div>
+                    {% endif %}
+                    
+                    <h2 class="text-xl font-bold text-gray-900">{{ customer.name }}</h2>
+                    <p class="text-gray-500 text-sm mb-4">Customer since {{ customer.created_at|date("M Y") }}</p>
+                    
+                    <div class="w-full text-left space-y-3 mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-gray-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Email</p>
+                                <p class="text-sm text-gray-500">{{ customer.email|default('Not provided') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-gray-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Phone</p>
+                                <p class="text-sm text-gray-500">{{ customer.phone|default('Not provided') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-gray-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Notes</p>
+                                <p class="text-sm text-gray-500">{{ customer.notes|default('No notes available.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Spent</p>
+                    <p class="text-2xl font-bold text-gray-900">${{ stats.total_spent|number_format(2) }}</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Pending</p>
+                    <p class="text-2xl font-bold {% if stats.pending_amount > 0 %}text-red-500{% else %}text-green-500{% endif %}">
+                        ${{ stats.pending_amount|number_format(2) }}
+                    </p>
+                </div>
+                <div class="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Appointments</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_appointments }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Tabs for Appointments & Invoices -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" x-data="{ tab: 'appointments' }">
+                
+                <!-- Tab Headers -->
+                <div class="flex border-b border-gray-100 px-2 bg-gray-50/50">
+                    <button @click="tab = 'appointments'" 
+                            :class="{ 'border-salon-primary text-salon-primary': tab === 'appointments', 'border-transparent text-gray-500 hover:text-gray-700': tab !== 'appointments' }"
+                            class="px-6 py-4 border-b-2 font-medium text-sm transition-colors">
+                        Appointment History
+                    </button>
+                    <button @click="tab = 'billing'" 
+                            :class="{ 'border-salon-primary text-salon-primary': tab === 'billing', 'border-transparent text-gray-500 hover:text-gray-700': tab !== 'billing' }"
+                            class="px-6 py-4 border-b-2 font-medium text-sm transition-colors flex items-center">
+                        Billing & Payments
+                        {% if stats.pending_amount > 0 %}
+                            <span class="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">${{ stats.pending_amount|number_format(2) }}</span>
+                        {% endif %}
+                    </button>
+                </div>
+                
+                <!-- Appointments Tab -->
+                <div x-show="tab === 'appointments'" class="p-0">
+                    {% if appointments|length > 0 %}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                                        <th class="px-6 py-3 font-medium">Date & Time</th>
+                                        <th class="px-6 py-3 font-medium">Service</th>
+                                        <th class="px-6 py-3 font-medium">Stylist</th>
+                                        <th class="px-6 py-3 font-medium">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    {% for apt in appointments %}
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-6 py-4">
+                                                <div class="font-medium text-gray-900">{{ apt.date|date("M j, Y") }}</div>
+                                                <div class="text-xs text-gray-500">{{ apt.time|date("g:i A") }}</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="font-medium text-gray-800">{{ apt.service }}</span>
+                                                <div class="text-xs text-gray-500">{{ apt.booking_type }}</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    {% if apt.stylist_image %}
+                                                        <img src="{{ apt.stylist_image }}" alt="{{ apt.stylist }}" class="w-6 h-6 rounded-full object-cover mr-2">
+                                                    {% endif %}
+                                                    <span class="text-gray-600">{{ apt.stylist }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                {% if apt.status == 'completed' %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                                                {% elseif apt.status == 'cancelled' %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-12 text-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-1">No appointments yet</h3>
+                            <p class="text-gray-500">This customer hasn't booked any appointments.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Billing Tab -->
+                <div x-show="tab === 'billing'" class="p-0" x-cloak style="display: none;">
+                    {% if invoices|length > 0 %}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                                        <th class="px-6 py-3 font-medium">Invoice ID</th>
+                                        <th class="px-6 py-3 font-medium">Date</th>
+                                        <th class="px-6 py-3 font-medium">Service Info</th>
+                                        <th class="px-6 py-3 font-medium">Amount</th>
+                                        <th class="px-6 py-3 font-medium text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    {% for invoice in invoices %}
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-6 py-4 font-mono text-sm text-gray-600">
+                                                #INV-{{ "%05d"|format(invoice.id) }}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {{ invoice.created_at|date("M j, Y") }}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm font-medium text-gray-800">{{ invoice.service|default('General Service') }}</span>
+                                                {% if invoice.payment_method %}
+                                                    <div class="text-xs text-gray-500">Paid via {{ invoice.payment_method }}</div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 font-bold text-gray-900">
+                                                ${{ invoice.total_amount|number_format(2) }}
+                                            </td>
+                                            <td class="px-6 py-4 text-right">
+                                                {% if invoice.status == 'paid' %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Unpaid</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-12 text-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-1">No billing history</h3>
+                            <p class="text-gray-500">There are no invoices for this customer yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

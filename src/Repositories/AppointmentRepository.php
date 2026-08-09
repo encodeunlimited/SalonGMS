@@ -121,4 +121,20 @@ class AppointmentRepository extends BaseRepository
         $stmt->execute(['tenant_id' => $this->getTenantId()]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
     }
+
+    public function getByCustomerId(int $customerId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT a.id, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type, u.profile_image as stylist_image
+            FROM {$this->table} a
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.tenant_id = :tenant_id AND a.customer_id = :customer_id
+            ORDER BY a.apt_date DESC, a.apt_time DESC
+        ");
+        $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'customer_id' => $customerId
+        ]);
+        return $stmt->fetchAll();
+    }
 }

@@ -35,4 +35,20 @@ class InvoiceRepository extends BaseRepository
         $stmt->execute(['tenant_id' => $this->getTenantId()]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
     }
+
+    public function getByCustomerId(int $customerId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT i.id, i.total_amount, i.status, i.payment_method, i.created_at, a.service, a.apt_date
+            FROM {$this->table} i
+            LEFT JOIN appointments a ON i.appointment_id = a.id
+            WHERE i.tenant_id = :tenant_id AND i.customer_id = :customer_id
+            ORDER BY i.created_at DESC
+        ");
+        $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'customer_id' => $customerId
+        ]);
+        return $stmt->fetchAll();
+    }
 }

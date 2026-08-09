@@ -6,16 +6,26 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\CustomerRepository;
+use App\Repositories\AppointmentRepository;
+use App\Repositories\InvoiceRepository;
 
 class CustomerController
 {
     private Twig $view;
     private CustomerRepository $customers;
+    private AppointmentRepository $appointments;
+    private InvoiceRepository $invoices;
 
-    public function __construct(Twig $view, CustomerRepository $customers)
-    {
+    public function __construct(
+        Twig $view, 
+        CustomerRepository $customers,
+        AppointmentRepository $appointments,
+        InvoiceRepository $invoices
+    ) {
         $this->view = $view;
         $this->customers = $customers;
+        $this->appointments = $appointments;
+        $this->invoices = $invoices;
     }
 
     public function index(Request $request, Response $response): Response
@@ -199,5 +209,47 @@ class CustomerController
                                 'show-toast' => ['message' => 'Error deleting customer: ' . $e->getMessage(), 'type' => 'error']
                             ]));
         }
+    }
+
+    public function profile(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        
+        $this->customers->setTenantId($tenantId);
+        $this->appointments->setTenantId($tenantId);
+        $this->invoices->setTenantId($tenantId);
+        
+        $customer = $this->customers->getById($customerId);
+        if (!$customer) {
+            return $response->withStatus(404);
+        }
+        
+        $appointments = $this->appointments->getByCustomerId($customerId);
+        $invoices = $this->invoices->getByCustomerId($customerId);
+        
+        $totalSpent = 0;
+        $pendingAmount = 0;
+        
+        foreach ($invoices as $invoice) {
+            if ($invoice['status'] === 'paid') {
+                $totalSpent += (float)$invoice['total_amount'];
+            } elseif ($invoice['status'] === 'unpaid') {
+                $pendingAmount += (float)$invoice['total_amount'];
+            }
+        }
+        
+        return $this->view->render($response, 'customers/profile.twig', [
+            'title' => 'Customer Profile',
+            'active_menu' => 'customers',
+            'customer' => $customer,
+            'appointments' => $appointments,
+            'invoices' => $invoices,
+            'stats' => [
+                'total_appointments' => count($appointments),
+                'total_spent' => $totalSpent,
+                'pending_amount' => $pendingAmount
+            ]
+        ]);
     }
 }

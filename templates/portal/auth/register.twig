@@ -58,6 +58,16 @@
             <button type="submit" class="btn-primary mt-4">Sign Up</button>
         </form>
         
+        <script>
+            document.querySelector('form').addEventListener('input', function() {
+                const err = document.getElementById('register-error');
+                if (err && err.innerHTML.trim() !== '') {
+                    err.innerHTML = '';
+                    err.style = '';
+                }
+            });
+        </script>
+        
         <p class="text-center mt-4 text-sm text-muted">
             Already have an account? <a href="/portal/login">Sign In</a>
         </p>

@@ -60,7 +60,7 @@ class AuthController
             
         } catch (Exception $e) {
             $response->getBody()->write('
-                <div id="login-error" class="mb-4 p-3 rounded-lg bg-red-50 text-red-800 text-sm border border-red-200" hx-swap-oob="true">
+                <div id="login-error" style="margin-bottom: 1rem; padding: 0.75rem; border-radius: 0.5rem; background-color: #fef2f2; color: #991b1b; font-size: 0.875rem; border: 1px solid #fecaca;">
                     ' . htmlspecialchars($e->getMessage()) . '
                 </div>
             ');
@@ -145,7 +145,7 @@ class AuthController
 
         } catch (Exception $e) {
             $response->getBody()->write('
-                <div id="register-error" class="mb-4 p-3 rounded-lg bg-red-50 text-red-800 text-sm border border-red-200" hx-swap-oob="true">
+                <div id="register-error" style="margin-bottom: 1rem; padding: 0.75rem; border-radius: 0.5rem; background-color: #fef2f2; color: #991b1b; font-size: 0.875rem; border: 1px solid #fecaca;">
                     ' . htmlspecialchars($e->getMessage()) . '
                 </div>
             ');

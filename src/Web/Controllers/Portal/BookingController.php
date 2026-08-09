@@ -171,27 +171,28 @@ class BookingController
 
         if (!$serviceId || !$employeeId || !$date || !$time) {
             $response->getBody()->write('
-                <div class="mb-4 p-3 rounded-lg bg-red-50 text-red-800 text-sm border border-red-200">
-                    Please select a service, a specialist, date, and time.
+                <div x-data="{ show: true }" x-show="show" x-transition.duration.500ms x-init="setTimeout(() => show = false, 4000)" class="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center font-sans font-medium" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;">
+                    <svg class="w-6 h-6 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Please select a service, a specialist, date, and time.</span>
                 </div>
             ');
-            return $response->withStatus(400);
+            return $response->withStatus(200); // Changed to 200 so HTMX swaps it without hx-ext="response-targets"
         }
 
         $this->serviceRepo->setTenantId($tenantId);
         $service = $this->serviceRepo->getById((int)$serviceId);
         
         if (!$service) {
-            $response->getBody()->write('<div class="text-red-500">Invalid service selected.</div>');
-            return $response->withStatus(400);
+            $response->getBody()->write('<div x-data="{ show: true }" x-show="show" x-transition.duration.500ms x-init="setTimeout(() => show = false, 4000)" class="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center font-sans font-medium" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;">Invalid service selected.</div>');
+            return $response->withStatus(200);
         }
 
         $this->userRepo->setTenantId($tenantId);
         $employee = $this->userRepo->getById((int)$employeeId);
 
         if (!$employee) {
-            $response->getBody()->write('<div class="text-red-500">Invalid specialist selected.</div>');
-            return $response->withStatus(400);
+            $response->getBody()->write('<div x-data="{ show: true }" x-show="show" x-transition.duration.500ms x-init="setTimeout(() => show = false, 4000)" class="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center font-sans font-medium" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;">Invalid specialist selected.</div>');
+            return $response->withStatus(200);
         }
 
         $startDateTimeObj = new \DateTime("$date $time:00");
@@ -217,11 +218,12 @@ class BookingController
 
         } catch (\Exception $e) {
             $response->getBody()->write('
-                <div class="mb-4 p-3 rounded-lg bg-red-50 text-red-800 text-sm border border-red-200">
-                    ' . htmlspecialchars($e->getMessage()) . '
+                <div x-data="{ show: true }" x-show="show" x-transition.duration.500ms x-init="setTimeout(() => show = false, 4000)" class="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center font-sans font-medium" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;">
+                    <svg class="w-6 h-6 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>' . htmlspecialchars($e->getMessage()) . '</span>
                 </div>
             ');
-            return $response->withStatus(500);
+            return $response->withStatus(200);
         }
     }
 }

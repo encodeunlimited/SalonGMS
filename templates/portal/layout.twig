@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SalonMS{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/lsms.png">
     
     <!-- HTMX for SPA-like feel -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
@@ -93,6 +94,9 @@
             font-weight: 700;
             color: var(--primary);
             letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .nav-links {
@@ -241,7 +245,10 @@
     
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-brand">SalonMS</a>
+            <a href="/" class="nav-brand">
+                <img src="/lsms.png" alt="SalonMS" style="width: 32px; height: 32px; object-fit: contain;">
+                SalonMS
+            </a>
             <div class="nav-links">
                 {% if auth_customer %}
                     <a href="/portal/dashboard">Dashboard</a>

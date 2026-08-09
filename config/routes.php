@@ -59,6 +59,16 @@ return function (App $app) {
         $group->post('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':update');
         $group->delete('/services/{id}', \App\Web\Controllers\ServiceController::class . ':delete');
         
+        // Inventory
+        $group->get('/inventory', \App\Web\Controllers\InventoryController::class . ':index');
+        $group->get('/inventory/create', \App\Web\Controllers\InventoryController::class . ':create');
+        $group->post('/inventory/create', \App\Web\Controllers\InventoryController::class . ':store');
+        $group->get('/inventory/{id}/edit', \App\Web\Controllers\InventoryController::class . ':edit');
+        $group->post('/inventory/{id}/edit', \App\Web\Controllers\InventoryController::class . ':update');
+        $group->delete('/inventory/{id}', \App\Web\Controllers\InventoryController::class . ':delete');
+        $group->get('/inventory/{id}/issue', \App\Web\Controllers\InventoryController::class . ':issueForm');
+        $group->post('/inventory/{id}/issue', \App\Web\Controllers\InventoryController::class . ':issue');
+        
         // Customers
         $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');
         $group->get('/customers/create', \App\Web\Controllers\CustomerController::class . ':create');

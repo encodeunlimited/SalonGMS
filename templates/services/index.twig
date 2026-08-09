@@ -33,28 +33,28 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
-                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                    <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/services?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                         Service Name {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
-                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                    <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/services?sort=category&dir={{ sort == 'category' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                         Category {% if sort == 'category' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
-                    <th class="px-6 py-4 font-medium">Description</th>
-                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                    <th class="px-6 py-5 font-medium">Description</th>
+                    <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/services?sort=duration_minutes&dir={{ sort == 'duration_minutes' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                         Duration (mins) {% if sort == 'duration_minutes' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
-                    <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                    <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/services?sort=price&dir={{ sort == 'price' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                         Price {% if sort == 'price' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
-                    <th class="px-6 py-4 font-medium text-right">Actions</th>
+                    <th class="px-6 py-5 font-medium text-right">Actions</th>
                 </tr>
             </thead>
             <tbody id="services-table-body" class="divide-y divide-gray-100 text-sm">
@@ -77,3 +77,4 @@
     </div>
 </div>
 {% endblock %}
+

@@ -1,5 +1,5 @@
 <tr id="employee-row-{{ employee.id }}" class="hover:bg-gray-50 transition-colors">
-    <td class="px-6 py-4 whitespace-nowrap">
+    <td class="px-6 py-5 whitespace-nowrap">
         <div class="flex items-center">
             {% if employee.profile_image %}
                 <img src="{{ employee.profile_image }}" alt="{{ employee.name }}" class="w-8 h-8 rounded-full object-cover mr-3 shadow-sm">
@@ -11,18 +11,18 @@
             <span class="font-medium text-gray-900">{{ employee.name }}</span>
         </div>
     </td>
-    <td class="px-6 py-4 text-gray-600">{{ employee.email }}</td>
-    <td class="px-6 py-4">
+    <td class="px-6 py-5 text-gray-600">{{ employee.email }}</td>
+    <td class="px-6 py-5">
         {% if employee.role == 'admin' %}
             <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Admin</span>
         {% else %}
             <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Stylist</span>
         {% endif %}
     </td>
-    <td class="px-6 py-4 text-gray-600">
+    <td class="px-6 py-5 text-gray-600">
         {{ employee.commission_rate|number_format(2) }}%
     </td>
-    <td class="px-6 py-4 text-right">
+    <td class="px-6 py-5 text-right">
         <button hx-get="/web/employees/{{ employee.id }}/edit" hx-target="#modal-container" class="text-gray-400 hover:text-salon-accent transition-colors">
             <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
         </button>
@@ -37,3 +37,4 @@
         {% endif %}
     </td>
 </tr>
+

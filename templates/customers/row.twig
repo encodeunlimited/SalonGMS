@@ -1,5 +1,5 @@
 <tr id="customer-row-{{ customer.id }}" class="hover:bg-gray-50 transition-colors">
-    <td class="px-6 py-4 whitespace-nowrap">
+    <td class="px-6 py-5 whitespace-nowrap">
         <div class="flex items-center">
             {% if customer.profile_image %}
                 <img src="{{ customer.profile_image }}" alt="{{ customer.name }}" class="w-8 h-8 rounded-full object-cover mr-3 shadow-sm">
@@ -11,10 +11,10 @@
             <span class="font-medium text-gray-900">{{ customer.name }}</span>
         </div>
     </td>
-    <td class="px-6 py-4 text-gray-500 whitespace-nowrap">{{ customer.email|default('-') }}</td>
-    <td class="px-6 py-4 text-gray-500 whitespace-nowrap">{{ customer.phone|default('-') }}</td>
-    <td class="px-6 py-4 text-gray-500">{{ customer.notes|default('-') }}</td>
-    <td class="px-6 py-4 text-right">
+    <td class="px-6 py-5 text-gray-500 whitespace-nowrap">{{ customer.email|default('-') }}</td>
+    <td class="px-6 py-5 text-gray-500 whitespace-nowrap">{{ customer.phone|default('-') }}</td>
+    <td class="px-6 py-5 text-gray-500">{{ customer.notes|default('-') }}</td>
+    <td class="px-6 py-5 text-right">
         <button hx-get="/web/customers/{{ customer.id }}/edit" hx-target="#modal-container" class="text-gray-400 hover:text-salon-accent transition-colors">
             <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
         </button>
@@ -30,3 +30,4 @@
         {% endif %}
     </td>
 </tr>
+

@@ -3,76 +3,73 @@
 {% block content %}
 <div class="mb-8 flex items-center justify-between">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Customers</h2>
-        <p class="text-sm text-gray-500 mt-1">Manage your client base and view their history.</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Inventory</h2>
+        <p class="text-sm text-gray-500 mt-1">Manage your product stock.</p>
     </div>
     <div>
-        <button hx-get="/web/customers/create" hx-target="#modal-container" class="bg-salon-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm flex items-center">
+        <button hx-get="/web/inventory/create" hx-target="#modal-container" class="bg-salon-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Add Customer
+            Add Item
         </button>
     </div>
 </div>
 
 <div id="table-container">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <!-- Search / Filter bar -->
+        <!-- Search Bar -->
         <div class="p-4 border-b border-gray-100 bg-gray-50 flex gap-4">
             <div class="relative flex-1 max-w-md">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-                <input type="search" id="search-box" name="search" value="{{ search }}" placeholder="Search customers..." 
-                       hx-get="/web/customers?sort={{ sort }}&dir={{ dir }}" 
+                <input type="search" id="search-box" name="search" value="{{ search }}" placeholder="Search items..." 
+                       hx-get="/web/inventory?sort={{ sort }}&dir={{ dir }}" 
                        hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true"
                        hx-trigger="keyup changed delay:500ms, search"
                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
             </div>
         </div>
-
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
-                        hx-get="/web/customers?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-get="/web/inventory?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                         Name {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
-                        hx-get="/web/customers?sort=email&dir={{ sort == 'email' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-get="/web/inventory?sort=sku&dir={{ sort == 'sku' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
-                        Email {% if sort == 'email' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        SKU {% if sort == 'sku' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
-                        hx-get="/web/customers?sort=phone&dir={{ sort == 'phone' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-get="/web/inventory?sort=quantity&dir={{ sort == 'quantity' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
-                        Phone {% if sort == 'phone' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        Quantity {% if sort == 'quantity' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
-                        hx-get="/web/customers?sort=created_at&dir={{ sort == 'created_at' and dir == 'asc' ? 'desc' : 'asc' }}"
+                        hx-get="/web/inventory?sort=price&dir={{ sort == 'price' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
-                        Joined {% if sort == 'created_at' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        Price {% if sort == 'price' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
                     <th class="px-6 py-5 font-medium text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody id="customers-table-body" class="divide-y divide-gray-100 text-sm">
-                {% for customer in customers %}
-                    {% include "customers/row.twig" %}
+            <tbody id="inventory-table-body" class="divide-y divide-gray-100 text-sm">
+                {% for item in items %}
+                    {% include "inventory/row.twig" %}
                 {% else %}
                 <tr id="empty-state">
                     <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        <p class="text-base font-medium text-gray-900">No customers found</p>
-                        <p class="mt-1">Add your first client to start building your database.</p>
+                        <p class="text-base font-medium text-gray-900">No inventory items found</p>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         <div class="px-6 pb-4">
-            {% include "partials/pagination.twig" with {'hx_url': '/web/customers'} %}
+            {% include "partials/pagination.twig" with {'hx_url': '/web/inventory'} %}
         </div>
     </div>
 </div>

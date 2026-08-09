@@ -186,6 +186,18 @@ class EmployeeController
         try {
             $employee = $this->users->update($employeeId, $updateData);
 
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $employeeId) {
+                if (isset($updateData['profile_image'])) {
+                    $_SESSION['profile_image'] = $updateData['profile_image'];
+                }
+                if (isset($updateData['name'])) {
+                    $_SESSION['name'] = $updateData['name'];
+                }
+            }
+
             $rowHtml = $this->view->fetch('employees/row.twig', ['employee' => $employee]);
             $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#employee-row-' . $employeeId . '" id=', $rowHtml);
             

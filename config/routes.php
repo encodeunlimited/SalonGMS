@@ -105,7 +105,20 @@ return function (App $app) {
     // ---------------------------------------------------------
     
     $app->get('/', function (Request $request, Response $response) use ($app) {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $view = $app->getContainer()->get(\Slim\Views\Twig::class);
+        
+        if (isset($_SESSION['customer_id'])) {
+            $view->getEnvironment()->addGlobal('auth_customer', [
+                'id' => $_SESSION['customer_id'],
+                'name' => $_SESSION['customer_name'] ?? 'Customer',
+                'tenant_id' => $_SESSION['tenant_id'] ?? 1,
+                'profile_image' => $_SESSION['customer_profile_image'] ?? null
+            ]);
+        }
+        
         $serviceRepo = $app->getContainer()->get(\App\Repositories\ServiceRepository::class);
         
         // Use tenant ID 1 for public portal by default

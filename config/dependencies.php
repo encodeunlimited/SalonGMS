@@ -68,10 +68,10 @@ return function (ContainerBuilder $containerBuilder) {
                 $dsn = "$connection:host={$settings['host']};port={$settings['port']};dbname={$settings['database']};charset=utf8mb4";
                 
                 $options = [
-                    PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+                    Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT => false,
                 ];
                 if (!empty($settings['ssl_ca'])) {
-                    $options[PDO::MYSQL_ATTR_SSL_CA] = $settings['ssl_ca'];
+                    $options[Pdo\Mysql::ATTR_SSL_CA] = $settings['ssl_ca'];
                 }
                 
                 $pdo = new PDO($dsn, $settings['username'], $settings['password'], $options);

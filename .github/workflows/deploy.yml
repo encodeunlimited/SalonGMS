@@ -30,7 +30,9 @@ jobs:
           server: ftp.ls.encodeunlimited.com
           username: u600962660.asankaj
           password: ${{ secrets.PHAR_FTP_PASSWORD }}
+          protocol: ftps
           port: 21
+          timeout: 60000
           local-dir: ./build/
           server-dir: ./
           exclude: |

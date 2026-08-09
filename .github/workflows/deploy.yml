@@ -32,5 +32,5 @@ jobs:
           password: ${{ secrets.PHAR_FTP_PASSWORD }}
           port: 21
           local-dir: ./build/
-          server-dir: /home/u600962660/domains/ls.encodeunlimited.com/public_html/
+          server-dir: ./
           # exclude: |

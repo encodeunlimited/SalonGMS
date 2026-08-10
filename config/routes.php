@@ -43,6 +43,7 @@ return function (App $app) {
         $group->get('/pos', \App\Web\Controllers\InvoiceController::class . ':pos');
         $group->post('/pos/checkout', \App\Web\Controllers\InvoiceController::class . ':checkout');
         $group->post('/invoices/{id}/pay', \App\Web\Controllers\InvoiceController::class . ':payRemaining');
+        $group->post('/customers/{id}/bulk-invoice', \App\Web\Controllers\InvoiceController::class . ':bulkInvoice');
         
         // Employees
         $group->get('/employees', \App\Web\Controllers\EmployeeController::class . ':index');

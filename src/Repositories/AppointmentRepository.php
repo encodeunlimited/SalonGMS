@@ -138,6 +138,26 @@ class AppointmentRepository extends BaseRepository
         return $stmt->fetchAll();
     }
 
+    public function getUnbilledDoneAppointments(int $customerId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT a.id, a.user_id, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.status,
+                   s.price as service_price
+            FROM {$this->table} a
+            LEFT JOIN services s ON a.service_id = s.id
+            WHERE a.tenant_id = :tenant_id 
+              AND a.customer_id = :customer_id 
+              AND a.status = 'done' 
+              AND a.invoice_id IS NULL
+            ORDER BY a.apt_date DESC, a.apt_time DESC
+        ");
+        $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'customer_id' => $customerId
+        ]);
+        return $stmt->fetchAll();
+    }
+
     public function updateStatus(int $id, string $status): bool
     {
         $stmt = $this->db->prepare("UPDATE {$this->table} SET status = :status WHERE id = :id AND tenant_id = :tenant_id");

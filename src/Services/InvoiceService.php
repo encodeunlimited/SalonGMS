@@ -6,6 +6,7 @@ use App\Repositories\InvoiceRepository;
 use App\Repositories\InvoiceItemRepository;
 use App\Repositories\CommissionRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\AppointmentRepository;
 use Exception;
 
 class InvoiceService extends BaseService
@@ -14,17 +15,20 @@ class InvoiceService extends BaseService
     private InvoiceItemRepository $itemRepo;
     private CommissionRepository $commissionRepo;
     private UserRepository $userRepo;
+    private AppointmentRepository $appointmentRepo;
 
     public function __construct(
         InvoiceRepository $invoiceRepo, 
         InvoiceItemRepository $itemRepo,
         CommissionRepository $commissionRepo,
-        UserRepository $userRepo
+        UserRepository $userRepo,
+        AppointmentRepository $appointmentRepo
     ) {
         $this->invoiceRepo = $invoiceRepo;
         $this->itemRepo = $itemRepo;
         $this->commissionRepo = $commissionRepo;
         $this->userRepo = $userRepo;
+        $this->appointmentRepo = $appointmentRepo;
     }
 
     public function setTenantId(int $tenantId): self
@@ -34,6 +38,7 @@ class InvoiceService extends BaseService
         $this->itemRepo->setTenantId($tenantId);
         $this->commissionRepo->setTenantId($tenantId);
         $this->userRepo->setTenantId($tenantId);
+        $this->appointmentRepo->setTenantId($tenantId);
         return $this;
     }
 
@@ -125,5 +130,84 @@ class InvoiceService extends BaseService
         
         // Return updated invoice
         return array_merge($invoice, $updateData);
+    }
+
+    /**
+     * Create a bulk invoice for multiple appointments.
+     */
+    public function createBulkInvoice(int $customerId, array $appointmentIds): array
+    {
+        if (empty($appointmentIds)) {
+            throw new Exception("No appointments selected for bulk invoice.");
+        }
+
+        $totalAmount = 0.00;
+        $processedItems = [];
+
+        foreach ($appointmentIds as $aptId) {
+            $appointment = $this->appointmentRepo->getAppointmentDetails($aptId);
+            if (!$appointment) {
+                continue;
+            }
+            if ($appointment['customer_id'] !== $customerId) {
+                throw new Exception("Appointment $aptId does not belong to this customer.");
+            }
+            if ($appointment['invoice_id']) {
+                throw new Exception("Appointment $aptId is already invoiced.");
+            }
+
+            $price = (float)($appointment['service_price'] ?? 0);
+            $totalAmount += $price;
+
+            $processedItems[] = [
+                'appointment_id' => $aptId,
+                'description' => $appointment['service'] . ' (' . date('M d, Y', strtotime($appointment['date'])) . ')',
+                'quantity' => 1,
+                'unit_price' => $price,
+                'subtotal' => $price,
+                'employee_id' => $appointment['user_id'] ?? null
+            ];
+        }
+
+        if (empty($processedItems)) {
+            throw new Exception("No valid appointments found to invoice.");
+        }
+
+        // Create Invoice
+        $invoice = $this->invoiceRepo->create([
+            'customer_id' => $customerId,
+            'total_amount' => $totalAmount,
+            'status' => 'unpaid',
+            'payment_method' => null,
+            'appointment_id' => null // Null because it's a bulk invoice
+        ]);
+
+        // Create Items and Update Appointments
+        foreach ($processedItems as $pItem) {
+            $aptId = $pItem['appointment_id'];
+            unset($pItem['appointment_id']);
+            $employeeId = $pItem['employee_id'];
+            unset($pItem['employee_id']);
+
+            $pItem['invoice_id'] = $invoice['id'];
+            $this->itemRepo->create($pItem);
+
+            $this->appointmentRepo->setInvoiceId($aptId, $invoice['id']);
+
+            // Calculate Commission
+            if ($employeeId) {
+                $user = $this->userRepo->getById($employeeId);
+                if ($user && isset($user['commission_rate']) && $user['commission_rate'] > 0) {
+                    $commissionAmount = $pItem['subtotal'] * ($user['commission_rate'] / 100);
+                    $this->commissionRepo->create([
+                        'user_id' => $employeeId,
+                        'invoice_id' => $invoice['id'],
+                        'amount' => $commissionAmount
+                    ]);
+                }
+            }
+        }
+
+        return $invoice;
     }
 }

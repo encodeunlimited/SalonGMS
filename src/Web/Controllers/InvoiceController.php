@@ -158,4 +158,30 @@ class InvoiceController
             return $response->withStatus(200);
         }
     }
+    public function bulkInvoice(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $data = $request->getParsedBody();
+        
+        if (empty($data['appointment_ids']) || !is_array($data['appointment_ids'])) {
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['message' => 'No appointments selected for bulk invoice', 'type' => 'error']
+            ]))->withStatus(400);
+        }
+
+        try {
+            $this->invoiceService->setTenantId($tenantId);
+            $this->invoiceService->createBulkInvoice($customerId, $data['appointment_ids']);
+            
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['message' => 'Bulk Invoice generated successfully!'],
+                'refresh-customer-profile' => true
+            ]))->withHeader('HX-Refresh', 'true');
+        } catch (Exception $e) {
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['message' => 'Error: ' . $e->getMessage(), 'type' => 'error']
+            ]))->withStatus(400);
+        }
+    }
 }

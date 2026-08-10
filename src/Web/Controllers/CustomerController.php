@@ -226,6 +226,7 @@ class CustomerController
         }
         
         $appointments = $this->appointments->getByCustomerId($customerId);
+        $unbilledAppointments = $this->appointments->getUnbilledDoneAppointments($customerId);
         $invoices = $this->invoices->getByCustomerId($customerId);
         
         $totalSpent = 0;
@@ -244,6 +245,7 @@ class CustomerController
             'active_menu' => 'customers',
             'customer' => $customer,
             'appointments' => $appointments,
+            'unbilled_appointments' => $unbilledAppointments,
             'invoices' => $invoices,
             'stats' => [
                 'total_appointments' => count($appointments),

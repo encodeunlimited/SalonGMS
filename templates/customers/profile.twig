@@ -161,6 +161,48 @@
                 
                 <!-- Billing Tab -->
                 <div x-show="tab === 'billing'" class="p-0 relative" x-cloak style="display: none;" x-data="{ showPaymentModal: false, selectedInvoice: null, paymentMethod: 'Cash', tenderAmount: '', totalAmount: 0 }">
+                    {% if unbilled_appointments|length > 0 %}
+                    <div class="p-6 border-b border-gray-100 bg-yellow-50/50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Unbilled Completed Appointments</h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">Requires Invoicing</span>
+                        </div>
+                        <form hx-post="/web/customers/{{ customer.id }}/bulk-invoice" hx-swap="none">
+                            <div class="overflow-hidden rounded-lg border border-gray-200 shadow-sm mb-4">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500 border-b border-gray-200">
+                                            <th class="px-4 py-3 font-medium w-10 text-center">Select</th>
+                                            <th class="px-4 py-3 font-medium">Date & Time</th>
+                                            <th class="px-4 py-3 font-medium">Service</th>
+                                            <th class="px-4 py-3 font-medium">Stylist</th>
+                                            <th class="px-4 py-3 font-medium text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 bg-white">
+                                        {% for apt in unbilled_appointments %}
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-4 py-3 text-center">
+                                                <input type="checkbox" name="appointment_ids[]" value="{{ apt.id }}" checked class="w-4 h-4 rounded border-gray-300 text-salon-accent focus:ring-salon-accent cursor-pointer">
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-600">{{ apt.date|date("M j, Y") }} <span class="text-gray-400">at</span> {{ apt.time }}</td>
+                                            <td class="px-4 py-3 font-medium text-gray-800">{{ apt.service }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-600">{{ apt.stylist }}</td>
+                                            <td class="px-4 py-3 font-bold text-gray-900 text-right">${{ apt.service_price|number_format(2) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-salon-accent text-white text-sm font-medium rounded-md hover:bg-yellow-600 transition-colors shadow-sm">
+                                    Generate Bulk Invoice
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                    
                     {% if invoices|length > 0 %}
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
@@ -268,7 +310,7 @@
                                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                     <span class="text-gray-500 sm:text-sm">$</span>
                                                 </div>
-                                                <input type="number" x-model="tenderAmount" name="tender_amount" step="0.01" style="padding-left: 2rem;" class="focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md" placeholder="0.00">
+                                                <input type="number" x-model="tenderAmount" name="tender_amount" step="0.01" class="!pl-10 focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md" placeholder="0.00">
                                             </div>
                                             <p class="text-sm text-gray-500 mt-2" x-show="tenderAmount !== '' && (parseFloat(tenderAmount) - totalAmount) > 0">
                                                 Change Due: <span class="font-medium text-gray-900" x-text="'$' + (parseFloat(tenderAmount) - totalAmount).toFixed(2)"></span>

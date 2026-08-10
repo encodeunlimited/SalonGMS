@@ -274,7 +274,7 @@
                     buttonsHtml = `<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">${props.status}</span>`;
                 }
 
-                var waMessage = encodeURIComponent(`Hello ${props.customer},\n\nYour appointment for ${props.service} on ${props.start.toLocaleString()} is currently: ${props.status.toUpperCase()}.\n\nStylist: ${props.stylist}\n\nThank you for choosing our Salon!`);
+                var waMessage = encodeURIComponent(`Hello ${props.customer},\n\nYour appointment for ${props.service} on ${info.event.start ? info.event.start.toLocaleString() : 'the scheduled time'} is currently: ${props.status.toUpperCase()}.\n\nStylist: ${props.stylist}\n\nThank you for choosing our Salon!`);
                 var waLink = props.customer_phone ? `https://wa.me/${props.customer_phone.replace(/[^0-9]/g, '')}?text=${waMessage}` : '#';
                 var waDisabled = !props.customer_phone ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600';
                 

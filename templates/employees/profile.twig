@@ -64,7 +64,7 @@
                         {% for comm in commissions %}
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ comm.invoice_date|date("M d, Y h:i A") }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-{{ comm.invoice_id|number_format(0, '', '')|str_pad(5, '0', 0) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-{{ "%05d"|format(comm.invoice_id) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-salon-accent font-bold text-right">+${{ comm.amount|number_format(2) }}</td>
                             </tr>
                         {% endfor %}

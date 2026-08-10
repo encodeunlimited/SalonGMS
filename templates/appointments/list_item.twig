@@ -38,18 +38,23 @@
     <td class="px-6 py-5 whitespace-nowrap text-right">
         <div class="flex items-center gap-1 justify-end">
             {% if appointment.status == 'scheduled' or appointment.status == 'pending' %}
-                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "approved"}' hx-target="closest tr" hx-swap="outerHTML" class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow-sm transition-colors">Approve</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "approved"}' hx-swap="none" class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow-sm transition-colors">Approve</button>
                 <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Done</button>
                 <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Paid</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "cancelled"}' hx-swap="none" class="px-2 py-1 bg-red-50 text-red-600 border border-red-200 text-xs rounded hover:bg-red-100 shadow-sm transition-colors" title="Cancel Appointment"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             {% elseif appointment.status == 'approved' %}
                 <button class="px-2 py-1 bg-blue-50 text-blue-400 border border-blue-200 text-xs rounded cursor-default" disabled>Approved</button>
-                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "done"}' hx-target="closest tr" hx-swap="outerHTML" class="px-2 py-1 bg-emerald-500 text-white text-xs rounded hover:bg-emerald-600 shadow-sm transition-colors">Done</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "done"}' hx-swap="none" class="px-2 py-1 bg-emerald-500 text-white text-xs rounded hover:bg-emerald-600 shadow-sm transition-colors">Done</button>
                 <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Paid</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "cancelled"}' hx-swap="none" class="px-2 py-1 bg-red-50 text-red-600 border border-red-200 text-xs rounded hover:bg-red-100 shadow-sm transition-colors" title="Cancel Appointment"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             {% elseif appointment.status == 'done' %}
                 <button class="px-2 py-1 bg-emerald-50 text-emerald-500 border border-emerald-200 text-xs rounded cursor-default" disabled>Done</button>
-                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "paid"}' hx-target="closest tr" hx-swap="outerHTML" class="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 shadow-sm transition-colors">Paid</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "paid"}' hx-swap="none" class="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 shadow-sm transition-colors">Paid</button>
+                <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled title="Cannot cancel a done appointment"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             {% elseif appointment.status == 'paid' %}
                 <span class="inline-flex items-center px-3 py-1 rounded text-xs font-bold bg-gray-900 text-white shadow-sm">Completed</span>
+            {% elseif appointment.status == 'cancelled' %}
+                <span class="inline-flex items-center px-3 py-1 rounded text-xs font-bold bg-red-100 text-red-800 shadow-sm">Cancelled</span>
             {% else %}
                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ appointment.status|capitalize }}</span>
             {% endif %}

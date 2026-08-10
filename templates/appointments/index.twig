@@ -275,8 +275,11 @@
                 }
 
                 var waMessage = encodeURIComponent(`Hello ${props.customer},\n\nYour appointment for ${props.service} on ${info.event.start ? info.event.start.toLocaleString() : 'the scheduled time'} is currently: ${props.status.toUpperCase()}.\n\nStylist: ${props.stylist}\n\nThank you for choosing our Salon!`);
-                var waLink = props.customer_phone ? `https://wa.me/${props.customer_phone.replace(/[^0-9]/g, '')}?text=${waMessage}` : '#';
-                var waDisabled = !props.customer_phone ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600';
+                var rawPhone = props.customer_phone ? props.customer_phone.replace(/[^0-9]/g, '') : '';
+                if (rawPhone.startsWith('0')) rawPhone = '94' + rawPhone.substring(1);
+                
+                var waLink = rawPhone ? `https://wa.me/${rawPhone}?text=${waMessage}` : '#';
+                var waDisabled = !rawPhone ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600';
                 
                 var tooltipContent = `
                     <div class="p-2 w-56 text-left font-sans">

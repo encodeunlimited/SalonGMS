@@ -218,7 +218,8 @@
     document.addEventListener("DOMContentLoaded", function() {
         var calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
+            initialView: sessionStorage.getItem('calendarView') || 'timeGridWeek',
+            initialDate: sessionStorage.getItem('calendarDate') || new Date(),
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -331,6 +332,10 @@
     });
 
     document.body.addEventListener('refresh-calendar', function() {
+        if (calendar) {
+            sessionStorage.setItem('calendarDate', calendar.getDate().toISOString());
+            sessionStorage.setItem('calendarView', calendar.view.type);
+        }
         window.location.reload();
     });
 </script>

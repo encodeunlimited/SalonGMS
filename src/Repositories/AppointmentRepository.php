@@ -137,4 +137,33 @@ class AppointmentRepository extends BaseRepository
         ]);
         return $stmt->fetchAll();
     }
+
+    public function updateStatus(int $id, string $status): bool
+    {
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET status = :status WHERE id = :id AND tenant_id = :tenant_id");
+        return $stmt->execute([
+            'status' => $status,
+            'id' => $id,
+            'tenant_id' => $this->getTenantId()
+        ]);
+    }
+
+    public function getAppointmentDetails(int $id): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
+                   c.profile_image as customer_image,
+                   u.profile_image as stylist_image
+            FROM {$this->table} a
+            LEFT JOIN customers c ON a.customer_id = c.id
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.id = :id AND a.tenant_id = :tenant_id
+        ");
+        $stmt->execute([
+            'id' => $id,
+            'tenant_id' => $this->getTenantId()
+        ]);
+        $res = $stmt->fetch();
+        return $res ?: null;
+    }
 }

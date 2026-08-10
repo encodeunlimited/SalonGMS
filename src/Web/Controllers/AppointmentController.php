@@ -174,4 +174,37 @@ class AppointmentController
         $response->getBody()->write($html);
         return $response->withStatus(200);
     }
+
+    public function updateStatus(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $appointmentId = (int)$args['id'];
+        
+        $data = $request->getParsedBody();
+        $newStatus = $data['status'] ?? 'pending';
+        
+        $this->appointments->setTenantId($tenantId);
+        $this->appointments->updateStatus($appointmentId, $newStatus);
+
+        $appointment = $this->appointments->getAppointmentDetails($appointmentId);
+
+        // If the request comes from the calendar tooltip, we can just return a success header
+        // that triggers a calendar refresh, but since we are modifying the DOM we might just return empty 
+        // with an HTMX trigger to refetch the calendar.
+        
+        // For the list item, we want to return the updated row HTML.
+        // We can differentiate by a custom header or just return the list item and 
+        // add a trigger to refresh the calendar too.
+
+        // Actually, we'll return the updated list item. If it's called from the tooltip, 
+        // the list item HTML will just swap out the tooltip button or do nothing if targeting out-of-band.
+        // But the best way is to return the updated list_item and fire an event to refresh the calendar.
+
+        $response->getBody()->write($this->view->fetch('appointments/list_item.twig', [
+            'appointment' => $appointment
+        ]));
+        
+        return $response->withHeader('Content-Type', 'text/html')
+                        ->withHeader('HX-Trigger', 'refresh-calendar');
+    }
 }

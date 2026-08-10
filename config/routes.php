@@ -37,6 +37,7 @@ return function (App $app) {
         $group->get('/appointments', \App\Web\Controllers\AppointmentController::class . ':index');
         $group->get('/appointments/stylists', \App\Web\Controllers\AppointmentController::class . ':getStylistsForService');
         $group->post('/appointments', \App\Web\Controllers\AppointmentController::class . ':store');
+        $group->put('/appointments/{id}/status', \App\Web\Controllers\AppointmentController::class . ':updateStatus');
         
         // POS & Billing
         $group->get('/pos', \App\Web\Controllers\InvoiceController::class . ':pos');

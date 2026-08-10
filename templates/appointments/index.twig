@@ -133,6 +133,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="appointment-table-body">
@@ -237,6 +238,7 @@
                     backgroundColor: '#1e293b',
                     borderColor: '#1e293b',
                     extendedProps: {
+                        id: '{{ apt.id }}',
                         customer: '{{ apt.customer|escape('js') }}',
                         customer_image: '{{ apt.customer_image|default('') }}',
                         service: '{{ apt.service|escape('js') }}',
@@ -252,6 +254,24 @@
                 var props = info.event.extendedProps;
                 var custImg = props.customer_image ? `<img src="${props.customer_image}" class="w-10 h-10 rounded-full object-cover border border-gray-200">` : `<div class="w-10 h-10 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg">${props.customer.charAt(0).toUpperCase()}</div>`;
                 var stylistImg = props.stylist_image ? `<img src="${props.stylist_image}" class="w-6 h-6 rounded-full object-cover border border-gray-200">` : `<div class="w-6 h-6 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-xs">${props.stylist.charAt(0).toUpperCase()}</div>`;
+
+                var buttonsHtml = '';
+                if (props.status === 'scheduled' || props.status === 'pending') {
+                    buttonsHtml = `<button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "approved"}' hx-swap="none" class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow-sm transition-colors">Approve</button>
+                                   <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Done</button>
+                                   <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Paid</button>`;
+                } else if (props.status === 'approved') {
+                    buttonsHtml = `<button class="px-2 py-1 bg-blue-50 text-blue-400 border border-blue-200 text-xs rounded cursor-default" disabled>Approved</button>
+                                   <button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "done"}' hx-swap="none" class="px-2 py-1 bg-emerald-500 text-white text-xs rounded hover:bg-emerald-600 shadow-sm transition-colors">Done</button>
+                                   <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Paid</button>`;
+                } else if (props.status === 'done') {
+                    buttonsHtml = `<button class="px-2 py-1 bg-emerald-50 text-emerald-500 border border-emerald-200 text-xs rounded cursor-default" disabled>Done</button>
+                                   <button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "paid"}' hx-swap="none" class="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 shadow-sm transition-colors">Paid</button>`;
+                } else if (props.status === 'paid') {
+                    buttonsHtml = `<span class="inline-flex items-center px-3 py-1 rounded text-xs font-bold bg-gray-900 text-white shadow-sm">Completed</span>`;
+                } else {
+                    buttonsHtml = `<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">${props.status}</span>`;
+                }
 
                 var tooltipContent = `
                     <div class="p-2 w-56 text-left font-sans">
@@ -274,9 +294,9 @@
                             </div>
                         </div>
                         <div class="mt-3 pt-2 border-t border-gray-100">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800">
-                                Status: ${props.status.charAt(0).toUpperCase() + props.status.slice(1)}
-                            </span>
+                            <div class="flex items-center gap-1 justify-center mt-1">
+                                ${buttonsHtml}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -289,11 +309,18 @@
                     interactive: true,
                     appendTo: document.body,
                     animation: 'scale',
-                    duration: [200, 150]
+                    duration: [200, 150],
+                    onMount(instance) {
+                        htmx.process(instance.popper);
+                    }
                 });
             }
         });
         calendar.render();
+    });
+
+    document.body.addEventListener('refresh-calendar', function() {
+        window.location.reload();
     });
 </script>
 <style>

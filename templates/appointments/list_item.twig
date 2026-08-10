@@ -1,4 +1,4 @@
-<tr class="hover:bg-slate-50 transition-colors cursor-help" title="Date: {{ appointment.date }} | Time: {{ appointment.time }} | Customer: {{ appointment.customer }} | Service: {{ appointment.service }} | Stylist: {{ appointment.stylist }} | Type: {{ appointment.booking_type|default('In Salon') }} | Status: {{ appointment.status|capitalize }}">
+<tr id="apt-{{ appointment.id }}" class="hover:bg-slate-50 transition-colors">
     <td class="px-6 py-5 whitespace-nowrap">
         <div class="text-sm font-medium text-gray-900">{{ appointment.time }}</div>
         <div class="text-xs text-gray-500">{{ appointment.date }}</div>
@@ -33,6 +33,26 @@
                     </span>
                 </div>
             </div>
+        </div>
+    </td>
+    <td class="px-6 py-5 whitespace-nowrap text-right">
+        <div class="flex items-center gap-1 justify-end">
+            {% if appointment.status == 'scheduled' or appointment.status == 'pending' %}
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "approved"}' hx-target="closest tr" hx-swap="outerHTML" class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow-sm transition-colors">Approve</button>
+                <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Done</button>
+                <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Paid</button>
+            {% elseif appointment.status == 'approved' %}
+                <button class="px-2 py-1 bg-blue-50 text-blue-400 border border-blue-200 text-xs rounded cursor-default" disabled>Approved</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "done"}' hx-target="closest tr" hx-swap="outerHTML" class="px-2 py-1 bg-emerald-500 text-white text-xs rounded hover:bg-emerald-600 shadow-sm transition-colors">Done</button>
+                <button class="px-2 py-1 bg-gray-100 text-gray-400 text-xs rounded cursor-not-allowed border border-gray-200" disabled>Paid</button>
+            {% elseif appointment.status == 'done' %}
+                <button class="px-2 py-1 bg-emerald-50 text-emerald-500 border border-emerald-200 text-xs rounded cursor-default" disabled>Done</button>
+                <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "paid"}' hx-target="closest tr" hx-swap="outerHTML" class="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 shadow-sm transition-colors">Paid</button>
+            {% elseif appointment.status == 'paid' %}
+                <span class="inline-flex items-center px-3 py-1 rounded text-xs font-bold bg-gray-900 text-white shadow-sm">Completed</span>
+            {% else %}
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ appointment.status|capitalize }}</span>
+            {% endif %}
         </div>
     </td>
 </tr>

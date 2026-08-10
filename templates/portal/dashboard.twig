@@ -18,9 +18,19 @@
                             <span style="font-weight: 600; font-size: 1.1rem;">
                                 {{ app.start_time|date("l, F j, Y") }}
                             </span>
-                            <span style="background-color: var(--primary); color: var(--bg-base); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.875rem; font-weight: 600;">
-                                {{ app.status }}
-                            </span>
+                            {% if app.status == 'scheduled' or app.status == 'pending' %}
+                                <span style="background-color: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ app.status }}</span>
+                            {% elseif app.status == 'approved' %}
+                                <span style="background-color: #dbeafe; color: #2563eb; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ app.status }}</span>
+                            {% elseif app.status == 'done' %}
+                                <span style="background-color: #d1fae5; color: #10b981; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ app.status }}</span>
+                            {% elseif app.status == 'paid' or app.status == 'completed' %}
+                                <span style="background-color: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Paid</span>
+                            {% elseif app.status == 'cancelled' %}
+                                <span style="background-color: #fee2e2; color: #991b1b; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Cancelled</span>
+                            {% else %}
+                                <span style="background-color: #e5e7eb; color: #374151; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ app.status }}</span>
+                            {% endif %}
                         </div>
                         <div class="text-muted">
                             <div style="margin-bottom: 0.5rem;">
@@ -46,9 +56,15 @@
                             <span style="font-weight: 500;">
                                 {{ app.start_time|date("M j, Y") }}
                             </span>
-                            <span class="text-muted" style="font-size: 0.875rem;">
-                                {{ app.status }}
-                            </span>
+                            {% if app.status == 'paid' or app.status == 'completed' %}
+                                <span style="color: #065f46; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Paid</span>
+                            {% elseif app.status == 'done' %}
+                                <span style="color: #10b981; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Done</span>
+                            {% elseif app.status == 'cancelled' %}
+                                <span style="color: #991b1b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Cancelled</span>
+                            {% else %}
+                                <span class="text-muted" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">{{ app.status }}</span>
+                            {% endif %}
                         </div>
                         <div class="text-muted" style="font-size: 0.875rem;">
                             {{ app.start_time|date("g:i A") }}

@@ -70,7 +70,10 @@ class InvoiceService extends BaseService
             'customer_id' => $data['customer_id'] ?? null,
             'total_amount' => $totalAmount,
             'status' => 'paid',
-            'payment_method' => $data['payment_method'] ?? 'cash'
+            'payment_method' => $data['payment_method'] ?? 'cash',
+            'tender_amount' => isset($data['tender_amount']) ? (float)$data['tender_amount'] : null,
+            'change_amount' => isset($data['change_amount']) ? (float)$data['change_amount'] : null,
+            'split_details' => !empty($data['split_details']) ? json_encode($data['split_details']) : null
         ]);
 
         // 4. Create Items

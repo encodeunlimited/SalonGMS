@@ -99,23 +99,117 @@
 
             <!-- HTMX Form bridging Alpine data -->
             <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:before-request="prepareForm($event)" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Stylist / Employee</label>
-                    <select name="employee_id" x-data x-init="new TomSelect($el, {maxOptions: 50, placeholder: 'Select Stylist (Optional)'})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
-                        <option value="">None (No Commission)</option>
+                
+                <!-- Stylist Selection (Touch Friendly) -->
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Select Stylist (Optional)</label>
+                    <div class="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide" style="scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none;">
+                        <style>.scrollbar-hide::-webkit-scrollbar { display: none; }</style>
+                        <div @click="setEmployee('')" 
+                             class="flex-shrink-0 w-20 flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer border-2 transition-all"
+                             :class="employee_id == '' ? 'border-salon-accent bg-yellow-50' : 'border-gray-100 bg-white hover:border-gray-300'">
+                             <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1 text-gray-500 border border-gray-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             </div>
+                             <span class="text-xs font-medium text-gray-700 text-center">None</span>
+                        </div>
                         {% for employee in employees %}
-                            <option value="{{ employee.id }}" {% if appointment_to_checkout and appointment_to_checkout.user_id == employee.id %}selected{% endif %}>{{ employee.name }} ({{ employee.commission_rate }}%)</option>
+                        <div @click="setEmployee('{{ employee.id }}')" 
+                             class="flex-shrink-0 w-20 flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer border-2 transition-all"
+                             :class="employee_id == '{{ employee.id }}' ? 'border-salon-accent bg-yellow-50' : 'border-gray-100 bg-white hover:border-gray-300'">
+                             {% if employee.profile_image %}
+                                <img src="{{ employee.profile_image }}" class="w-10 h-10 rounded-full object-cover mb-1 border border-gray-200">
+                             {% else %}
+                                <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 font-bold flex items-center justify-center mb-1 text-sm border border-gray-300">
+                                    {{ employee.name|slice(0,2)|upper }}
+                                </div>
+                             {% endif %}
+                             <span class="text-xs font-medium text-gray-700 text-center truncate w-full">{{ employee.name|split(' ')|first }}</span>
+                        </div>
                         {% endfor %}
-                    </select>
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                    <select name="payment_method" x-data x-init="new TomSelect($el, {maxOptions: 50})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
-                        {% for ptype in payment_types %}
-                            <option value="{{ ptype }}">{{ ptype }}</option>
-                        {% endfor %}
-                    </select>
+                <!-- Payment Methods -->
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Payment Method</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" @click="setMethod('Cash')" 
+                                class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
+                                :class="payment_method == 'Cash' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                            Cash
+                        </button>
+                        <button type="button" @click="setMethod('Card')" 
+                                class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
+                                :class="payment_method == 'Card' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                            Card
+                        </button>
+                        <button type="button" @click="setMethod('Bank Transfer')" 
+                                class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
+                                :class="payment_method == 'Bank Transfer' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                            Transfer
+                        </button>
+                        <button type="button" @click="setMethod('Split')" 
+                                class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
+                                :class="payment_method == 'Split' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                            Split
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cash Tender Amount -->
+                <div x-show="payment_method === 'Cash'" class="mb-5 bg-gray-50 p-4 rounded-lg border border-gray-200" style="display: none;">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Tender Amount</label>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-lg">$</span>
+                            </div>
+                            <input type="number" x-model="tender_amount" step="0.01" class="focus:ring-salon-accent focus:border-salon-accent block w-full pl-8 pr-12 sm:text-lg font-medium border-gray-300 rounded-md py-3 shadow-sm" placeholder="0.00">
+                        </div>
+                        <div class="flex space-x-2">
+                            <button type="button" @click="tender_amount = subtotal.toFixed(2)" class="px-4 py-3 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 shadow-sm text-gray-700">Exact</button>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center text-sm" x-show="tender_amount !== '' && parseFloat(tender_amount) >= subtotal">
+                        <span class="text-gray-600 font-medium">Change Due:</span>
+                        <span class="font-bold text-green-600 text-xl">$<span x-text="change_due.toFixed(2)"></span></span>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center text-sm" x-show="tender_amount !== '' && parseFloat(tender_amount) < subtotal">
+                        <span class="text-red-500 font-medium flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Insufficient funds</span>
+                    </div>
+                </div>
+
+                <!-- Split Payments -->
+                <div x-show="payment_method === 'Split'" class="mb-5 bg-gray-50 p-4 rounded-lg border border-gray-200" style="display: none;">
+                    <label class="block text-sm font-bold text-gray-700 mb-3">Split Payments</label>
+                    <template x-for="(split, index) in split_details" :key="index">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <select x-model="split.method" class="block w-2/5 py-3 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm font-medium">
+                                <option value="Cash">Cash</option>
+                                <option value="Card">Card</option>
+                                <option value="Bank Transfer">Transfer</option>
+                            </select>
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 font-medium">$</span>
+                                </div>
+                                <input type="number" x-model="split.amount" step="0.01" class="block w-full pl-8 sm:text-sm font-medium border-gray-300 rounded-md py-3 shadow-sm focus:ring-salon-accent focus:border-salon-accent" placeholder="0.00">
+                            </div>
+                            <button type="button" @click="removeSplit(index)" :disabled="split_details.length === 1" class="text-red-500 p-2 hover:bg-red-50 rounded-md disabled:opacity-30 border border-transparent hover:border-red-200 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </template>
+                    <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
+                        <button type="button" @click="addSplit()" class="text-sm bg-white border border-gray-300 shadow-sm text-gray-700 px-3 py-1.5 rounded-md font-medium hover:bg-gray-50 flex items-center transition-colors">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Add Payment
+                        </button>
+                        <div class="text-sm">
+                            <span class="text-gray-600 mr-2">Remaining:</span>
+                            <span class="font-bold text-lg" :class="split_remaining < 0.01 ? 'text-green-600' : 'text-red-500'">$<span x-text="split_remaining.toFixed(2)"></span></span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div id="hidden-inputs-container"></div>
@@ -123,7 +217,9 @@
                     <input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">
                 {% endif %}
                 
-                <button type="submit" :disabled="items.length === 0" class="w-full bg-salon-accent text-white py-4 text-lg rounded-lg font-bold hover:bg-yellow-600 shadow-md transition-colors disabled:opacity-50 flex items-center justify-center">
+                <button type="submit" 
+                        :disabled="items.length === 0 || (payment_method === 'Cash' && tender_amount !== '' && parseFloat(tender_amount) < subtotal) || (payment_method === 'Split' && split_remaining > 0.01)" 
+                        class="w-full bg-salon-accent text-white py-4 text-lg rounded-lg font-bold hover:bg-yellow-600 shadow-md transition-colors disabled:opacity-50 flex items-center justify-center">
                     Pay $<span x-text="subtotal.toFixed(2)" class="ml-1"></span>
                     <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -141,8 +237,40 @@
 function posSystem() {
     return {
         items: [],
+        employee_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.user_id }}{% else %}{% endif %}',
+        payment_method: 'Cash',
+        tender_amount: '',
+        split_details: [{method: 'Cash', amount: ''}],
+        
         get subtotal() {
             return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        },
+        get change_due() {
+            if (this.payment_method !== 'Cash' || this.tender_amount === '') return 0;
+            const change = parseFloat(this.tender_amount) - this.subtotal;
+            return change > 0 ? change : 0;
+        },
+        get split_total() {
+            return this.split_details.reduce((sum, split) => sum + (parseFloat(split.amount) || 0), 0);
+        },
+        get split_remaining() {
+            const rem = this.subtotal - this.split_total;
+            return rem > 0 ? rem : 0;
+        },
+        addSplit() {
+            this.split_details.push({method: 'Card', amount: this.split_remaining > 0 ? this.split_remaining.toFixed(2) : ''});
+        },
+        removeSplit(index) {
+            this.split_details.splice(index, 1);
+        },
+        setMethod(method) {
+            this.payment_method = method;
+            if (method === 'Split' && this.split_details.length === 1 && !this.split_details[0].amount) {
+                this.split_details[0].amount = this.subtotal.toFixed(2);
+            }
+        },
+        setEmployee(id) {
+            this.employee_id = id;
         },
         addItem(name, price) {
             const existing = this.items.find(i => i.name === name);
@@ -157,6 +285,8 @@ function posSystem() {
         },
         clearCart() {
             this.items = [];
+            this.tender_amount = '';
+            this.split_details = [{method: 'Cash', amount: ''}];
         },
         prepareForm(event) {
             // Bridge Alpine JS array to HTMX form data before it sends
@@ -168,6 +298,19 @@ function posSystem() {
                 container.innerHTML += `<input type="hidden" name="items[${index}][price]" value="${item.price}">`;
                 container.innerHTML += `<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`;
             });
+
+            container.innerHTML += `<input type="hidden" name="employee_id" value="${this.employee_id}">`;
+            container.innerHTML += `<input type="hidden" name="payment_method" value="${this.payment_method}">`;
+            
+            if (this.payment_method === 'Cash' && this.tender_amount !== '') {
+                container.innerHTML += `<input type="hidden" name="tender_amount" value="${this.tender_amount}">`;
+                container.innerHTML += `<input type="hidden" name="change_amount" value="${this.change_due.toFixed(2)}">`;
+            } else if (this.payment_method === 'Split') {
+                this.split_details.forEach((split, index) => {
+                    container.innerHTML += `<input type="hidden" name="split_details[${index}][method]" value="${split.method}">`;
+                    container.innerHTML += `<input type="hidden" name="split_details[${index}][amount]" value="${split.amount}">`;
+                });
+            }
         }
     }
 }

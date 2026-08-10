@@ -11,8 +11,8 @@ class InvoiceRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, appointment_id, customer_id, total_amount, status, payment_method)
-            VALUES (:tenant_id, :appointment_id, :customer_id, :total_amount, :status, :payment_method)
+            INSERT INTO {$this->table} (tenant_id, appointment_id, customer_id, total_amount, status, payment_method, tender_amount, change_amount, split_details)
+            VALUES (:tenant_id, :appointment_id, :customer_id, :total_amount, :status, :payment_method, :tender_amount, :change_amount, :split_details)
         ");
         
         $insertData = [
@@ -21,7 +21,10 @@ class InvoiceRepository extends BaseRepository
             'customer_id' => $data['customer_id'] ?? null,
             'total_amount' => $data['total_amount'] ?? 0.00,
             'status' => $data['status'] ?? 'unpaid',
-            'payment_method' => $data['payment_method'] ?? null
+            'payment_method' => $data['payment_method'] ?? null,
+            'tender_amount' => $data['tender_amount'] ?? null,
+            'change_amount' => $data['change_amount'] ?? null,
+            'split_details' => $data['split_details'] ?? null
         ];
         
         $stmt->execute($insertData);

@@ -151,19 +151,31 @@ class AppointmentRepository extends BaseRepository
     public function getAppointmentDetails(int $id): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
+            SELECT a.id, a.user_id, a.customer_id, a.invoice_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
                    c.profile_image as customer_image, c.phone as customer_phone,
-                   u.profile_image as stylist_image
+                   u.profile_image as stylist_image,
+                   s.price as service_price
             FROM {$this->table} a
             LEFT JOIN customers c ON a.customer_id = c.id
             LEFT JOIN users u ON a.user_id = u.id
+            LEFT JOIN services s ON a.service_id = s.id
             WHERE a.id = :id AND a.tenant_id = :tenant_id
         ");
         $stmt->execute([
             'id' => $id,
             'tenant_id' => $this->getTenantId()
         ]);
-        $res = $stmt->fetch();
-        return $res ?: null;
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    public function setInvoiceId(int $appointmentId, int $invoiceId): bool
+    {
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET invoice_id = :invoice_id WHERE id = :id AND tenant_id = :tenant_id");
+        return $stmt->execute([
+            'invoice_id' => $invoiceId,
+            'id' => $appointmentId,
+            'tenant_id' => $this->getTenantId()
+        ]);
     }
 }

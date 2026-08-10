@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\AppointmentRepository;
 use App\Services\AppointmentService;
+use App\Services\InvoiceService;
 use Exception;
 use App\Repositories\CustomerRepository;
 use App\Repositories\ServiceRepository;
@@ -23,6 +24,7 @@ class AppointmentController
     private UserRepository $users;
     private TenantSettingRepository $settings;
     private \App\Repositories\BookingTypeRepository $bookingTypes;
+    private InvoiceService $invoiceService;
 
     public function __construct(
         Twig $view, 
@@ -32,7 +34,8 @@ class AppointmentController
         ServiceRepository $services,
         UserRepository $users,
         TenantSettingRepository $settings,
-        \App\Repositories\BookingTypeRepository $bookingTypes
+        \App\Repositories\BookingTypeRepository $bookingTypes,
+        InvoiceService $invoiceService
     ) {
         $this->view = $view;
         $this->appointments = $appointments;
@@ -42,6 +45,7 @@ class AppointmentController
         $this->users = $users;
         $this->settings = $settings;
         $this->bookingTypes = $bookingTypes;
+        $this->invoiceService = $invoiceService;
     }
 
     public function index(Request $request, Response $response): Response
@@ -185,8 +189,35 @@ class AppointmentController
         
         $this->appointments->setTenantId($tenantId);
         $this->appointments->updateStatus($appointmentId, $newStatus);
-
+        
         $appointment = $this->appointments->getAppointmentDetails($appointmentId);
+
+        if ($newStatus === 'paid' && empty($appointment['invoice_id'])) {
+            try {
+                $this->invoiceService->setTenantId($tenantId);
+                
+                $checkoutData = [
+                    'customer_id' => $appointment['customer_id'] ?? null,
+                    'employee_id' => $appointment['user_id'] ?? null,
+                    'payment_method' => 'cash',
+                    'items' => [
+                        [
+                            'name' => $appointment['service'],
+                            'quantity' => 1,
+                            'price' => $appointment['service_price'] ?? 0
+                        ]
+                    ]
+                ];
+                
+                $invoice = $this->invoiceService->checkout($checkoutData);
+                if (!empty($invoice['id'])) {
+                    $this->appointments->setInvoiceId($appointmentId, $invoice['id']);
+                    $appointment['invoice_id'] = $invoice['id']; // Update for current render
+                }
+            } catch (Exception $e) {
+                // Log or handle error if needed, but don't break the flow
+            }
+        }
 
         // If the request comes from the calendar tooltip, we can just return a success header
         // that triggers a calendar refresh, but since we are modifying the DOM we might just return empty 

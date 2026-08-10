@@ -13,7 +13,7 @@ class AppointmentRepository extends BaseRepository
         // Override because we want specific columns mapped and ordering
         $stmt = $this->db->prepare("
             SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
-                   c.profile_image as customer_image,
+                   c.profile_image as customer_image, c.phone as customer_phone,
                    u.profile_image as stylist_image
             FROM {$this->table} a
             LEFT JOIN customers c ON a.customer_id = c.id
@@ -54,7 +54,7 @@ class AppointmentRepository extends BaseRepository
         $totalPages = ceil($total / $limit);
 
         $dataSql = "SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
-                   c.profile_image as customer_image,
+                   c.profile_image as customer_image, c.phone as customer_phone,
                    u.profile_image as stylist_image " 
                    . $baseSql . 
                    " ORDER BY a.apt_date DESC, a.apt_time DESC LIMIT :limit OFFSET :offset";
@@ -152,7 +152,7 @@ class AppointmentRepository extends BaseRepository
     {
         $stmt = $this->db->prepare("
             SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
-                   c.profile_image as customer_image,
+                   c.profile_image as customer_image, c.phone as customer_phone,
                    u.profile_image as stylist_image
             FROM {$this->table} a
             LEFT JOIN customers c ON a.customer_id = c.id

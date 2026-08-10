@@ -235,10 +235,63 @@
                     start: '{{ apt.date }}T{{ apt.time }}:00',
                     {% if apt.end_time %}end: '{{ apt.date }}T{{ apt.end_time }}:00',{% endif %}
                     backgroundColor: '#1e293b',
-                    borderColor: '#1e293b'
+                    borderColor: '#1e293b',
+                    extendedProps: {
+                        customer: '{{ apt.customer|escape('js') }}',
+                        customer_image: '{{ apt.customer_image|default('') }}',
+                        service: '{{ apt.service|escape('js') }}',
+                        stylist: '{{ apt.stylist|escape('js') }}',
+                        stylist_image: '{{ apt.stylist_image|default('') }}',
+                        booking_type: '{{ apt.booking_type|default('In Salon')|escape('js') }}',
+                        status: '{{ apt.status|escape('js') }}'
+                    }
                 }{% if not loop.last %},{% endif %}
                 {% endfor %}
-            ]
+            ],
+            eventDidMount: function(info) {
+                var props = info.event.extendedProps;
+                var custImg = props.customer_image ? `<img src="${props.customer_image}" class="w-10 h-10 rounded-full object-cover border border-gray-200">` : `<div class="w-10 h-10 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg">${props.customer.charAt(0).toUpperCase()}</div>`;
+                var stylistImg = props.stylist_image ? `<img src="${props.stylist_image}" class="w-6 h-6 rounded-full object-cover border border-gray-200">` : `<div class="w-6 h-6 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-xs">${props.stylist.charAt(0).toUpperCase()}</div>`;
+
+                var tooltipContent = `
+                    <div class="p-2 w-56 text-left font-sans">
+                        <div class="flex items-center space-x-3 mb-2 border-b border-gray-100 pb-2">
+                            ${custImg}
+                            <div>
+                                <div class="font-bold text-sm text-gray-900">${props.customer}</div>
+                                <div class="text-[10px] text-gray-500 uppercase tracking-wide">${props.booking_type}</div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-[10px] font-semibold text-gray-400 uppercase">Service</span>
+                            <div class="text-sm font-medium text-gray-800">${props.service}</div>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-[10px] font-semibold text-gray-400 uppercase">Stylist</span>
+                            <div class="flex items-center space-x-2 mt-1">
+                                ${stylistImg}
+                                <span class="text-sm text-gray-700">${props.stylist}</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-gray-100">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800">
+                                Status: ${props.status.charAt(0).toUpperCase() + props.status.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                tippy(info.el, {
+                    content: tooltipContent,
+                    allowHTML: true,
+                    theme: 'light',
+                    placement: 'top',
+                    interactive: true,
+                    appendTo: document.body,
+                    animation: 'scale',
+                    duration: [200, 150]
+                });
+            }
         });
         calendar.render();
     });

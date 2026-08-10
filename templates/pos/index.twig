@@ -10,7 +10,7 @@
 
 <div id="pos-alerts"></div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="posSystem()">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem('{{ appointment_to_checkout.service|escape('js') }}', {{ appointment_to_checkout.service_price|default(0) }})"{% endif %}>
     <!-- Left: Service Selection -->
     <div class="lg:col-span-2">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-[700px] flex flex-col">
@@ -119,6 +119,9 @@
                 </div>
                 
                 <div id="hidden-inputs-container"></div>
+                {% if appointment_to_checkout %}
+                    <input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">
+                {% endif %}
                 
                 <button type="submit" :disabled="items.length === 0" class="w-full bg-salon-accent text-white py-4 text-lg rounded-lg font-bold hover:bg-yellow-600 shadow-md transition-colors disabled:opacity-50 flex items-center justify-center">
                     Pay $<span x-text="subtotal.toFixed(2)" class="ml-1"></span>

@@ -12,6 +12,8 @@ use App\Repositories\PaymentTypeRepository;
 use App\Repositories\UserRepository;
 use Exception;
 
+use App\Repositories\AppointmentRepository;
+
 class InvoiceController
 {
     private Twig $view;
@@ -20,6 +22,7 @@ class InvoiceController
     private TenantSettingRepository $settingsRepo;
     private PaymentTypeRepository $paymentTypeRepo;
     private UserRepository $userRepo;
+    private AppointmentRepository $appointmentRepo;
 
     public function __construct(
         Twig $view, 
@@ -27,7 +30,8 @@ class InvoiceController
         ServiceRepository $serviceRepo, 
         TenantSettingRepository $settingsRepo, 
         PaymentTypeRepository $paymentTypeRepo,
-        UserRepository $userRepo
+        UserRepository $userRepo,
+        AppointmentRepository $appointmentRepo
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -35,6 +39,7 @@ class InvoiceController
         $this->settingsRepo = $settingsRepo;
         $this->paymentTypeRepo = $paymentTypeRepo;
         $this->userRepo = $userRepo;
+        $this->appointmentRepo = $appointmentRepo;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -61,13 +66,20 @@ class InvoiceController
         $this->userRepo->setTenantId($tenantId);
         $employees = $this->userRepo->getAll(['filters' => ['role' => 'stylist']]);
 
+        $appointmentId = (int)($request->getQueryParams()['appointment_id'] ?? 0);
+        $appointmentToCheckout = null;
+        if ($appointmentId > 0) {
+            $this->appointmentRepo->setTenantId($tenantId);
+            $appointmentToCheckout = $this->appointmentRepo->getAppointmentDetails($appointmentId);
+        }
 
         return $this->view->render($response, 'pos/index.twig', [
             'title' => 'Point of Sale',
             'active_menu' => 'pos',
             'services_by_category' => $servicesByCategory,
             'payment_types' => $paymentTypes,
-            'employees' => $employees
+            'employees' => $employees,
+            'appointment_to_checkout' => $appointmentToCheckout
         ]);
     }
 
@@ -81,6 +93,15 @@ class InvoiceController
         try {
             $invoice = $this->invoiceService->checkout($data);
             
+            if (!empty($data['appointment_id'])) {
+                $appId = (int)$data['appointment_id'];
+                $this->appointmentRepo->setTenantId($tenantId);
+                $this->appointmentRepo->updateStatus($appId, 'paid');
+                if (!empty($invoice['id'])) {
+                    $this->appointmentRepo->setInvoiceId($appId, $invoice['id']);
+                }
+            }
+
             // Return HTMX OOB success message
             $response->getBody()->write('
                 <div id="pos-alerts" hx-swap-oob="true">

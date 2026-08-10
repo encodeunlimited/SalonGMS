@@ -1,0 +1,122 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        {% if employee.profile_image %}
+            <img src="{{ employee.profile_image }}" alt="Profile" class="h-16 w-16 rounded-full object-cover border-2 border-salon-dark shadow-sm">
+        {% else %}
+            <div class="h-16 w-16 rounded-full bg-salon-dark text-white flex items-center justify-center text-xl font-bold shadow-sm">
+                {{ employee.name|slice(0, 1)|upper }}
+            </div>
+        {% endif %}
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">{{ employee.name }}</h2>
+            <p class="text-sm text-gray-500 mt-1 capitalize">{{ employee.role }} | {{ employee.email }}</p>
+        </div>
+    </div>
+    <a href="/web/employees" class="text-sm text-gray-500 hover:text-gray-900">
+        &larr; Back to Employees
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Commission KPI -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Commission Earned</p>
+            <p class="text-3xl font-bold text-salon-accent">${{ total_commission|number_format(2) }}</p>
+        </div>
+        <div class="h-12 w-12 rounded-full bg-yellow-50 flex items-center justify-center text-salon-accent">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+    </div>
+
+    <!-- Details KPI -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">Commission Rate</p>
+            <p class="text-3xl font-bold text-gray-900">{{ employee.commission_rate }}%</p>
+        </div>
+        <div class="h-12 w-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Commission History -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-900">Commission History</h3>
+        </div>
+        <div class="p-0">
+            {% if commissions|length > 0 %}
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice #</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for comm in commissions %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ comm.invoice_date|date("M d, Y h:i A") }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-{{ comm.invoice_id|number_format(0, '', '')|str_pad(5, '0', 0) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-salon-accent font-bold text-right">+${{ comm.amount|number_format(2) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="p-10 text-center text-gray-500">
+                    <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p>No commissions earned yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Assigned Appointments -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-900">Recent Appointments</h3>
+        </div>
+        <div class="p-0">
+            {% if appointments|length > 0 %}
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for apt in appointments %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ apt.apt_date|date("M d, Y") }} <span class="text-gray-500">{{ apt.apt_time }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ apt.customer_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ apt.service }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="p-10 text-center text-gray-500">
+                    <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p>No appointments assigned yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

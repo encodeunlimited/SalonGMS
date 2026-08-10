@@ -46,6 +46,9 @@ return function (ContainerBuilder $containerBuilder) {
         \App\Repositories\ServiceCategoryRepository::class => function (ContainerInterface $c) {
             return new \App\Repositories\ServiceCategoryRepository($c->get(PDO::class));
         },
+        \App\Repositories\CommissionRepository::class => function (ContainerInterface $c) {
+            return new \App\Repositories\CommissionRepository($c->get(PDO::class));
+        },
 
         Twig::class => function (ContainerInterface $c) {
             return Twig::create(__DIR__ . '/../templates', ['cache' => false]);

@@ -49,6 +49,7 @@ return function (App $app) {
         $group->get('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':edit');
         $group->post('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':update');
         $group->delete('/employees/{id}', \App\Web\Controllers\EmployeeController::class . ':delete');
+        $group->get('/employees/{id}/profile', \App\Web\Controllers\EmployeeController::class . ':profile');
         
         // Services
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');

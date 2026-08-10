@@ -1,4 +1,4 @@
-<tr class="hover:bg-slate-50 transition-colors">
+<tr class="hover:bg-slate-50 transition-colors cursor-help" title="Date: {{ appointment.date }} | Time: {{ appointment.time }} | Customer: {{ appointment.customer }} | Service: {{ appointment.service }} | Stylist: {{ appointment.stylist }} | Type: {{ appointment.booking_type|default('In Salon') }} | Status: {{ appointment.status|capitalize }}">
     <td class="px-6 py-5 whitespace-nowrap">
         <div class="text-sm font-medium text-gray-900">{{ appointment.time }}</div>
         <div class="text-xs text-gray-500">{{ appointment.date }}</div>

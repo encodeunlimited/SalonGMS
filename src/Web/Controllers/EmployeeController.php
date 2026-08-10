@@ -7,18 +7,29 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\ServiceRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\CommissionRepository;
+use App\Repositories\AppointmentRepository;
 
 class EmployeeController
 {
     private Twig $view;
     private UserRepository $users;
     private ServiceRepository $services;
+    private CommissionRepository $commissions;
+    private AppointmentRepository $appointments;
 
-    public function __construct(Twig $view, UserRepository $users, ServiceRepository $services)
-    {
+    public function __construct(
+        Twig $view, 
+        UserRepository $users, 
+        ServiceRepository $services,
+        CommissionRepository $commissions,
+        AppointmentRepository $appointments
+    ) {
         $this->view = $view;
         $this->users = $users;
         $this->services = $services;
+        $this->commissions = $commissions;
+        $this->appointments = $appointments;
     }
 
     public function index(Request $request, Response $response): Response
@@ -224,7 +235,7 @@ class EmployeeController
     {
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
-            return $response->withStatus(403);
+            return $response->withStatus(500);
         }
         
         $tenantId = $request->getAttribute('tenant_id');
@@ -244,5 +255,41 @@ class EmployeeController
                                 'show-toast' => ['message' => 'Error deleting employee: ' . $e->getMessage(), 'type' => 'error']
                             ]));
         }
+    }
+
+    public function profile(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $employeeId = (int)$args['id'];
+        
+        $this->users->setTenantId($tenantId);
+        $this->commissions->setTenantId($tenantId);
+        $this->appointments->setTenantId($tenantId);
+
+        $employee = $this->users->getById($employeeId);
+        if (!$employee) {
+            $response->getBody()->write("Employee not found");
+            return $response->withStatus(404);
+        }
+
+        $commissionsList = $this->commissions->getByUserId($employeeId);
+        $totalCommission = $this->commissions->getTotalByUserId($employeeId);
+        
+        $options = [
+            'page' => 1,
+            'limit' => 50,
+            'filters' => ['user_id' => $employeeId]
+        ];
+        $appointmentsPaginated = $this->appointments->getPaginatedAppointments($options);
+        $appointmentsList = $appointmentsPaginated['data'] ?? [];
+
+        return $this->view->render($response, 'employees/profile.twig', [
+            'title' => 'Employee Profile - ' . $employee['name'],
+            'active_menu' => 'employees',
+            'employee' => $employee,
+            'commissions' => $commissionsList,
+            'total_commission' => $totalCommission,
+            'appointments' => $appointmentsList
+        ]);
     }
 }

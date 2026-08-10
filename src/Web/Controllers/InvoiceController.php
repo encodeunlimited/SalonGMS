@@ -9,6 +9,7 @@ use App\Services\InvoiceService;
 use App\Repositories\ServiceRepository;
 use App\Repositories\TenantSettingRepository;
 use App\Repositories\PaymentTypeRepository;
+use App\Repositories\UserRepository;
 use Exception;
 
 class InvoiceController
@@ -18,14 +19,22 @@ class InvoiceController
     private ServiceRepository $serviceRepo;
     private TenantSettingRepository $settingsRepo;
     private PaymentTypeRepository $paymentTypeRepo;
+    private UserRepository $userRepo;
 
-    public function __construct(Twig $view, InvoiceService $invoiceService, ServiceRepository $serviceRepo, TenantSettingRepository $settingsRepo, PaymentTypeRepository $paymentTypeRepo)
-    {
+    public function __construct(
+        Twig $view, 
+        InvoiceService $invoiceService, 
+        ServiceRepository $serviceRepo, 
+        TenantSettingRepository $settingsRepo, 
+        PaymentTypeRepository $paymentTypeRepo,
+        UserRepository $userRepo
+    ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
         $this->serviceRepo = $serviceRepo;
         $this->settingsRepo = $settingsRepo;
         $this->paymentTypeRepo = $paymentTypeRepo;
+        $this->userRepo = $userRepo;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -49,11 +58,16 @@ class InvoiceController
         $paymentTypesRaw = $this->paymentTypeRepo->getAll();
         $paymentTypes = array_column($paymentTypesRaw, 'name');
 
+        $this->userRepo->setTenantId($tenantId);
+        $employees = $this->userRepo->getAll(['filters' => ['role' => 'stylist']]);
+
+
         return $this->view->render($response, 'pos/index.twig', [
             'title' => 'Point of Sale',
             'active_menu' => 'pos',
             'services_by_category' => $servicesByCategory,
-            'payment_types' => $paymentTypes
+            'payment_types' => $paymentTypes,
+            'employees' => $employees
         ]);
     }
 

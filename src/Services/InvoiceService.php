@@ -4,17 +4,27 @@ namespace App\Services;
 
 use App\Repositories\InvoiceRepository;
 use App\Repositories\InvoiceItemRepository;
+use App\Repositories\CommissionRepository;
+use App\Repositories\UserRepository;
 use Exception;
 
 class InvoiceService extends BaseService
 {
     private InvoiceRepository $invoiceRepo;
     private InvoiceItemRepository $itemRepo;
+    private CommissionRepository $commissionRepo;
+    private UserRepository $userRepo;
 
-    public function __construct(InvoiceRepository $invoiceRepo, InvoiceItemRepository $itemRepo)
-    {
+    public function __construct(
+        InvoiceRepository $invoiceRepo, 
+        InvoiceItemRepository $itemRepo,
+        CommissionRepository $commissionRepo,
+        UserRepository $userRepo
+    ) {
         $this->invoiceRepo = $invoiceRepo;
         $this->itemRepo = $itemRepo;
+        $this->commissionRepo = $commissionRepo;
+        $this->userRepo = $userRepo;
     }
 
     public function setTenantId(int $tenantId): self
@@ -22,6 +32,8 @@ class InvoiceService extends BaseService
         parent::setTenantId($tenantId);
         $this->invoiceRepo->setTenantId($tenantId);
         $this->itemRepo->setTenantId($tenantId);
+        $this->commissionRepo->setTenantId($tenantId);
+        $this->userRepo->setTenantId($tenantId);
         return $this;
     }
 
@@ -65,6 +77,21 @@ class InvoiceService extends BaseService
         foreach ($processedItems as $pItem) {
             $pItem['invoice_id'] = $invoice['id'];
             $this->itemRepo->create($pItem);
+        }
+
+        // 5. Calculate and Save Commission
+        if (!empty($data['employee_id'])) {
+            $employeeId = (int)$data['employee_id'];
+            $user = $this->userRepo->getById($employeeId);
+            if ($user && isset($user['commission_rate']) && $user['commission_rate'] > 0) {
+                $commissionAmount = $totalAmount * ($user['commission_rate'] / 100);
+                
+                $this->commissionRepo->create([
+                    'user_id' => $employeeId,
+                    'invoice_id' => $invoice['id'],
+                    'amount' => $commissionAmount
+                ]);
+            }
         }
 
         return $invoice;

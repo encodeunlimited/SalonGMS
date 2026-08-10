@@ -100,8 +100,18 @@
             <!-- HTMX Form bridging Alpine data -->
             <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:before-request="prepareForm($event)" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
                 <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Stylist / Employee</label>
+                    <select name="employee_id" x-data x-init="new TomSelect($el, {maxOptions: 50, placeholder: 'Select Stylist (Optional)'})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                        <option value="">None (No Commission)</option>
+                        {% for employee in employees %}
+                            <option value="{{ employee.id }}">{{ employee.name }} ({{ employee.commission_rate }}%)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                    <select name="payment_method" x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                    <select name="payment_method" x-data x-init="new TomSelect($el, {maxOptions: 50})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
                         {% for ptype in payment_types %}
                             <option value="{{ ptype }}">{{ ptype }}</option>
                         {% endfor %}

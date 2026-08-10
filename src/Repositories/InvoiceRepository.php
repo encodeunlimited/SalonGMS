@@ -32,6 +32,30 @@ class InvoiceRepository extends BaseRepository
         return $insertData;
     }
 
+    public function update(int $id, array $data): bool
+    {
+        $updateFields = [];
+        $updateParams = ['id' => $id, 'tenant_id' => $this->getTenantId()];
+        
+        $allowedFields = ['status', 'payment_method', 'tender_amount', 'change_amount', 'split_details'];
+        
+        foreach ($allowedFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $updateFields[] = "$field = :$field";
+                $updateParams[$field] = $data[$field];
+            }
+        }
+        
+        if (empty($updateFields)) {
+            return false;
+        }
+        
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $updateFields) . " WHERE id = :id AND tenant_id = :tenant_id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($updateParams);
+    }
+
+
     public function getDistinctPaymentMethods(): array
     {
         $stmt = $this->db->prepare("SELECT DISTINCT payment_method FROM {$this->table} WHERE tenant_id = :tenant_id AND payment_method IS NOT NULL AND payment_method != ''");
@@ -52,6 +76,20 @@ class InvoiceRepository extends BaseRepository
             'tenant_id' => $this->getTenantId(),
             'customer_id' => $customerId
         ]);
+        return $stmt->fetchAll();
+    }
+
+    public function getUnpaidInvoicesWithCustomer(): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT i.id, i.total_amount, i.created_at, i.status, 
+                   c.id as customer_id, c.name as customer_name, c.profile_image, c.phone
+            FROM {$this->table} i
+            LEFT JOIN customers c ON i.customer_id = c.id
+            WHERE i.tenant_id = :tenant_id AND i.status != 'paid'
+            ORDER BY i.created_at ASC
+        ");
+        $stmt->execute(['tenant_id' => $this->getTenantId()]);
         return $stmt->fetchAll();
     }
 }

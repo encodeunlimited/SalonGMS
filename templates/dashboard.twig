@@ -68,6 +68,141 @@
     </div>
 </div>
 
+<!-- Appointments & Payments Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+    
+    <!-- Left Column: Appointments (Today & Tomorrow) -->
+    <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Today's Appointments -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-gray-900">Today's Appointments</h3>
+                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ today_appointments|length }}</span>
+            </div>
+            {% if today_appointments|length > 0 %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                                <th class="px-6 py-3 font-medium">Time</th>
+                                <th class="px-6 py-3 font-medium">Customer</th>
+                                <th class="px-6 py-3 font-medium">Service</th>
+                                <th class="px-6 py-3 font-medium">Stylist</th>
+                                <th class="px-6 py-3 font-medium text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for apt in today_appointments %}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ apt.customer }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.service }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.stylist }}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        {% if apt.status == 'scheduled' or apt.status == 'pending' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
+                                        {% elseif apt.status == 'approved' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Approved</span>
+                                        {% elseif apt.status == 'done' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Done</span>
+                                        {% elseif apt.status == 'paid' or apt.status == 'completed' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
+                                        {% elseif apt.status == 'cancelled' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-gray-500 text-sm">No appointments scheduled for today.</div>
+            {% endif %}
+        </div>
+
+        <!-- Tomorrow's Appointments -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-gray-900">Tomorrow's Appointments</h3>
+                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ tomorrow_appointments|length }}</span>
+            </div>
+            {% if tomorrow_appointments|length > 0 %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                                <th class="px-6 py-3 font-medium">Time</th>
+                                <th class="px-6 py-3 font-medium">Customer</th>
+                                <th class="px-6 py-3 font-medium">Service</th>
+                                <th class="px-6 py-3 font-medium text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for apt in tomorrow_appointments %}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ apt.customer }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.service }}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        {% if apt.status == 'scheduled' or apt.status == 'pending' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
+                                        {% elseif apt.status == 'approved' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Approved</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-gray-500 text-sm">No appointments scheduled for tomorrow.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Pending Payments -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-gray-900">Payment Pending</h3>
+                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ pending_payments|length }}</span>
+            </div>
+            <ul class="divide-y divide-gray-100 max-h-[800px] overflow-y-auto">
+                {% for payment in pending_payments %}
+                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center overflow-hidden">
+                            {% if payment.profile_image %}
+                                <img src="{{ payment.profile_image }}" class="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" alt="">
+                            {% else %}
+                                <div class="w-10 h-10 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
+                                    {{ payment.customer_name|slice(0, 1)|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="truncate mr-2">
+                                <p class="text-sm font-medium text-gray-900 truncate">{{ payment.customer_name }}</p>
+                                <p class="text-xs text-gray-500 truncate">#INV-{{ "%05d"|format(payment.id) }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0 flex flex-col items-end">
+                            <p class="text-sm font-bold text-red-600">${{ payment.total_amount|number_format(2) }}</p>
+                            <a href="/web/customers/{{ payment.customer_id }}/profile" class="text-xs font-medium text-salon-primary hover:text-salon-dark mt-1">Pay Now &rarr;</a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="p-8 text-center text-gray-500 text-sm">All invoices are paid up!</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}

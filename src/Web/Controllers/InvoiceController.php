@@ -126,4 +126,36 @@ class InvoiceController
             return $response->withStatus(200);
         }
     }
+
+    public function payRemaining(Request $request, Response $response, array $args): Response
+    {
+        $invoiceId = (int)$args['id'];
+        $data = $request->getParsedBody();
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        
+        $this->invoiceService->setTenantId($tenantId);
+        
+        try {
+            $invoice = $this->invoiceService->payInvoice($invoiceId, $data);
+            
+            if (!empty($invoice['appointment_id'])) {
+                $appId = (int)$invoice['appointment_id'];
+                $this->appointmentRepo->setTenantId($tenantId);
+                $this->appointmentRepo->updateStatus($appId, 'paid');
+            }
+
+            // Trigger a page reload to reflect the updated statuses and totals
+            return $response->withHeader('HX-Refresh', 'true')->withStatus(200);
+            
+        } catch (Exception $e) {
+            $response->getBody()->write('
+                <div id="payment-alerts" hx-swap-oob="true">
+                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
+                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
+                    </div>
+                </div>
+            ');
+            return $response->withStatus(200);
+        }
+    }
 }

@@ -99,4 +99,31 @@ class InvoiceService extends BaseService
 
         return $invoice;
     }
+
+    /**
+     * Mark an existing invoice as paid.
+     */
+    public function payInvoice(int $invoiceId, array $data): array
+    {
+        $invoice = $this->invoiceRepo->getById($invoiceId);
+        if (!$invoice) {
+            throw new Exception("Invoice not found.");
+        }
+        if ($invoice['status'] === 'paid') {
+            throw new Exception("Invoice is already paid.");
+        }
+
+        $updateData = [
+            'status' => 'paid',
+            'payment_method' => $data['payment_method'] ?? 'cash',
+            'tender_amount' => isset($data['tender_amount']) ? (float)$data['tender_amount'] : null,
+            'change_amount' => isset($data['change_amount']) ? (float)$data['change_amount'] : null,
+            'split_details' => !empty($data['split_details']) ? json_encode($data['split_details']) : null
+        ];
+
+        $this->invoiceRepo->update($invoiceId, $updateData);
+        
+        // Return updated invoice
+        return array_merge($invoice, $updateData);
+    }
 }

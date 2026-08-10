@@ -42,6 +42,7 @@ return function (App $app) {
         // POS & Billing
         $group->get('/pos', \App\Web\Controllers\InvoiceController::class . ':pos');
         $group->post('/pos/checkout', \App\Web\Controllers\InvoiceController::class . ':checkout');
+        $group->post('/invoices/{id}/pay', \App\Web\Controllers\InvoiceController::class . ':payRemaining');
         
         // Employees
         $group->get('/employees', \App\Web\Controllers\EmployeeController::class . ':index');

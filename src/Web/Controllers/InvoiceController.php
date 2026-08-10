@@ -100,9 +100,12 @@ class InvoiceController
                 if (!empty($invoice['id'])) {
                     $this->appointmentRepo->setInvoiceId($appId, $invoice['id']);
                 }
+                
+                // Redirect back to the calendar after checking out an appointment
+                return $response->withHeader('HX-Redirect', '/web/appointments')->withStatus(200);
             }
 
-            // Return HTMX OOB success message
+            // Return HTMX OOB success message for standard POS checkout
             $response->getBody()->write('
                 <div id="pos-alerts" hx-swap-oob="true">
                     <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-300 shadow-sm" role="alert">

@@ -104,7 +104,7 @@
                     <select name="employee_id" x-data x-init="new TomSelect($el, {maxOptions: 50, placeholder: 'Select Stylist (Optional)'})" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
                         <option value="">None (No Commission)</option>
                         {% for employee in employees %}
-                            <option value="{{ employee.id }}">{{ employee.name }} ({{ employee.commission_rate }}%)</option>
+                            <option value="{{ employee.id }}" {% if appointment_to_checkout and appointment_to_checkout.user_id == employee.id %}selected{% endif %}>{{ employee.name }} ({{ employee.commission_rate }}%)</option>
                         {% endfor %}
                     </select>
                 </div>

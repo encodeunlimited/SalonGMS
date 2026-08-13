@@ -229,7 +229,7 @@
             colors: ['#0f172a'],
             dataLabels: { enabled: false },
             xaxis: {
-                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                categories: {{ charts.weekly_revenue_labels|raw }},
                 axisBorder: { show: false },
                 axisTicks: { show: false }
             },

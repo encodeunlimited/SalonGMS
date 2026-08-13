@@ -47,17 +47,63 @@ class AnalyticsRepository extends BaseRepository
     
     public function getWeeklyRevenueData(): array
     {
-        // For a full implementation, we'd query the DB for the last 7 days of revenue.
-        // For this step, returning a mock array structure for the chart.
-        return [400, 850, 1100, 900, 1500, 2100, 1250];
+        $tenantId = $this->getTenantId();
+        $revenueData = [];
+        
+        $labels = [];
+        
+        // Loop through the last 7 days (including today)
+        for ($i = 6; $i >= 0; $i--) {
+            $dateStr = strtotime("-$i days");
+            $date = date('Y-m-d', $dateStr);
+            $labels[] = date('D', $dateStr); // e.g., 'Mon', 'Tue'
+            
+            $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND created_at >= ? AND created_at <= ?");
+            $stmt->execute([$tenantId, $date . ' 00:00:00', $date . ' 23:59:59']);
+            $total = $stmt->fetchColumn();
+            $revenueData[] = (float)($total ?: 0.00);
+        }
+        
+        return [
+            'labels' => $labels,
+            'series' => $revenueData
+        ];
     }
 
     public function getServicesBreakdown(): array
     {
-        // Mock data for the donut chart.
+        $tenantId = $this->getTenantId();
+        
+        // Count services based on invoice items
+        $stmt = $this->db->prepare("
+            SELECT s.category, COUNT(ii.id) as item_count 
+            FROM invoice_items ii 
+            JOIN services s ON ii.service_id = s.id 
+            WHERE ii.tenant_id = ? 
+            GROUP BY s.category 
+            ORDER BY item_count DESC 
+            LIMIT 5
+        ");
+        $stmt->execute([$tenantId]);
+        $results = $stmt->fetchAll();
+        
+        $labels = [];
+        $series = [];
+        
+        foreach ($results as $row) {
+            $labels[] = $row['category'] ?: 'Uncategorized';
+            $series[] = (int)$row['item_count'];
+        }
+        
+        // If there is no data, return empty arrays or a default to prevent chart errors
+        if (empty($labels)) {
+            $labels = ['No Data'];
+            $series = [0];
+        }
+        
         return [
-            'labels' => ['Haircut', 'Coloring', 'Manicure', 'Spa'],
-            'series' => [44, 55, 13, 33]
+            'labels' => $labels,
+            'series' => $series
         ];
     }
 }

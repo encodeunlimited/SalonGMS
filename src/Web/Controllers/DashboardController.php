@@ -54,7 +54,8 @@ class DashboardController
             'tomorrow_appointments' => $tomorrowAppointments,
             'pending_payments' => $pendingPayments,
             'charts' => [
-                'weekly_revenue' => json_encode($weeklyRevenue),
+                'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
+                'weekly_revenue' => json_encode($weeklyRevenue['series']),
                 'services_labels' => json_encode($servicesBreakdown['labels']),
                 'services_series' => json_encode($servicesBreakdown['series'])
             ]

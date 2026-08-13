@@ -223,4 +223,25 @@ class InvoiceService extends BaseService
 
         return $invoice;
     }
+
+    public function payAllUnpaidInvoices(int $customerId, array $paymentData): void
+    {
+        $invoices = $this->invoiceRepo->getByCustomerId($customerId);
+        $totalPaid = 0;
+        
+        foreach ($invoices as $invoice) {
+            if ($invoice['status'] === 'unpaid') {
+                $this->invoiceRepo->update($invoice['id'], [
+                    'status' => 'paid',
+                    'payment_method' => $paymentData['payment_method'] ?? 'Cash',
+                    'tender_amount' => $invoice['total_amount'],
+                    'change_amount' => 0
+                ]);
+                
+                if (!empty($invoice['appointment_id'])) {
+                    $this->appointmentRepo->updateStatus($invoice['appointment_id'], 'paid');
+                }
+            }
+        }
+    }
 }

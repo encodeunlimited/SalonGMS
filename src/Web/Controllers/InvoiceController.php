@@ -186,6 +186,32 @@ class InvoiceController
         }
     }
 
+    public function payAllInvoices(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $data = $request->getParsedBody();
+        
+        try {
+            $this->invoiceService->setTenantId($tenantId);
+            $this->invoiceService->payAllUnpaidInvoices($customerId, $data);
+            
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['message' => 'All invoices paid successfully!'],
+                'refresh-customer-profile' => true
+            ]))->withHeader('HX-Refresh', 'true');
+        } catch (Exception $e) {
+            $response->getBody()->write('
+                <div id="payment-alerts" hx-swap-oob="true">
+                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
+                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
+                    </div>
+                </div>
+            ');
+            return $response->withStatus(200);
+        }
+    }
+
     public function download(Request $request, Response $response, array $args): Response
     {
         $invoiceId = (int)$args['id'];

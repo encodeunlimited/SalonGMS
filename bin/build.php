@@ -87,6 +87,7 @@ try {
 
     copy_dir($baseDir . '/public/images', $buildDir . '/images');
     copy_dir($baseDir . '/public/uploads', $buildDir . '/uploads');
+    copy_dir($baseDir . '/public/assets', $buildDir . '/assets');
 
     echo "PHAR and deployment files built successfully in the build/ directory.\n";
     

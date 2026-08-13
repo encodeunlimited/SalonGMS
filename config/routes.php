@@ -14,6 +14,9 @@ return function (App $app) {
     $app->post('/web/logout', \App\Web\Controllers\AuthController::class . ':logout');
     $app->get('/web/logout', \App\Web\Controllers\AuthController::class . ':logout'); // Fallback for simple links
     
+    // Public Invoice View
+    $app->get('/web/invoices/download/{id}', \App\Web\Controllers\InvoiceController::class . ':download');
+    
     $app->group('/web', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Web\Controllers\DashboardController::class, 'index']);
         

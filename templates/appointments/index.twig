@@ -284,7 +284,7 @@
                 var waMessage = `Hello ${props.customer},\n\nYour appointment for ${props.service} on ${info.event.start ? info.event.start.toLocaleString() : 'the scheduled time'} is currently: ${props.status.toUpperCase()}.\n\nStylist: ${props.stylist}`;
                 
                 if (props.status === 'paid' && props.invoice_id) {
-                    waMessage += `\n\nView your invoice here: https://ls.encodeunlimited.com/web/invoices/download/${props.invoice_id}`;
+                    waMessage += `\n\nView your invoice here: ${window.location.origin}/web/invoices/download/${props.invoice_id}`;
                 }
                 
                 waMessage += `\n\nThank you for choosing our Salon!`;

@@ -27,4 +27,11 @@ class InvoiceItemRepository extends BaseRepository
         $insertData['id'] = $this->db->lastInsertId();
         return $insertData;
     }
+
+    public function getByInvoiceId(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE invoice_id = :invoice_id");
+        $stmt->execute(['invoice_id' => $invoiceId]);
+        return $stmt->fetchAll();
+    }
 }

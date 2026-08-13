@@ -92,7 +92,8 @@ class AppointmentController
             'users' => $usersList,
             'open_hour' => $openHour,
             'close_hour' => $closeHour,
-            'booking_types' => $bookingTypes
+            'booking_types' => $bookingTypes,
+            'base_url' => $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '')
         ]);
     }
 

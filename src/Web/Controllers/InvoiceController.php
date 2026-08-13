@@ -158,6 +158,7 @@ class InvoiceController
             return $response->withStatus(200);
         }
     }
+    
     public function bulkInvoice(Request $request, Response $response, array $args): Response
     {
         $tenantId = (int)$request->getAttribute('tenant_id');
@@ -183,5 +184,22 @@ class InvoiceController
                 'show-toast' => ['message' => 'Error: ' . $e->getMessage(), 'type' => 'error']
             ]))->withStatus(400);
         }
+    }
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+        $invoiceId = (int)$args['id'];
+        
+        $invoice = $this->invoiceService->getInvoicePublic($invoiceId);
+        
+        if (!$invoice) {
+            $response->getBody()->write("Invoice not found.");
+            return $response->withStatus(404);
+        }
+
+        return $this->view->render($response, 'invoices/view.twig', [
+            'invoice' => $invoice,
+            'title' => 'Invoice #' . sprintf('%05d', $invoice['id'])
+        ]);
     }
 }

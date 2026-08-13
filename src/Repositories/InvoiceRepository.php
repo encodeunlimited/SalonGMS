@@ -56,6 +56,30 @@ class InvoiceRepository extends BaseRepository
     }
 
 
+    public function getById(int $id): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = :id AND tenant_id = :tenant_id LIMIT 1");
+        $stmt->execute(['id' => $id, 'tenant_id' => $this->getTenantId()]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    /**
+     * Fetch a specific record globally (public view).
+     */
+    public function getByIdPublic(int $id): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT i.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+            FROM {$this->table} i
+            LEFT JOIN customers c ON i.customer_id = c.id
+            WHERE i.id = :id LIMIT 1
+        ");
+        $stmt->execute(['id' => $id]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
     public function getDistinctPaymentMethods(): array
     {
         $stmt = $this->db->prepare("SELECT DISTINCT payment_method FROM {$this->table} WHERE tenant_id = :tenant_id AND payment_method IS NOT NULL AND payment_method != ''");

@@ -247,6 +247,7 @@ class CustomerController
             'appointments' => $appointments,
             'unbilled_appointments' => $unbilledAppointments,
             'invoices' => $invoices,
+            'base_url' => $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : ''),
             'stats' => [
                 'total_appointments' => count($appointments),
                 'total_spent' => $totalSpent,

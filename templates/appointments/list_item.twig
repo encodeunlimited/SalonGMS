@@ -61,7 +61,7 @@
             
             {% set waMessage = "Hello " ~ appointment.customer ~ ",\n\nYour appointment for " ~ appointment.service ~ " on " ~ appointment.date ~ " at " ~ appointment.time ~ " is currently: " ~ appointment.status|upper ~ ".\n\nStylist: " ~ appointment.stylist %}
             {% if appointment.status == 'paid' and appointment.invoice_id %}
-                {% set waMessage = waMessage ~ "\n\nView your invoice here: https://ls.encodeunlimited.com/web/invoices/download/" ~ appointment.invoice_id %}
+                {% set waMessage = waMessage ~ "\n\nView your invoice here: " ~ base_url ~ "/web/invoices/download/" ~ appointment.invoice_id %}
             {% endif %}
             {% set waMessage = waMessage ~ "\n\nThank you for choosing our Salon!" %}
             {% set cleanPhone = appointment.customer_phone|default('')|replace({' ': '', '-': '', '+': ''}) %}

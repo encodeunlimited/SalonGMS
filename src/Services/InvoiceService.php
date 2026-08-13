@@ -42,6 +42,19 @@ class InvoiceService extends BaseService
         return $this;
     }
 
+    public function getInvoicePublic(int $invoiceId): ?array
+    {
+        $invoice = $this->invoiceRepo->getByIdPublic($invoiceId);
+        if (!$invoice) {
+            return null;
+        }
+        
+        $items = $this->itemRepo->getByInvoiceId($invoiceId);
+        $invoice['items'] = $items;
+        
+        return $invoice;
+    }
+
     /**
      * Processes a new POS Checkout transaction.
      */

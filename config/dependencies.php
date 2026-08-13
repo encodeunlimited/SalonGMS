@@ -54,6 +54,19 @@ return function (ContainerBuilder $containerBuilder) {
             return Twig::create(__DIR__ . '/../templates', ['cache' => false]);
         },
 
+        \App\Services\PdfService::class => function (ContainerInterface $c) {
+            return new \App\Services\PdfService($c->get(Twig::class));
+        },
+        
+        \App\Services\WhatsAppService::class => function (ContainerInterface $c) {
+            $settings = $c->get('settings')['whatsapp'] ?? [];
+            return new \App\Services\WhatsAppService(
+                $settings['provider_url'] ?? '',
+                $settings['instance_id'] ?? '',
+                $settings['token'] ?? ''
+            );
+        },
+
         PDO::class => function (ContainerInterface $c) {
             $settings = $c->get('settings')['db'];
             $connection = $settings['connection'];

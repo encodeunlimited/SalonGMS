@@ -10,6 +10,8 @@ use App\Repositories\ServiceRepository;
 use App\Repositories\TenantSettingRepository;
 use App\Repositories\PaymentTypeRepository;
 use App\Repositories\UserRepository;
+use App\Services\PdfService;
+use App\Services\WhatsAppService;
 use Exception;
 
 use App\Repositories\AppointmentRepository;
@@ -23,6 +25,8 @@ class InvoiceController
     private PaymentTypeRepository $paymentTypeRepo;
     private UserRepository $userRepo;
     private AppointmentRepository $appointmentRepo;
+    private PdfService $pdfService;
+    private WhatsAppService $whatsappService;
 
     public function __construct(
         Twig $view, 
@@ -31,7 +35,9 @@ class InvoiceController
         TenantSettingRepository $settingsRepo, 
         PaymentTypeRepository $paymentTypeRepo,
         UserRepository $userRepo,
-        AppointmentRepository $appointmentRepo
+        AppointmentRepository $appointmentRepo,
+        PdfService $pdfService,
+        WhatsAppService $whatsappService
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -40,6 +46,8 @@ class InvoiceController
         $this->paymentTypeRepo = $paymentTypeRepo;
         $this->userRepo = $userRepo;
         $this->appointmentRepo = $appointmentRepo;
+        $this->pdfService = $pdfService;
+        $this->whatsappService = $whatsappService;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -101,6 +109,18 @@ class InvoiceController
                     $this->appointmentRepo->setInvoiceId($appId, $invoice['id']);
                 }
                 
+                // Generate PDF and send via WhatsApp
+                $fullInvoice = $this->invoiceService->getInvoicePublic($invoice['id']);
+                if ($fullInvoice && !empty($fullInvoice['customer_phone'])) {
+                    $baseUrl = $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '');
+                    $pdfUrl = $this->pdfService->generateInvoicePdf($fullInvoice, $baseUrl);
+                    $this->whatsappService->sendInvoice(
+                        $fullInvoice['customer_phone'], 
+                        $pdfUrl, 
+                        $fullInvoice['customer_name'] ?? 'Customer'
+                    );
+                }
+                
                 // Redirect back to the calendar after checking out an appointment
                 return $response->withHeader('HX-Redirect', '/web/appointments')->withStatus(200);
             }
@@ -142,6 +162,18 @@ class InvoiceController
                 $appId = (int)$invoice['appointment_id'];
                 $this->appointmentRepo->setTenantId($tenantId);
                 $this->appointmentRepo->updateStatus($appId, 'paid');
+            }
+
+            // Generate PDF and send via WhatsApp
+            $fullInvoice = $this->invoiceService->getInvoicePublic($invoiceId);
+            if ($fullInvoice && !empty($fullInvoice['customer_phone'])) {
+                $baseUrl = $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '');
+                $pdfUrl = $this->pdfService->generateInvoicePdf($fullInvoice, $baseUrl);
+                $this->whatsappService->sendInvoice(
+                    $fullInvoice['customer_phone'], 
+                    $pdfUrl, 
+                    $fullInvoice['customer_name'] ?? 'Customer'
+                );
             }
 
             // Trigger a page reload to reflect the updated statuses and totals
@@ -195,6 +227,11 @@ class InvoiceController
         try {
             $this->invoiceService->setTenantId($tenantId);
             $this->invoiceService->payAllUnpaidInvoices($customerId, $data);
+            
+            // In a real scenario, you might want to send a consolidated receipt 
+            // or send individual PDFs for each invoice paid.
+            // For simplicity, we assume we just paid them and the UI will reflect it.
+            // A more robust implementation would fetch the paid invoices and send them.
             
             return $response->withHeader('HX-Trigger', json_encode([
                 'show-toast' => ['message' => 'All invoices paid successfully!'],

@@ -13,6 +13,8 @@ use App\Repositories\CustomerRepository;
 use App\Repositories\ServiceRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\TenantSettingRepository;
+use App\Services\PdfService;
+use App\Services\WhatsAppService;
 
 class AppointmentController
 {
@@ -25,6 +27,8 @@ class AppointmentController
     private TenantSettingRepository $settings;
     private \App\Repositories\BookingTypeRepository $bookingTypes;
     private InvoiceService $invoiceService;
+    private PdfService $pdfService;
+    private WhatsAppService $whatsappService;
 
     public function __construct(
         Twig $view, 
@@ -35,7 +39,9 @@ class AppointmentController
         UserRepository $users,
         TenantSettingRepository $settings,
         \App\Repositories\BookingTypeRepository $bookingTypes,
-        InvoiceService $invoiceService
+        InvoiceService $invoiceService,
+        PdfService $pdfService,
+        WhatsAppService $whatsappService
     ) {
         $this->view = $view;
         $this->appointments = $appointments;
@@ -46,6 +52,8 @@ class AppointmentController
         $this->settings = $settings;
         $this->bookingTypes = $bookingTypes;
         $this->invoiceService = $invoiceService;
+        $this->pdfService = $pdfService;
+        $this->whatsappService = $whatsappService;
     }
 
     public function index(Request $request, Response $response): Response
@@ -214,9 +222,22 @@ class AppointmentController
                 if (!empty($invoice['id'])) {
                     $this->appointments->setInvoiceId($appointmentId, $invoice['id']);
                     $appointment['invoice_id'] = $invoice['id']; // Update for current render
+                    
+                    // Generate PDF and send via WhatsApp
+                    if (!empty($appointment['customer_phone'])) {
+                        $fullInvoice = $this->invoiceService->getInvoicePublic($invoice['id']);
+                        $baseUrl = $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '');
+                        $pdfUrl = $this->pdfService->generateInvoicePdf($fullInvoice, $baseUrl);
+                        $this->whatsappService->sendInvoice(
+                            $appointment['customer_phone'], 
+                            $pdfUrl, 
+                            $appointment['customer_name'] ?? 'Customer'
+                        );
+                    }
                 }
             } catch (Exception $e) {
                 // Log or handle error if needed, but don't break the flow
+                error_log("Failed to process payment/whatsapp: " . $e->getMessage());
             }
         }
 

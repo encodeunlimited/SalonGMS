@@ -95,7 +95,8 @@ class InvoiceController
             'payment_types' => $paymentTypes,
             'employees' => $employees,
             'customers' => $customers,
-            'appointment_to_checkout' => $appointmentToCheckout
+            'appointment_to_checkout' => $appointmentToCheckout,
+            'hide_sidebar' => true
         ]);
     }
 

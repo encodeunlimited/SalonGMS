@@ -89,7 +89,7 @@
     <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 md:hidden" @click="sidebarOpen = false" style="display: none;" x-cloak></div>
 
     <!-- Sidebar (Charcoal/Navy) -->
-    <aside class="w-64 bg-salon-dark text-slate-300 flex flex-col shadow-xl z-50 transition-transform duration-300 flex-shrink-0 fixed inset-y-0 left-0 transform md:relative md:translate-x-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+    <aside class="w-64 bg-salon-dark text-slate-300 {% if hide_sidebar %}hidden{% else %}flex{% endif %} flex-col shadow-xl z-50 transition-transform duration-300 flex-shrink-0 fixed inset-y-0 left-0 transform md:relative md:translate-x-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
         <!-- Logo Area -->
         <div class="h-16 flex items-center px-6 border-b border-salon-navy/50 bg-salon-dark">
             <img src="/images/lsms.png" alt="SalonMS" class="w-8 h-8 mr-3 object-contain">
@@ -155,9 +155,16 @@
         <header class="h-16 bg-white border-b border-salon-border flex items-center justify-between px-6 z-10 flex-shrink-0">
             <div class="flex items-center">
                 <!-- Hamburger Menu (Mobile Only) -->
+                {% if not hide_sidebar %}
                 <button @click="sidebarOpen = true" class="text-gray-500 hover:text-gray-700 focus:outline-none md:hidden p-2 mr-4 -ml-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
+                {% else %}
+                <a href="/web/dashboard" class="text-gray-500 hover:text-gray-700 p-2 mr-4 -ml-2 flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back
+                </a>
+                {% endif %}
                 <!-- Breadcrumbs -->
                 <div class="flex items-center text-sm font-medium text-gray-500">
                 <span class="text-gray-400">Salon</span>

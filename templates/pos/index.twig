@@ -18,6 +18,31 @@
                 <input type="text" placeholder="Search services..." class="w-full focus:ring-salon-accent focus:border-salon-accent block shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
             </div>
             <div class="p-4 flex-1 overflow-y-auto space-y-6">
+                <!-- Packages Category -->
+                {% if packages|length > 0 %}
+                <div class="mb-6">
+                    <h3 class="font-bold text-gray-800 text-sm mb-3 uppercase tracking-wider">Packages</h3>
+                    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {% for pkg in packages %}
+                        <div @click="addItem('{{ pkg.name|escape('js') }}', {{ pkg.price }})" 
+                             class="bg-white border border-gray-100 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-salon-accent transition-all group flex flex-col justify-between h-full relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-8 h-8 bg-salon-accent/10 rounded-bl-full -mr-2 -mt-2 group-hover:scale-150 transition-transform"></div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1 leading-tight">{{ pkg.name }}</h4>
+                                <p class="text-xs text-gray-500 line-clamp-2 mb-2">{{ pkg.description }}</p>
+                            </div>
+                            <div class="flex justify-between items-end mt-2">
+                                <span class="text-salon-accent font-bold text-sm">QAR {{ pkg.price }}</span>
+                                <div class="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-salon-accent group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% for category, services in services_by_category %}
                 <div>
                     <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">{{ category }}</h4>

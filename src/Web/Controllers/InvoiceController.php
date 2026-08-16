@@ -16,6 +16,7 @@ use Exception;
 
 use App\Repositories\AppointmentRepository;
 use App\Repositories\CustomerRepository;
+use App\Repositories\PackageRepository;
 
 class InvoiceController
 {
@@ -29,6 +30,7 @@ class InvoiceController
     private PdfService $pdfService;
     private WhatsAppService $whatsappService;
     private CustomerRepository $customerRepo;
+    private PackageRepository $packageRepo;
 
     public function __construct(
         Twig $view, 
@@ -40,7 +42,8 @@ class InvoiceController
         AppointmentRepository $appointmentRepo,
         PdfService $pdfService,
         WhatsAppService $whatsappService,
-        CustomerRepository $customerRepo
+        CustomerRepository $customerRepo,
+        PackageRepository $packageRepo
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -52,6 +55,7 @@ class InvoiceController
         $this->pdfService = $pdfService;
         $this->whatsappService = $whatsappService;
         $this->customerRepo = $customerRepo;
+        $this->packageRepo = $packageRepo;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -81,6 +85,9 @@ class InvoiceController
         $this->customerRepo->setTenantId($tenantId);
         $customers = $this->customerRepo->getAll();
 
+        $this->packageRepo->setTenantId($tenantId);
+        $packages = $this->packageRepo->getAll(['active' => 1]);
+
         $appointmentId = (int)($request->getQueryParams()['appointment_id'] ?? 0);
         $appointmentToCheckout = null;
         if ($appointmentId > 0) {
@@ -92,6 +99,7 @@ class InvoiceController
             'title' => 'Point of Sale',
             'active_menu' => 'pos',
             'services_by_category' => $servicesByCategory,
+            'packages' => $packages,
             'payment_types' => $paymentTypes,
             'employees' => $employees,
             'customers' => $customers,

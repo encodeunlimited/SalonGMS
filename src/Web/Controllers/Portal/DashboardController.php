@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\CustomerRepository;
+use App\Repositories\PackageRepository;
 use App\Services\LoyaltyService;
 
 class DashboardController
@@ -15,17 +16,20 @@ class DashboardController
     private AppointmentRepository $appointmentRepo;
     private CustomerRepository $customerRepo;
     private LoyaltyService $loyaltyService;
+    private PackageRepository $packageRepo;
 
     public function __construct(
         Twig $view, 
         AppointmentRepository $appointmentRepo, 
         CustomerRepository $customerRepo,
-        LoyaltyService $loyaltyService
+        LoyaltyService $loyaltyService,
+        PackageRepository $packageRepo
     ) {
         $this->view = $view;
         $this->appointmentRepo = $appointmentRepo;
         $this->customerRepo = $customerRepo;
         $this->loyaltyService = $loyaltyService;
+        $this->packageRepo = $packageRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -36,6 +40,7 @@ class DashboardController
         $this->appointmentRepo->setTenantId($tenantId);
         $this->customerRepo->setTenantId($tenantId);
         $this->loyaltyService->setTenantId($tenantId);
+        $this->packageRepo->setTenantId($tenantId);
 
         $customer = $this->customerRepo->getById($customerId);
         $loyaltyTransactions = $this->loyaltyService->getCustomerTransactions($customerId);
@@ -78,12 +83,15 @@ class DashboardController
             $isBirthday = true;
         }
 
+        $packages = $this->packageRepo->getAll(['active' => 1]);
+
         return $this->view->render($response, 'portal/dashboard.twig', [
             'customer' => $customer,
             'upcoming_appointments' => $upcoming,
             'past_appointments' => $past,
             'loyalty_transactions' => $loyaltyTransactions,
-            'is_birthday' => $isBirthday
+            'is_birthday' => $isBirthday,
+            'packages' => $packages
         ]);
     }
 }

@@ -10,6 +10,7 @@ use App\Repositories\AppointmentRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\TenantSettingRepository;
 use App\Repositories\BookingTypeRepository;
+use App\Repositories\PackageRepository;
 
 class BookingController
 {
@@ -19,6 +20,7 @@ class BookingController
     private UserRepository $userRepo;
     private TenantSettingRepository $settings;
     private BookingTypeRepository $bookingTypeRepo;
+    private PackageRepository $packageRepo;
 
     public function __construct(
         Twig $view, 
@@ -26,7 +28,8 @@ class BookingController
         AppointmentRepository $appointmentRepo, 
         UserRepository $userRepo,
         TenantSettingRepository $settings,
-        BookingTypeRepository $bookingTypeRepo
+        BookingTypeRepository $bookingTypeRepo,
+        PackageRepository $packageRepo
     ) {
         $this->view = $view;
         $this->serviceRepo = $serviceRepo;
@@ -34,6 +37,7 @@ class BookingController
         $this->userRepo = $userRepo;
         $this->settings = $settings;
         $this->bookingTypeRepo = $bookingTypeRepo;
+        $this->packageRepo = $packageRepo;
     }
 
     public function step1(Request $request, Response $response): Response
@@ -56,13 +60,19 @@ class BookingController
         $bookingTypesRaw = $this->bookingTypeRepo->getAll();
         $bookingTypes = array_column($bookingTypesRaw, 'name');
         
+        $this->packageRepo->setTenantId($tenantId);
+        $packages = $this->packageRepo->getAll(['active' => 1]);
+        
         $queryParams = $request->getQueryParams();
         $selectedServiceId = isset($queryParams['service_id']) ? (int)$queryParams['service_id'] : null;
+        $selectedPackageId = isset($queryParams['package_id']) ? (int)$queryParams['package_id'] : null;
 
         return $this->view->render($response, 'portal/book.twig', [
             'services_by_category' => $servicesByCategory,
+            'packages' => $packages,
             'booking_types' => $bookingTypes,
-            'selected_service_id' => $selectedServiceId
+            'selected_service_id' => $selectedServiceId,
+            'selected_package_id' => $selectedPackageId
         ]);
     }
 
@@ -70,21 +80,28 @@ class BookingController
     {
         $tenantId = $request->getAttribute('tenant_id', 1);
         $queryParams = $request->getQueryParams();
-        $serviceId = (int)($queryParams['service_id'] ?? 0);
+        $isPackage = false;
+        if (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
+            $isPackage = true;
+            $packageId = (int)str_replace('pkg_', '', $queryParams['service_id']);
+            $serviceId = 0; // Or whatever
+        } else {
+            $serviceId = (int)($queryParams['service_id'] ?? 0);
+        }
 
         $this->userRepo->setTenantId($tenantId);
         $allUsers = $this->userRepo->getAll();
         
         $specialists = [];
         foreach ($allUsers as $user) {
-            if (in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
+            if ($isPackage || in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
                 $specialists[] = $user;
             }
         }
 
         return $this->view->render($response, 'portal/partials/booking_employees.twig', [
             'employees' => $specialists,
-            'service_id' => $serviceId
+            'service_id' => $queryParams['service_id'] ?? ''
         ]);
     }
 
@@ -93,12 +110,24 @@ class BookingController
         $tenantId = $request->getAttribute('tenant_id', 1);
         $queryParams = $request->getQueryParams();
         $employeeId = (int)($queryParams['employee_id'] ?? 0);
-        $serviceId = (int)($queryParams['service_id'] ?? 0);
+        $isPackage = false;
+        if (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
+            $isPackage = true;
+            $packageId = (int)str_replace('pkg_', '', $queryParams['service_id']);
+        } else {
+            $serviceId = (int)($queryParams['service_id'] ?? 0);
+        }
         $date = $queryParams['date'] ?? date('Y-m-d');
 
-        $this->serviceRepo->setTenantId($tenantId);
-        $service = $this->serviceRepo->getById($serviceId);
-        $durationMinutes = $service['duration_minutes'] ?? 30;
+        if ($isPackage) {
+            $this->packageRepo->setTenantId($tenantId);
+            $service = $this->packageRepo->getById($packageId);
+            $durationMinutes = 60; // Assuming default 60 min for packages
+        } else {
+            $this->serviceRepo->setTenantId($tenantId);
+            $service = $this->serviceRepo->getById($serviceId);
+            $durationMinutes = $service['duration_minutes'] ?? 30;
+        }
 
         $this->appointmentRepo->setTenantId($tenantId);
         // Find existing appointments for this employee on this date
@@ -163,24 +192,34 @@ class BookingController
         $tenantId = $request->getAttribute('tenant_id', 1);
         $customerId = $request->getAttribute('customer_id');
         
-        $serviceId = $data['service_id'] ?? null;
+        $serviceIdParam = $data['service_id'] ?? null;
         $employeeId = $data['employee_id'] ?? null;
         $date = $data['date'] ?? null;
         $time = $data['time'] ?? null;
         $bookingType = $data['booking_type'] ?? 'In Salon';
 
-        if (!$serviceId || !$employeeId || !$date || !$time) {
+        if (!$serviceIdParam || !$employeeId || !$date || !$time) {
             $response->getBody()->write('
                 <div x-data="{ show: true }" x-show="show" x-transition.duration.500ms x-init="setTimeout(() => show = false, 4000)" class="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center font-sans font-medium" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;">
                     <svg class="w-6 h-6 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Please select a service, a specialist, date, and time.</span>
                 </div>
             ');
-            return $response->withStatus(200); // Changed to 200 so HTMX swaps it without hx-ext="response-targets"
+            return $response->withStatus(200);
         }
 
-        $this->serviceRepo->setTenantId($tenantId);
-        $service = $this->serviceRepo->getById((int)$serviceId);
+        $isPackage = false;
+        if (is_string($serviceIdParam) && strpos($serviceIdParam, 'pkg_') === 0) {
+            $isPackage = true;
+            $packageId = (int)str_replace('pkg_', '', $serviceIdParam);
+            $this->packageRepo->setTenantId($tenantId);
+            $service = $this->packageRepo->getById($packageId);
+            $serviceId = null; // Don't assign a service_id for packages for now
+        } else {
+            $serviceId = (int)$serviceIdParam;
+            $this->serviceRepo->setTenantId($tenantId);
+            $service = $this->serviceRepo->getById($serviceId);
+        }
         
         if (!$service) {
             $response->getBody()->write('<div x-data="{ show: true }" x-show="show" x-transition.duration.500ms x-init="setTimeout(() => show = false, 4000)" class="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center font-sans font-medium" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;">Invalid service selected.</div>');
@@ -196,7 +235,8 @@ class BookingController
         }
 
         $startDateTimeObj = new \DateTime("$date $time:00");
-        $startDateTimeObj->add(new \DateInterval('PT' . ($service['duration_minutes'] ?? 60) . 'M'));
+        $durationMinutes = $isPackage ? 60 : ($service['duration_minutes'] ?? 60);
+        $startDateTimeObj->add(new \DateInterval('PT' . $durationMinutes . 'M'));
         $endTime = $startDateTimeObj->format('H:i');
 
         try {
@@ -204,9 +244,9 @@ class BookingController
             $this->appointmentRepo->create([
                 'customer_id' => $customerId,
                 'stylist_id' => $employee['id'],
-                'service_id' => $service['id'],
+                'service_id' => $serviceId,
                 'customer_name' => $_SESSION['customer_name'] ?? 'Guest', 
-                'service_name' => $service['name'],
+                'service_name' => $isPackage ? 'Package: ' . $service['name'] : $service['name'],
                 'stylist_name' => $employee['name'],
                 'date' => $date,
                 'time' => $time,

@@ -23,31 +23,6 @@
     </div>
     {% endif %}
 
-    <!-- Packages Section -->
-    {% if packages|length > 0 %}
-    <div class="mb-8">
-        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface);">Special Packages</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for package in packages %}
-                <div class="card glass flex flex-col justify-between h-full hover:shadow-lg transition-shadow" style="padding: 1.5rem; border-top: 4px solid var(--primary);">
-                    <div>
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-bold text-lg m-0" style="color: var(--on-surface);">{{ package.name }}</h3>
-                            <span class="font-bold text-sm bg-primary/10 text-primary px-2 py-1 rounded">QAR {{ package.price|number_format(0) }}</span>
-                        </div>
-                        <p class="text-sm mb-4" style="color: var(--on-surface-variant);">{{ package.description }}</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t" style="border-color: var(--surface-variant);">
-                        <a href="/portal/book?package_id={{ package.id }}" class="btn-primary w-full text-center py-2 block rounded font-semibold text-sm">
-                            Book This Package
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
     <div class="grid grid-cols-2 gap-4">
         <!-- Upcoming Appointments -->
         <div>

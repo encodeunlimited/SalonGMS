@@ -83,15 +83,12 @@ class DashboardController
             $isBirthday = true;
         }
 
-        $packages = $this->packageRepo->getAll(['active' => 1]);
-
         return $this->view->render($response, 'portal/dashboard.twig', [
             'customer' => $customer,
             'upcoming_appointments' => $upcoming,
             'past_appointments' => $past,
             'loyalty_transactions' => $loyaltyTransactions,
-            'is_birthday' => $isBirthday,
-            'packages' => $packages
+            'is_birthday' => $isBirthday
         ]);
     }
 }

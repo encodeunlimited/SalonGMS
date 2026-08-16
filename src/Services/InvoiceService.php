@@ -88,8 +88,6 @@ class InvoiceService extends BaseService
             ];
         }
 
-        }
-
         // Apply loyalty discount if requested
         $discountAmount = 0.00;
         $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;

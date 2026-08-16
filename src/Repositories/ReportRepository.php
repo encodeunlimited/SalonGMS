@@ -75,9 +75,10 @@ class ReportRepository extends BaseRepository
         $stmt = $this->db->prepare("
             SELECT u.id, u.name, 
                    COUNT(a.id) as total_appointments,
-                   SUM(a.service_price) as total_revenue
+                   SUM(i.total_amount) as total_revenue
             FROM users u
             LEFT JOIN appointments a ON a.user_id = u.id AND a.status IN ('done', 'paid') AND a.apt_date >= :start_date AND a.apt_date <= :end_date
+            LEFT JOIN invoices i ON a.invoice_id = i.id AND i.status = 'paid'
             WHERE u.tenant_id = :tenant_id AND u.role = 'stylist'
             GROUP BY u.id, u.name
             ORDER BY total_revenue DESC

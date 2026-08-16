@@ -64,8 +64,8 @@
                     <tr class="border-b border-gray-100">
                         <td class="py-4 px-2">{{ item.description }}</td>
                         <td class="py-4 px-2 text-center">{{ item.quantity }}</td>
-                        <td class="py-4 px-2 text-right">${{ item.unit_price|number_format(2) }}</td>
-                        <td class="py-4 px-2 text-right font-medium">${{ item.subtotal|number_format(2) }}</td>
+                        <td class="py-4 px-2 text-right">QAR {{ item.unit_price|number_format(2) }}</td>
+                        <td class="py-4 px-2 text-right font-medium">QAR {{ item.subtotal|number_format(2) }}</td>
                     </tr>
                     {% else %}
                     <tr>
@@ -81,24 +81,24 @@
             <div class="w-full max-w-sm">
                 <div class="flex justify-between items-center py-3 border-b border-gray-100 text-gray-600">
                     <span>Subtotal</span>
-                    <span>${{ invoice.total_amount|number_format(2) }}</span>
+                    <span>QAR {{ invoice.total_amount|number_format(2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-4 text-xl font-bold text-gray-900">
                     <span>Total</span>
-                    <span>${{ invoice.total_amount|number_format(2) }}</span>
+                    <span>QAR {{ invoice.total_amount|number_format(2) }}</span>
                 </div>
                 
                 {% if invoice.status == 'paid' %}
                 <div class="flex justify-between items-center py-2 text-sm text-gray-500">
                     <span>Paid via {{ invoice.payment_method|default('Cash') }}</span>
                     {% if invoice.tender_amount %}
-                    <span>Tendered: ${{ invoice.tender_amount|number_format(2) }}</span>
+                    <span>Tendered: QAR {{ invoice.tender_amount|number_format(2) }}</span>
                     {% endif %}
                 </div>
                 {% if invoice.change_amount %}
                 <div class="flex justify-between items-center py-1 text-sm text-gray-500">
                     <span>Change</span>
-                    <span>${{ invoice.change_amount|number_format(2) }}</span>
+                    <span>QAR {{ invoice.change_amount|number_format(2) }}</span>
                 </div>
                 {% endif %}
                 {% endif %}

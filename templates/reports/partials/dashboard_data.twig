@@ -1,0 +1,173 @@
+<!-- Top KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+        <div class="rounded-full bg-blue-50 p-3 mr-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500">Total Revenue</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ total_revenue|number_format(0) }}</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+        <div class="rounded-full bg-green-50 p-3 mr-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500">Appointments</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ total_appointments }}</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+        <div class="rounded-full bg-purple-50 p-3 mr-4">
+            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500">Active Customers</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ top_customers|length }}</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+        <div class="rounded-full bg-yellow-50 p-3 mr-4">
+            <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500">Top Service</p>
+            <p class="text-lg font-bold text-gray-900 mt-1 truncate max-w-[150px]">{{ top_services|first.service_name|default('N/A') }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Revenue Over Time</h3>
+        <div id="revenueChart"></div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Revenue by Payment Method</h3>
+        <div id="paymentMethodChart" class="flex-1 flex items-center justify-center"></div>
+    </div>
+</div>
+
+<!-- Tables Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Employee Performance -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-900">Stylist Performance</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-white">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Stylist</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Apts</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Commission</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for perf in stylist_performance %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ perf.name }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500 text-right">{{ perf.total_appointments }}</td>
+                        <td class="px-5 py-3 text-sm font-semibold text-salon-accent text-right">QAR {{ perf.total_revenue|default(0)|number_format(0) }}</td>
+                        <td class="px-5 py-3 text-sm text-green-600 font-medium text-right">QAR {{ perf.total_commission|number_format(0) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="px-5 py-6 text-center text-gray-500 text-sm">No data available</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Services -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-900">Top Performing Services</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-white">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Bookings</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for service in top_services %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ service.service_name }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500 text-right">{{ service.count }}</td>
+                        <td class="px-5 py-3 text-sm font-semibold text-gray-900 text-right">QAR {{ service.revenue|number_format(0) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="px-5 py-6 text-center text-gray-500 text-sm">No data available</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Top Customers -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-900">Top Spending Customers</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-white">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Visits</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Spent</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for customer in top_customers %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-sm font-medium text-gray-900">
+                            <a href="/web/customers/{{ customer.id }}/profile" class="hover:text-salon-accent transition-colors">{{ customer.name }}</a>
+                        </td>
+                        <td class="px-5 py-3 text-sm text-gray-500 text-right">{{ customer.visits }}</td>
+                        <td class="px-5 py-3 text-sm font-semibold text-salon-accent text-right">QAR {{ customer.total_spent|number_format(0) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="px-5 py-6 text-center text-gray-500 text-sm">No data available</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Appointment Status -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Appointments Breakdown</h3>
+        <div id="appointmentsChart" class="flex-1 flex items-center justify-center"></div>
+    </div>
+</div>
+
+<!-- Trigger JS to re-render charts. We inject JSON data so JS can read it. -->
+<script type="application/json" id="reportsDataJSON">
+{{ {
+    revenue_over_time: revenue_over_time,
+    revenue_by_payment_method: revenue_by_payment_method,
+    appointments_summary: appointments_summary
+}|json_encode|raw }}
+</script>
+
+<script>
+    if (typeof renderCharts === 'function') {
+        renderCharts(document.getElementById('reportsDataJSON').innerHTML);
+    }
+</script>

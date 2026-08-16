@@ -118,6 +118,10 @@
                 <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'services' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
                 Services
             </a>
+            <a href="/web/packages" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'packages' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
+                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'packages' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                Packages
+            </a>
             <a href="/web/inventory" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'inventory' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
                 <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'inventory' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 Inventory
@@ -128,8 +132,12 @@
             </a>
         </nav>
         
-        <!-- Bottom Settings/Logout -->
-        <div class="p-4 border-t border-salon-navy/50">
+        <!-- Reports / Settings / Logout -->
+        <div class="p-4 border-t border-salon-navy/50 space-y-1">
+            <a href="/web/reports" class="flex items-center px-3 py-2 text-sm font-medium transition-colors hover:text-white {% if active_menu == 'reports' %}text-white{% else %}text-slate-400{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Reports
+            </a>
             <a href="/web/settings" class="flex items-center px-3 py-2 text-sm font-medium transition-colors hover:text-white {% if active_menu == 'settings' %}text-white{% else %}text-slate-400{% endif %}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 Settings

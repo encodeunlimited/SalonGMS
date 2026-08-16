@@ -8,6 +8,7 @@ use Slim\Views\Twig;
 use App\Repositories\CustomerRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\InvoiceRepository;
+use App\Services\LoyaltyService;
 
 class CustomerController
 {
@@ -15,17 +16,20 @@ class CustomerController
     private CustomerRepository $customers;
     private AppointmentRepository $appointments;
     private InvoiceRepository $invoices;
+    private LoyaltyService $loyaltyService;
 
     public function __construct(
         Twig $view, 
         CustomerRepository $customers,
         AppointmentRepository $appointments,
-        InvoiceRepository $invoices
+        InvoiceRepository $invoices,
+        LoyaltyService $loyaltyService
     ) {
         $this->view = $view;
         $this->customers = $customers;
         $this->appointments = $appointments;
         $this->invoices = $invoices;
+        $this->loyaltyService = $loyaltyService;
     }
 
     public function index(Request $request, Response $response): Response
@@ -89,6 +93,7 @@ class CustomerController
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
+            'date_of_birth' => $data['date_of_birth'] ?? null,
             'profile_image' => $profileImagePath
         ]);
 
@@ -136,6 +141,7 @@ class CustomerController
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
+            'date_of_birth' => $data['date_of_birth'] ?? null,
             'notes' => $data['notes'] ?? null
         ];
 
@@ -219,6 +225,7 @@ class CustomerController
         $this->customers->setTenantId($tenantId);
         $this->appointments->setTenantId($tenantId);
         $this->invoices->setTenantId($tenantId);
+        $this->loyaltyService->setTenantId($tenantId);
         
         $customer = $this->customers->getById($customerId);
         if (!$customer) {
@@ -228,6 +235,7 @@ class CustomerController
         $appointments = $this->appointments->getByCustomerId($customerId);
         $unbilledAppointments = $this->appointments->getUnbilledDoneAppointments($customerId);
         $invoices = $this->invoices->getByCustomerId($customerId);
+        $loyaltyTransactions = $this->loyaltyService->getCustomerTransactions($customerId);
         
         $totalSpent = 0;
         $pendingAmount = 0;
@@ -247,6 +255,7 @@ class CustomerController
             'appointments' => $appointments,
             'unbilled_appointments' => $unbilledAppointments,
             'invoices' => $invoices,
+            'loyalty_transactions' => $loyaltyTransactions,
             'base_url' => $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : ''),
             'stats' => [
                 'total_appointments' => count($appointments),

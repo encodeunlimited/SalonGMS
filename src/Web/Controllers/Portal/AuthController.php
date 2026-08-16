@@ -87,6 +87,7 @@ class AuthController
         $name = $data['name'] ?? '';
         $email = $data['email'] ?? '';
         $phone = $data['phone'] ?? '';
+        $dateOfBirth = $data['date_of_birth'] ?? '';
         $password = $data['password'] ?? '';
         $passwordConfirm = $data['password_confirm'] ?? '';
 
@@ -127,6 +128,7 @@ class AuthController
                 'name' => $name,
                 'email' => $email,
                 'phone' => $phone,
+                'date_of_birth' => $dateOfBirth,
                 'password' => $password,
                 'profile_image' => $profileImagePath,
             ];

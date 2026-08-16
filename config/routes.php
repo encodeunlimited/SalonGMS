@@ -68,6 +68,14 @@ return function (App $app) {
         $group->post('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':update');
         $group->delete('/services/{id}', \App\Web\Controllers\ServiceController::class . ':delete');
         
+        // Packages
+        $group->get('/packages', \App\Web\Controllers\PackageController::class . ':index');
+        $group->get('/packages/create', \App\Web\Controllers\PackageController::class . ':create');
+        $group->post('/packages/create', \App\Web\Controllers\PackageController::class . ':store');
+        $group->get('/packages/{id}/edit', \App\Web\Controllers\PackageController::class . ':edit');
+        $group->post('/packages/{id}/edit', \App\Web\Controllers\PackageController::class . ':update');
+        $group->delete('/packages/{id}', \App\Web\Controllers\PackageController::class . ':delete');
+        
         // Inventory
         $group->get('/inventory', \App\Web\Controllers\InventoryController::class . ':index');
         $group->get('/inventory/create', \App\Web\Controllers\InventoryController::class . ':create');
@@ -90,6 +98,9 @@ return function (App $app) {
         
         // Profile
         $group->get('/profile', \App\Web\Controllers\ProfileController::class . ':index');
+
+        // Reports
+        $group->get('/reports', \App\Web\Controllers\ReportController::class . ':index');
         
     })->add(\App\Middleware\WebSessionAuthMiddleware::class);
 
@@ -142,9 +153,14 @@ return function (App $app) {
             }
             $servicesByCategory[$cat][] = $service;
         }
+
+        $packageRepo = $app->getContainer()->get(\App\Repositories\PackageRepository::class);
+        $packageRepo->setTenantId(1);
+        $packages = $packageRepo->getAll(['active' => 1]);
         
         return $view->render($response, 'portal/home.twig', [
-            'services_by_category' => $servicesByCategory
+            'services_by_category' => $servicesByCategory,
+            'packages' => $packages
         ]);
     });
 

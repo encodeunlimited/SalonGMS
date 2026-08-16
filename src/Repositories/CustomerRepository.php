@@ -20,8 +20,8 @@ class CustomerRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, name, phone, email, password_hash, notes, profile_image)
-            VALUES (:tenant_id, :name, :phone, :email, :password_hash, :notes, :profile_image)
+            INSERT INTO {$this->table} (tenant_id, name, phone, email, password_hash, notes, profile_image, date_of_birth)
+            VALUES (:tenant_id, :name, :phone, :email, :password_hash, :notes, :profile_image, :date_of_birth)
         ");
         
         $insertData = [
@@ -31,7 +31,8 @@ class CustomerRepository extends BaseRepository
             'email' => $data['email'] ?? null,
             'password_hash' => !empty($data['password']) ? password_hash($data['password'], PASSWORD_DEFAULT) : null,
             'notes' => $data['notes'] ?? null,
-            'profile_image' => $data['profile_image'] ?? null
+            'profile_image' => $data['profile_image'] ?? null,
+            'date_of_birth' => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null
         ];
         
         $stmt->execute($insertData);
@@ -56,6 +57,11 @@ class CustomerRepository extends BaseRepository
         if (array_key_exists('profile_image', $data) && $data['profile_image'] !== null) {
             $sql .= ", profile_image = :profile_image";
             $updateData['profile_image'] = $data['profile_image'];
+        }
+
+        if (array_key_exists('date_of_birth', $data)) {
+            $sql .= ", date_of_birth = :date_of_birth";
+            $updateData['date_of_birth'] = !empty($data['date_of_birth']) ? $data['date_of_birth'] : null;
         }
 
         if (!empty($data['password'])) {

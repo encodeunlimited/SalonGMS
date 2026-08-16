@@ -40,6 +40,33 @@ return function (ContainerBuilder $containerBuilder) {
         \App\Repositories\BookingTypeRepository::class => function (ContainerInterface $c) {
             return new \App\Repositories\BookingTypeRepository($c->get(PDO::class));
         },
+        \App\Services\LoyaltyService::class => function (ContainerInterface $c) {
+            return new \App\Services\LoyaltyService(
+                $c->get(PDO::class),
+                $c->get(\App\Repositories\CustomerRepository::class)
+            );
+        },
+
+        \App\Web\Controllers\CustomerController::class => function (ContainerInterface $c) {
+            return new \App\Web\Controllers\CustomerController(
+                $c->get(\Slim\Views\Twig::class),
+                $c->get(\App\Repositories\CustomerRepository::class),
+                $c->get(\App\Repositories\AppointmentRepository::class),
+                $c->get(\App\Repositories\InvoiceRepository::class),
+                $c->get(\App\Services\LoyaltyService::class)
+            );
+        },
+
+        \App\Services\InvoiceService::class => function (ContainerInterface $c) {
+            return new \App\Services\InvoiceService(
+                $c->get(\App\Repositories\InvoiceRepository::class),
+                $c->get(\App\Repositories\InvoiceItemRepository::class),
+                $c->get(\App\Repositories\CommissionRepository::class),
+                $c->get(\App\Repositories\UserRepository::class),
+                $c->get(\App\Repositories\AppointmentRepository::class),
+                $c->get(\App\Services\LoyaltyService::class)
+            );
+        },
         \App\Repositories\PaymentTypeRepository::class => function (ContainerInterface $c) {
             return new \App\Repositories\PaymentTypeRepository($c->get(PDO::class));
         },
@@ -97,6 +124,15 @@ return function (ContainerBuilder $containerBuilder) {
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             
             return $pdo;
+        },
+
+        \App\Web\Controllers\Portal\DashboardController::class => function (ContainerInterface $c) {
+            return new \App\Web\Controllers\Portal\DashboardController(
+                $c->get(\Slim\Views\Twig::class),
+                $c->get(\App\Repositories\AppointmentRepository::class),
+                $c->get(\App\Repositories\CustomerRepository::class),
+                $c->get(\App\Services\LoyaltyService::class)
+            );
         },
     ]);
 };

@@ -3,9 +3,25 @@
 {% block content %}
 <div class="animate-fade-in">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1 style="font-size: 2.5rem; font-weight: 700;">Welcome, {{ customer.name }}</h1>
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">Welcome, {{ customer.name }}</h1>
+            <div style="display: inline-flex; align-items: center; background-color: var(--primary-container); color: var(--on-primary-container); padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 600;">
+                <span class="material-symbols-outlined" style="margin-right: 0.5rem; font-size: 1.25rem;">stars</span>
+                {{ customer.loyalty_points|default(0) }} Loyalty Points
+            </div>
+        </div>
         <a href="/portal/book" class="btn-primary" style="width: auto;">Book New Appointment</a>
     </div>
+
+    {% if is_birthday %}
+    <div style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border: 1px solid #f9a8d4; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div>
+            <h2 style="font-size: 1.75rem; font-weight: 800; color: #831843; margin-bottom: 0.5rem;">🎉 Happy Birthday, {{ customer.name }}! 🎂</h2>
+            <p style="color: #9d174d; font-size: 1rem; margin-bottom: 0;">We hope you have a fantastic day! Treat yourself to one of our special beauty packages.</p>
+        </div>
+        <a href="/portal/packages" class="btn-primary" style="background-color: #db2777; width: auto; font-weight: bold; padding: 0.75rem 1.5rem;">View Birthday Offers</a>
+    </div>
+    {% endif %}
 
     <div class="grid grid-cols-2 gap-4">
         <!-- Upcoming Appointments -->

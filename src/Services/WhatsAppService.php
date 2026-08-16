@@ -68,4 +68,47 @@ class WhatsAppService
 
         return true;
     }
+
+    /**
+     * Sends a simple text message via WhatsApp.
+     */
+    public function sendMessage(string $phoneNumber, string $message): bool
+    {
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phoneNumber);
+        
+        if (empty($cleanPhone)) {
+            return false;
+        }
+
+        if (empty($this->providerUrl) || empty($this->token)) {
+            // Mock mode
+            error_log("Mock WhatsApp message sent to {$cleanPhone}: {$message}");
+            return true; 
+        }
+
+        $url = "{$this->providerUrl}/{$this->instanceId}/messages/chat";
+        
+        $data = [
+            'token' => $this->token,
+            'to' => $cleanPhone,
+            'body' => $message
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            error_log("WhatsApp API Error: " . $err);
+            return false;
+        }
+
+        return true;
+    }
 }

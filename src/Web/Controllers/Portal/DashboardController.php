@@ -7,18 +7,25 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\CustomerRepository;
+use App\Services\LoyaltyService;
 
 class DashboardController
 {
     private Twig $view;
     private AppointmentRepository $appointmentRepo;
     private CustomerRepository $customerRepo;
+    private LoyaltyService $loyaltyService;
 
-    public function __construct(Twig $view, AppointmentRepository $appointmentRepo, CustomerRepository $customerRepo)
-    {
+    public function __construct(
+        Twig $view, 
+        AppointmentRepository $appointmentRepo, 
+        CustomerRepository $customerRepo,
+        LoyaltyService $loyaltyService
+    ) {
         $this->view = $view;
         $this->appointmentRepo = $appointmentRepo;
         $this->customerRepo = $customerRepo;
+        $this->loyaltyService = $loyaltyService;
     }
 
     public function index(Request $request, Response $response): Response
@@ -28,8 +35,10 @@ class DashboardController
         
         $this->appointmentRepo->setTenantId($tenantId);
         $this->customerRepo->setTenantId($tenantId);
+        $this->loyaltyService->setTenantId($tenantId);
 
         $customer = $this->customerRepo->getById($customerId);
+        $loyaltyTransactions = $this->loyaltyService->getCustomerTransactions($customerId);
         
         // Fetch appointments for this customer
         $appointments = $this->appointmentRepo->getAll(['sort' => 'apt_date', 'dir' => 'DESC']);
@@ -63,10 +72,18 @@ class DashboardController
         }
         unset($app);
 
+        $today = date('m-d');
+        $isBirthday = false;
+        if (!empty($customer['date_of_birth']) && date('m-d', strtotime($customer['date_of_birth'])) === $today) {
+            $isBirthday = true;
+        }
+
         return $this->view->render($response, 'portal/dashboard.twig', [
             'customer' => $customer,
             'upcoming_appointments' => $upcoming,
-            'past_appointments' => $past
+            'past_appointments' => $past,
+            'loyalty_transactions' => $loyaltyTransactions,
+            'is_birthday' => $isBirthday
         ]);
     }
 }

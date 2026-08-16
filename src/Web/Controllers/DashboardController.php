@@ -8,6 +8,7 @@ use Slim\Views\Twig;
 use App\Repositories\AnalyticsRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\CustomerRepository;
 
 class DashboardController
 {
@@ -15,13 +16,20 @@ class DashboardController
     private AnalyticsRepository $analytics;
     private AppointmentRepository $appointmentRepo;
     private InvoiceRepository $invoiceRepo;
+    private CustomerRepository $customerRepo;
 
-    public function __construct(Twig $view, AnalyticsRepository $analytics, AppointmentRepository $appointmentRepo, InvoiceRepository $invoiceRepo)
-    {
+    public function __construct(
+        Twig $view, 
+        AnalyticsRepository $analytics, 
+        AppointmentRepository $appointmentRepo, 
+        InvoiceRepository $invoiceRepo,
+        CustomerRepository $customerRepo
+    ) {
         $this->view = $view;
         $this->analytics = $analytics;
         $this->appointmentRepo = $appointmentRepo;
         $this->invoiceRepo = $invoiceRepo;
+        $this->customerRepo = $customerRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -31,6 +39,7 @@ class DashboardController
         $this->analytics->setTenantId($tenantId);
         $this->appointmentRepo->setTenantId($tenantId);
         $this->invoiceRepo->setTenantId($tenantId);
+        $this->customerRepo->setTenantId($tenantId);
         
         $kpi = $this->analytics->getDashboardKPIs();
         $weeklyRevenue = $this->analytics->getWeeklyRevenueData();
@@ -46,6 +55,13 @@ class DashboardController
         // Fetch unpaid invoices
         $pendingPayments = $this->invoiceRepo->getUnpaidInvoicesWithCustomer();
 
+        // Fetch today's birthdays
+        $customers = $this->customerRepo->getAll();
+        $todaysBirthdays = array_filter($customers, function($c) use ($today) {
+            if (empty($c['date_of_birth'])) return false;
+            return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
+        });
+
         return $this->view->render($response, 'dashboard.twig', [
             'title' => 'Dashboard',
             'active_menu' => 'dashboard',
@@ -53,6 +69,7 @@ class DashboardController
             'today_appointments' => $todayAppointments,
             'tomorrow_appointments' => $tomorrowAppointments,
             'pending_payments' => $pendingPayments,
+            'todays_birthdays' => $todaysBirthdays,
             'charts' => [
                 'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
                 'weekly_revenue' => json_encode($weeklyRevenue['series']),

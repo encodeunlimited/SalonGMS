@@ -7,6 +7,7 @@ use App\Repositories\InvoiceItemRepository;
 use App\Repositories\CommissionRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\AppointmentRepository;
+use App\Services\LoyaltyService;
 use Exception;
 
 class InvoiceService extends BaseService
@@ -16,19 +17,22 @@ class InvoiceService extends BaseService
     private CommissionRepository $commissionRepo;
     private UserRepository $userRepo;
     private AppointmentRepository $appointmentRepo;
+    private LoyaltyService $loyaltyService;
 
     public function __construct(
         InvoiceRepository $invoiceRepo, 
         InvoiceItemRepository $itemRepo,
         CommissionRepository $commissionRepo,
         UserRepository $userRepo,
-        AppointmentRepository $appointmentRepo
+        AppointmentRepository $appointmentRepo,
+        LoyaltyService $loyaltyService
     ) {
         $this->invoiceRepo = $invoiceRepo;
         $this->itemRepo = $itemRepo;
         $this->commissionRepo = $commissionRepo;
         $this->userRepo = $userRepo;
         $this->appointmentRepo = $appointmentRepo;
+        $this->loyaltyService = $loyaltyService;
     }
 
     public function setTenantId(int $tenantId): self
@@ -39,6 +43,7 @@ class InvoiceService extends BaseService
         $this->commissionRepo->setTenantId($tenantId);
         $this->userRepo->setTenantId($tenantId);
         $this->appointmentRepo->setTenantId($tenantId);
+        $this->loyaltyService->setTenantId($tenantId);
         return $this;
     }
 
@@ -83,10 +88,17 @@ class InvoiceService extends BaseService
             ];
         }
 
+        }
+
+        // Apply loyalty discount if requested
+        $discountAmount = 0.00;
+        $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;
+        $redeemPoints = !empty($data['redeem_points']) ? (int)$data['redeem_points'] : 0;
+
         // 3. Create Invoice
         $invoice = $this->invoiceRepo->create([
-            'customer_id' => $data['customer_id'] ?? null,
-            'total_amount' => $totalAmount,
+            'customer_id' => $customerId,
+            'total_amount' => $totalAmount, // We store original total, discount applied later or as an item? Let's keep original total for commission, but tender will be lower. Actually, let's adjust total.
             'status' => 'paid',
             'payment_method' => $data['payment_method'] ?? 'cash',
             'tender_amount' => isset($data['tender_amount']) ? (float)$data['tender_amount'] : null,
@@ -94,10 +106,34 @@ class InvoiceService extends BaseService
             'split_details' => !empty($data['split_details']) ? json_encode($data['split_details']) : null
         ]);
 
+        if ($customerId && $redeemPoints > 0) {
+            $discountAmount = $this->loyaltyService->redeemPoints($customerId, $invoice['id'], $redeemPoints);
+            if ($discountAmount > 0) {
+                // Adjust total amount in DB
+                $totalAmount = max(0, $totalAmount - $discountAmount);
+                $this->invoiceRepo->update($invoice['id'], ['total_amount' => $totalAmount]);
+            }
+        }
+
         // 4. Create Items
         foreach ($processedItems as $pItem) {
             $pItem['invoice_id'] = $invoice['id'];
             $this->itemRepo->create($pItem);
+        }
+
+        if ($discountAmount > 0) {
+            $this->itemRepo->create([
+                'invoice_id' => $invoice['id'],
+                'description' => 'Loyalty Points Discount',
+                'quantity' => 1,
+                'unit_price' => -$discountAmount,
+                'subtotal' => -$discountAmount
+            ]);
+        }
+
+        // Award points on the FINAL paid amount (after discount)
+        if ($customerId) {
+            $this->loyaltyService->awardPoints($customerId, $invoice['id'], $totalAmount);
         }
 
         // 5. Calculate and Save Commission
@@ -141,6 +177,11 @@ class InvoiceService extends BaseService
 
         $this->invoiceRepo->update($invoiceId, $updateData);
         
+        // Award points
+        if (!empty($invoice['customer_id'])) {
+            $this->loyaltyService->awardPoints((int)$invoice['customer_id'], $invoiceId, (float)$invoice['total_amount']);
+        }
+
         // Return updated invoice
         return array_merge($invoice, $updateData);
     }
@@ -241,6 +282,9 @@ class InvoiceService extends BaseService
                 if (!empty($invoice['appointment_id'])) {
                     $this->appointmentRepo->updateStatus($invoice['appointment_id'], 'paid');
                 }
+                
+                // Award points
+                $this->loyaltyService->awardPoints($customerId, $invoice['id'], (float)$invoice['total_amount']);
             }
         }
     }

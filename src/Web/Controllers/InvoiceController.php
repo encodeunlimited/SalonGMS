@@ -15,6 +15,7 @@ use App\Services\WhatsAppService;
 use Exception;
 
 use App\Repositories\AppointmentRepository;
+use App\Repositories\CustomerRepository;
 
 class InvoiceController
 {
@@ -27,6 +28,7 @@ class InvoiceController
     private AppointmentRepository $appointmentRepo;
     private PdfService $pdfService;
     private WhatsAppService $whatsappService;
+    private CustomerRepository $customerRepo;
 
     public function __construct(
         Twig $view, 
@@ -37,7 +39,8 @@ class InvoiceController
         UserRepository $userRepo,
         AppointmentRepository $appointmentRepo,
         PdfService $pdfService,
-        WhatsAppService $whatsappService
+        WhatsAppService $whatsappService,
+        CustomerRepository $customerRepo
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -48,6 +51,7 @@ class InvoiceController
         $this->appointmentRepo = $appointmentRepo;
         $this->pdfService = $pdfService;
         $this->whatsappService = $whatsappService;
+        $this->customerRepo = $customerRepo;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -74,6 +78,9 @@ class InvoiceController
         $this->userRepo->setTenantId($tenantId);
         $employees = $this->userRepo->getAll(['filters' => ['role' => 'stylist']]);
 
+        $this->customerRepo->setTenantId($tenantId);
+        $customers = $this->customerRepo->getAll();
+
         $appointmentId = (int)($request->getQueryParams()['appointment_id'] ?? 0);
         $appointmentToCheckout = null;
         if ($appointmentId > 0) {
@@ -87,6 +94,7 @@ class InvoiceController
             'services_by_category' => $servicesByCategory,
             'payment_types' => $paymentTypes,
             'employees' => $employees,
+            'customers' => $customers,
             'appointment_to_checkout' => $appointmentToCheckout
         ]);
     }

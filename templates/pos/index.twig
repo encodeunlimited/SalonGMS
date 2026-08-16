@@ -28,7 +28,7 @@
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </div>
                             <h4 class="font-medium text-gray-900 text-sm">{{ service.name }}</h4>
-                            <p class="text-salon-accent font-bold mt-1">${{ service.price|number_format(2) }}</p>
+                            <p class="text-salon-accent font-bold mt-1">QAR {{ service.price|number_format(2) }}</p>
                         </div>
                         {% endfor %}
                     </div>
@@ -39,12 +39,12 @@
                         <div @click="addItem('Haircut', 45.00)" class="border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
                             <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors text-2xl">✂️</div>
                             <h4 class="font-medium text-gray-900 text-base">Haircut</h4>
-                            <p class="text-salon-accent font-bold mt-1 text-lg">$45.00</p>
+                            <p class="text-salon-accent font-bold mt-1 text-lg">QAR 45.00</p>
                         </div>
                         <div @click="addItem('Coloring', 120.00)" class="border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
                             <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">🎨</div>
                             <h4 class="font-medium text-gray-900 text-sm">Coloring</h4>
-                            <p class="text-salon-accent font-bold mt-1">$120.00</p>
+                            <p class="text-salon-accent font-bold mt-1">QAR 120.00</p>
                         </div>
                     </div>
                 {% endfor %}
@@ -90,7 +90,7 @@
             </div>
             <div class="flex justify-between text-base font-medium text-gray-900 mb-4">
                 <p>Tax (0%)</p>
-                <p>$0.00</p>
+                <p>QAR 0.00</p>
             </div>
             <div class="flex justify-between text-xl font-bold text-salon-dark mb-6 border-t pt-4">
                 <p>Total</p>
@@ -100,6 +100,33 @@
             <!-- HTMX Form bridging Alpine data -->
             <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:before-request="prepareForm($event)" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
                 
+                <!-- Customer Selection -->
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Select Customer</label>
+                    <select x-model="customer_id" @change="onCustomerChange()" class="w-full shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border bg-white">
+                        <option value="">Walk-in Customer</option>
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}" data-points="{{ customer.loyalty_points|default(0) }}" {% if appointment_to_checkout and appointment_to_checkout.customer_id == customer.id %}selected{% endif %}>
+                                {{ customer.name }} {% if customer.phone %}({{ customer.phone }}){% endif %} - {{ customer.loyalty_points|default(0) }} pts
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Loyalty Points Redemption -->
+                <div x-show="customer_id && customer_points >= 100" class="mb-5 bg-green-50 p-4 rounded-lg border border-green-200" style="display: none;">
+                    <label class="block text-sm font-bold text-green-800 mb-2">Redeem Loyalty Points</label>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-1">
+                            <p class="text-sm text-green-700 mb-2">Available: <span x-text="customer_points" class="font-bold"></span> points</p>
+                            <div class="flex items-center">
+                                <input type="number" x-model="redeem_points" min="0" :max="Math.min(customer_points, subtotal * 10)" step="100" class="focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 shadow-sm border" placeholder="Points to redeem (e.g. 100)">
+                            </div>
+                            <p class="text-xs text-green-600 mt-1">100 points = QAR 10 discount. Max discount cannot exceed subtotal.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Stylist Selection (Touch Friendly) -->
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Select Stylist (Optional)</label>
@@ -171,11 +198,11 @@
                             <button type="button" @click="tender_amount = subtotal.toFixed(2)" class="px-4 py-3 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 shadow-sm text-gray-700">Exact</button>
                         </div>
                     </div>
-                    <div class="mt-3 flex justify-between items-center text-sm" x-show="tender_amount !== '' && parseFloat(tender_amount) >= subtotal">
+                    <div class="mt-3 flex justify-between items-center text-sm" x-show="tender_amount !== '' && parseFloat(tender_amount) >= final_total">
                         <span class="text-gray-600 font-medium">Change Due:</span>
                         <span class="font-bold text-green-600 text-xl">$<span x-text="change_due.toFixed(2)"></span></span>
                     </div>
-                    <div class="mt-3 flex justify-between items-center text-sm" x-show="tender_amount !== '' && parseFloat(tender_amount) < subtotal">
+                    <div class="mt-3 flex justify-between items-center text-sm" x-show="tender_amount !== '' && parseFloat(tender_amount) < final_total">
                         <span class="text-red-500 font-medium flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Insufficient funds</span>
                     </div>
                 </div>
@@ -218,9 +245,9 @@
                 {% endif %}
                 
                 <button type="submit" 
-                        :disabled="items.length === 0 || (payment_method === 'Cash' && tender_amount !== '' && parseFloat(tender_amount) < subtotal) || (payment_method === 'Split' && split_remaining > 0.01)" 
+                        :disabled="items.length === 0 || (payment_method === 'Cash' && tender_amount !== '' && parseFloat(tender_amount) < final_total) || (payment_method === 'Split' && split_remaining > 0.01)" 
                         class="w-full bg-salon-accent text-white py-4 text-lg rounded-lg font-bold hover:bg-yellow-600 shadow-md transition-colors disabled:opacity-50 flex items-center justify-center">
-                    Pay $<span x-text="subtotal.toFixed(2)" class="ml-1"></span>
+                    Pay $<span x-text="final_total.toFixed(2)" class="ml-1"></span>
                     <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -237,17 +264,24 @@
 function posSystem() {
     return {
         items: [],
+        customer_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.customer_id }}{% else %}{% endif %}',
         employee_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.user_id }}{% else %}{% endif %}',
         payment_method: 'Cash',
         tender_amount: '',
         split_details: [{method: 'Cash', amount: ''}],
+        customer_points: 0,
+        redeem_points: 0,
         
         get subtotal() {
             return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         },
+        get final_total() {
+            const discount = (parseFloat(this.redeem_points) || 0) * 0.1;
+            return Math.max(0, this.subtotal - discount);
+        },
         get change_due() {
             if (this.payment_method !== 'Cash' || this.tender_amount === '') return 0;
-            const change = parseFloat(this.tender_amount) - this.subtotal;
+            const change = parseFloat(this.tender_amount) - this.final_total;
             return change > 0 ? change : 0;
         },
         get split_total() {
@@ -266,11 +300,21 @@ function posSystem() {
         setMethod(method) {
             this.payment_method = method;
             if (method === 'Split' && this.split_details.length === 1 && !this.split_details[0].amount) {
-                this.split_details[0].amount = this.subtotal.toFixed(2);
+                this.split_details[0].amount = this.final_total.toFixed(2);
             }
         },
         setEmployee(id) {
             this.employee_id = id;
+        },
+        onCustomerChange() {
+            this.redeem_points = 0;
+            if (this.customer_id) {
+                const select = document.querySelector('select[x-model="customer_id"]');
+                const option = select.options[select.selectedIndex];
+                this.customer_points = parseInt(option.getAttribute('data-points') || 0);
+            } else {
+                this.customer_points = 0;
+            }
         },
         addItem(name, price) {
             const existing = this.items.find(i => i.name === name);
@@ -287,6 +331,7 @@ function posSystem() {
             this.items = [];
             this.tender_amount = '';
             this.split_details = [{method: 'Cash', amount: ''}];
+            this.redeem_points = 0;
         },
         prepareForm(event) {
             // Bridge Alpine JS array to HTMX form data before it sends
@@ -299,6 +344,12 @@ function posSystem() {
                 container.innerHTML += `<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`;
             });
 
+            if (this.customer_id) {
+                container.innerHTML += `<input type="hidden" name="customer_id" value="${this.customer_id}">`;
+                if (this.redeem_points > 0) {
+                    container.innerHTML += `<input type="hidden" name="redeem_points" value="${this.redeem_points}">`;
+                }
+            }
             container.innerHTML += `<input type="hidden" name="employee_id" value="${this.employee_id}">`;
             container.innerHTML += `<input type="hidden" name="payment_method" value="${this.payment_method}">`;
             

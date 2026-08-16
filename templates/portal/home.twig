@@ -176,7 +176,7 @@ tailwind.config = {
                                     
                                     <div class="flex justify-between items-start mb-2">
                                         <h3 class="font-headline-md text-[20px] text-on-surface group-hover:text-primary transition-colors m-0">{{ service.name }}</h3>
-                                        <span class="font-headline-md text-[18px] text-primary m-0">${{ service.price|number_format(0) }}</span>
+                                        <span class="font-headline-md text-[18px] text-primary m-0">QAR {{ service.price|number_format(0) }}</span>
                                     </div>
                                     <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 m-0">
                                         {{ service.description ?: 'A premium salon treatment designed to refresh and enhance your style.' }}
@@ -199,6 +199,45 @@ tailwind.config = {
         </div>
     </section>
 </div>
+
+<!-- Packages Section -->
+{% if packages|length > 0 %}
+<div class="animate-fade-in" style="animation-delay: 0.15s; margin-bottom: 4rem;">
+    <div class="text-center mb-8">
+        <h2 class="font-headline-xl text-headline-xl text-on-surface m-0" style="font-size: 2.5rem; font-weight: 700;">Special Packages</h2>
+        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto mt-2">Bundle your favorite services and save with our curated packages.</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for package in packages %}
+            <div class="card glass flex flex-col justify-between h-full card-hover-border border-primary transition-all duration-300" style="padding: 2rem;">
+                <div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-headline-md text-on-surface m-0 text-xl font-bold">{{ package.name }}</h3>
+                        <span class="font-headline-md text-primary text-xl font-bold bg-primary/10 px-3 py-1 rounded-full">QAR {{ package.price|number_format(0) }}</span>
+                    </div>
+                    <p class="text-on-surface-variant font-body-md mb-6">{{ package.description }}</p>
+                    
+                    <h4 class="text-on-surface font-semibold text-sm mb-3 uppercase tracking-wider">Includes:</h4>
+                    <ul class="space-y-2 mb-6" style="list-style-type: none; padding-left: 0;">
+                        {% for service in package.services %}
+                            <li class="flex items-center text-on-surface-variant text-sm">
+                                <span class="material-symbols-outlined text-primary text-[18px] mr-2">check_circle</span>
+                                {{ service.name }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="mt-auto pt-4 border-t border-surface-variant">
+                    <a href="/portal/book?package_id={{ package.id }}" class="btn-primary w-full text-center py-3 block rounded-lg no-underline font-semibold hover:bg-primary-fixed-dim transition-colors">
+                        Book This Package
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <!-- Features Section -->
 <div class="grid grid-cols-2 gap-4 animate-fade-in" style="animation-delay: 0.2s; margin-bottom: 4rem;">

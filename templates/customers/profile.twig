@@ -60,14 +60,23 @@
             
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded-xl shadow-sm border border-yellow-200 p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-yellow-800 uppercase tracking-wider mb-1">Loyalty Points</p>
+                        <p class="text-2xl font-bold text-yellow-600">{{ customer.loyalty_points|default(0) }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-sm">
+                        ⭐
+                    </div>
+                </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Spent</p>
-                    <p class="text-2xl font-bold text-gray-900">${{ stats.total_spent|number_format(2) }}</p>
+                    <p class="text-2xl font-bold text-gray-900">QAR {{ stats.total_spent|number_format(2) }}</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Pending</p>
                     <p class="text-2xl font-bold {% if stats.pending_amount > 0 %}text-red-500{% else %}text-green-500{% endif %}">
-                        ${{ stats.pending_amount|number_format(2) }}
+                        QAR {{ stats.pending_amount|number_format(2) }}
                     </p>
                 </div>
                 <div class="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -93,8 +102,13 @@
                             class="px-6 py-4 border-b-2 font-medium text-sm transition-colors flex items-center">
                         Billing & Payments
                         {% if stats.pending_amount > 0 %}
-                            <span class="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">${{ stats.pending_amount|number_format(2) }}</span>
+                            <span class="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">QAR {{ stats.pending_amount|number_format(2) }}</span>
                         {% endif %}
+                    </button>
+                    <button @click="tab = 'loyalty'" 
+                            :class="{ 'border-salon-navy text-salon-navy': tab === 'loyalty', 'border-transparent text-gray-500 hover:text-gray-700': tab !== 'loyalty' }"
+                            class="px-6 py-4 border-b-2 font-medium text-sm transition-colors">
+                        Loyalty History
                     </button>
                 </div>
                 
@@ -188,7 +202,7 @@
                                             <td class="px-4 py-3 text-sm text-gray-600">{{ apt.date|date("M j, Y") }} <span class="text-gray-400">at</span> {{ apt.time }}</td>
                                             <td class="px-4 py-3 font-medium text-gray-800">{{ apt.service }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-600">{{ apt.stylist }}</td>
-                                            <td class="px-4 py-3 font-bold text-gray-900 text-right">${{ apt.service_price|number_format(2) }}</td>
+                                            <td class="px-4 py-3 font-bold text-gray-900 text-right">QAR {{ apt.service_price|number_format(2) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -210,7 +224,7 @@
                             {% if stats.pending_amount > 0 %}
                             <form hx-post="/web/customers/{{ customer.id }}/pay-all-invoices" hx-swap="none">
                                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-salon-navy text-white text-sm font-medium rounded-md hover:bg-salon-dark transition-colors shadow-sm">
-                                    Pay All Unpaid (${{ stats.pending_amount|number_format(2) }})
+                                    Pay All Unpaid (QAR {{ stats.pending_amount|number_format(2) }})
                                 </button>
                             </form>
                             {% endif %}
@@ -243,7 +257,7 @@
                                                 {% endif %}
                                             </td>
                                             <td class="px-6 py-4 font-bold text-gray-900">
-                                                ${{ invoice.total_amount|number_format(2) }}
+                                                QAR {{ invoice.total_amount|number_format(2) }}
                                             </td>
                                             <td class="px-6 py-4 text-center">
                                                 {% if invoice.status == 'paid' %}
@@ -345,6 +359,50 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Loyalty Tab -->
+                <div x-show="tab === 'loyalty'" class="p-0" x-cloak style="display: none;">
+                    {% if loyalty_transactions|length > 0 %}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                                        <th class="px-6 py-3 font-medium">Date</th>
+                                        <th class="px-6 py-3 font-medium">Description</th>
+                                        <th class="px-6 py-3 font-medium text-right">Earned</th>
+                                        <th class="px-6 py-3 font-medium text-right">Redeemed</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    {% for tx in loyalty_transactions %}
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {{ tx.created_at|date("M j, Y h:i A") }}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="font-medium text-gray-800">{{ tx.description }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right font-bold text-green-600">
+                                                {% if tx.points_earned > 0 %}+{{ tx.points_earned }}{% else %}-{% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 text-right font-bold text-red-600">
+                                                {% if tx.points_spent > 0 %}-{{ tx.points_spent }}{% else %}-{% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-12 text-center">
+                            <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl">⭐</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-1">No loyalty history</h3>
+                            <p class="text-gray-500">This customer hasn't earned or redeemed any points yet.</p>
+                        </div>
+                    {% endif %}
                 </div>
 
             </div>

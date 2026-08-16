@@ -86,7 +86,10 @@ class AuthController
         
         $name = $data['name'] ?? '';
         $email = $data['email'] ?? '';
-        $phone = $data['phone'] ?? '';
+        $countryCode = $data['country_code'] ?? '';
+        $phoneNum = $data['phone'] ?? '';
+        $phone = (!empty($phoneNum)) ? $countryCode . $phoneNum : '';
+        
         $dateOfBirth = $data['date_of_birth'] ?? '';
         $password = $data['password'] ?? '';
         $passwordConfirm = $data['password_confirm'] ?? '';

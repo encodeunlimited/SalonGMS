@@ -34,7 +34,7 @@
                         
                         <div class="w-full md:w-auto" x-data="{ selectedPackage: '' }">
                             <div class="flex flex-col sm:flex-row gap-3">
-                                <select x-model="selectedPackage" class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm rounded-md shadow-sm">
+                                <select x-model="selectedPackage" x-init="new TomSelect($el, { placeholder: 'Select a package offer...' })" class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm rounded-md shadow-sm">
                                     <option value="">Select a package offer...</option>
                                     {% for pkg in packages %}
                                         <option value="{{ pkg.name }} (Only QAR {{ pkg.price|number_format(2) }})">{{ pkg.name }} - QAR {{ pkg.price }}</option>
@@ -87,7 +87,7 @@
                         
                         <div class="w-full md:w-auto" x-data="{ selectedPackage: '' }">
                             <div class="flex flex-col sm:flex-row gap-3">
-                                <select x-model="selectedPackage" class="block w-full sm:w-48 pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:outline-none focus:ring-salon-accent focus:border-salon-accent rounded-md shadow-sm">
+                                <select x-model="selectedPackage" x-init="new TomSelect($el, { placeholder: 'Select a package offer...' })" class="block w-full sm:w-48 pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:outline-none focus:ring-salon-accent focus:border-salon-accent rounded-md shadow-sm">
                                     <option value="">Select a package offer...</option>
                                     {% for pkg in packages %}
                                         <option value="{{ pkg.name }} (Only QAR {{ pkg.price|number_format(2) }})">{{ pkg.name }}</option>

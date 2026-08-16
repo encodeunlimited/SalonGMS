@@ -112,6 +112,12 @@ class InvoiceService extends BaseService
                 $this->invoiceRepo->update($invoice['id'], ['total_amount' => $totalAmount]);
             }
         }
+        
+        $customDiscount = isset($data['custom_discount']) ? (float)$data['custom_discount'] : 0.00;
+        if ($customDiscount > 0) {
+            $totalAmount = max(0, $totalAmount - $customDiscount);
+            $this->invoiceRepo->update($invoice['id'], ['total_amount' => $totalAmount]);
+        }
 
         // 4. Create Items
         foreach ($processedItems as $pItem) {
@@ -126,6 +132,16 @@ class InvoiceService extends BaseService
                 'quantity' => 1,
                 'unit_price' => -$discountAmount,
                 'subtotal' => -$discountAmount
+            ]);
+        }
+
+        if ($customDiscount > 0) {
+            $this->itemRepo->create([
+                'invoice_id' => $invoice['id'],
+                'description' => 'Special Discount',
+                'quantity' => 1,
+                'unit_price' => -$customDiscount,
+                'subtotal' => -$customDiscount
             ]);
         }
 

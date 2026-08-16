@@ -10,10 +10,10 @@
 
 <div id="pos-alerts"></div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem('{{ appointment_to_checkout.service|escape('js') }}', {{ appointment_to_checkout.service_price|default(0) }})"{% endif %}>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem('{{ appointment_to_checkout.service|escape('js') }}', {{ appointment_to_checkout.service_price|default(0) }})"{% endif %}>
     <!-- Left: Service Selection -->
-    <div class="lg:col-span-2">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-[700px] flex flex-col">
+    <div class="lg:col-span-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-[calc(100vh-140px)] flex flex-col">
             <div class="p-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
                 <input type="text" placeholder="Search services..." class="w-full focus:ring-salon-accent focus:border-salon-accent block shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
             </div>
@@ -23,12 +23,12 @@
                     <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">{{ category }}</h4>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {% for service in services %}
-                        <div @click="addItem('{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
-                            <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <div @click="addItem('{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
+                            <div class="h-8 w-8 rounded-full bg-salon-dark text-white flex items-center justify-center mb-2 group-hover:bg-salon-accent transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </div>
-                            <h4 class="font-medium text-gray-900 text-sm">{{ service.name }}</h4>
-                            <p class="text-salon-accent font-bold mt-1">QAR {{ service.price|number_format(2) }}</p>
+                            <h4 class="font-medium text-gray-900 text-xs">{{ service.name }}</h4>
+                            <p class="text-salon-accent font-bold mt-1 text-sm">QAR {{ service.price|number_format(2) }}</p>
                         </div>
                         {% endfor %}
                     </div>
@@ -36,15 +36,15 @@
                 {% else %}
                     <!-- Fallback mock services if DB is empty -->
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        <div @click="addItem('Haircut', 45.00)" class="border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
-                            <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors text-2xl">✂️</div>
-                            <h4 class="font-medium text-gray-900 text-base">Haircut</h4>
-                            <p class="text-salon-accent font-bold mt-1 text-lg">QAR 45.00</p>
+                        <div @click="addItem('Haircut', 45.00)" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
+                            <div class="h-8 w-8 rounded-full bg-salon-dark text-white flex items-center justify-center mb-2 group-hover:bg-salon-accent transition-colors text-lg">✂️</div>
+                            <h4 class="font-medium text-gray-900 text-xs">Haircut</h4>
+                            <p class="text-salon-accent font-bold mt-1 text-sm">QAR 45.00</p>
                         </div>
-                        <div @click="addItem('Coloring', 120.00)" class="border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
-                            <div class="h-12 w-12 rounded-full bg-salon-dark text-white flex items-center justify-center mb-3 group-hover:bg-salon-accent transition-colors">🎨</div>
-                            <h4 class="font-medium text-gray-900 text-sm">Coloring</h4>
-                            <p class="text-salon-accent font-bold mt-1">QAR 120.00</p>
+                        <div @click="addItem('Coloring', 120.00)" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
+                            <div class="h-8 w-8 rounded-full bg-salon-dark text-white flex items-center justify-center mb-2 group-hover:bg-salon-accent transition-colors">🎨</div>
+                            <h4 class="font-medium text-gray-900 text-xs">Coloring</h4>
+                            <p class="text-salon-accent font-bold mt-1 text-sm">QAR 120.00</p>
                         </div>
                     </div>
                 {% endfor %}
@@ -52,10 +52,10 @@
         </div>
     </div>
 
-    <!-- Right: Cart & Checkout -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)]">
+    <!-- Middle: Live Bill Preview -->
+    <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)]">
         <div class="p-3 border-b border-gray-100 flex-shrink-0 bg-salon-dark text-white rounded-t-xl">
-            <h3 class="text-lg font-bold">Current Order</h3>
+            <h3 class="text-lg font-bold text-center">Live Preview</h3>
         </div>
         
         <!-- Cart Items -->
@@ -82,8 +82,8 @@
             </template>
         </div>
 
-        <!-- Checkout Section -->
-        <div class="p-4 border-t border-gray-200 bg-white rounded-b-xl">
+        <!-- Summary Section -->
+        <div class="p-4 border-t border-gray-200 bg-white rounded-b-xl flex-shrink-0">
             <div class="flex justify-between text-sm font-medium text-gray-900 mb-1">
                 <p>Subtotal</p>
                 <p>QAR <span x-text="subtotal.toFixed(2)"></span></p>
@@ -98,11 +98,20 @@
                     <input type="number" x-model.number="discount_value" min="0" class="w-16 border border-gray-300 rounded text-right text-xs p-1 focus:ring-salon-accent focus:border-salon-accent" placeholder="0">
                 </div>
             </div>
-            <div class="flex justify-between text-lg font-bold text-salon-dark mb-4 border-t pt-2">
+            <div class="flex justify-between text-lg font-bold text-salon-dark border-t pt-2 mt-2">
                 <p>Total</p>
                 <p>QAR <span x-text="final_total.toFixed(2)"></span></p>
             </div>
+        </div>
+    </div>
 
+    <!-- Right: Checkout Form -->
+    <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)] overflow-y-auto">
+        <div class="p-3 border-b border-gray-100 flex-shrink-0 bg-salon-navy text-white rounded-t-xl">
+            <h3 class="text-lg font-bold text-center">Checkout</h3>
+        </div>
+        
+        <div class="p-4">
             <!-- HTMX Form bridging Alpine data -->
             <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:before-request="prepareForm($event)" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
                 
@@ -136,8 +145,7 @@
                 <!-- Stylist Selection (Touch Friendly) -->
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Select Stylist (Optional)</label>
-                    <div class="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide" style="scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none;">
-                        <style>.scrollbar-hide::-webkit-scrollbar { display: none; }</style>
+                    <div class="flex space-x-3 overflow-x-auto pb-2" style="scroll-snap-type: x mandatory;">
                         <div @click="setEmployee('')" 
                              class="flex-shrink-0 w-20 flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer border-2 transition-all"
                              :class="employee_id == '' ? 'border-salon-accent bg-yellow-50' : 'border-gray-100 bg-white hover:border-gray-300'">

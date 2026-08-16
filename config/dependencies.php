@@ -101,7 +101,10 @@ return function (ContainerBuilder $containerBuilder) {
         },
 
         Twig::class => function (ContainerInterface $c) {
-            return Twig::create(__DIR__ . '/../templates', ['cache' => false]);
+            $settings = $c->get('settings');
+            // Use Twig caching if not in development mode
+            $cache = $settings['displayErrorDetails'] ? false : __DIR__ . '/../data/cache/twig';
+            return Twig::create(__DIR__ . '/../templates', ['cache' => $cache]);
         },
 
         \App\Services\PdfService::class => function (ContainerInterface $c) {

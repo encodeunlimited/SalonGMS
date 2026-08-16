@@ -185,8 +185,17 @@ class InvoiceController
                 );
             }
 
-            // Trigger a page reload to reflect the updated statuses and totals
-            return $response->withHeader('HX-Refresh', 'true')->withStatus(200);
+            // Show toast and reload page after a brief delay
+            $response->getBody()->write('
+                <div id="payment-alerts" hx-swap-oob="true">
+                    <script>
+                        setTimeout(() => { window.location.reload(); }, 1500);
+                    </script>
+                </div>
+            ');
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['message' => 'Payment processed successfully!', 'type' => 'success']
+            ]))->withStatus(200);
             
         } catch (Exception $e) {
             $response->getBody()->write('
@@ -242,10 +251,15 @@ class InvoiceController
             // For simplicity, we assume we just paid them and the UI will reflect it.
             // A more robust implementation would fetch the paid invoices and send them.
             
+            $response->getBody()->write('
+                <script>
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                </script>
+            ');
             return $response->withHeader('HX-Trigger', json_encode([
-                'show-toast' => ['message' => 'All invoices paid successfully!'],
+                'show-toast' => ['message' => 'All invoices paid successfully!', 'type' => 'success'],
                 'refresh-customer-profile' => true
-            ]))->withHeader('HX-Refresh', 'true');
+            ]))->withStatus(200);
         } catch (Exception $e) {
             $response->getBody()->write('
                 <div id="payment-alerts" hx-swap-oob="true">

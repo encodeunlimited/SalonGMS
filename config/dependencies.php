@@ -19,7 +19,14 @@ return function (ContainerBuilder $containerBuilder) {
                 $pdo = new PDO("sqlite:$dbPath");
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                // Enable foreign keys for SQLite
+                $pdo->setAttribute(PDO::ATTR_TIMEOUT, 5); // 5 second timeout
+                // High-performance SQLite PRAGMAs
+                $pdo->exec('PRAGMA journal_mode = WAL;');
+                $pdo->exec('PRAGMA synchronous = NORMAL;');
+                $pdo->exec('PRAGMA busy_timeout = 5000;');
+                $pdo->exec('PRAGMA cache_size = -64000;'); // 64MB cache
+                $pdo->exec('PRAGMA temp_store = MEMORY;');
+                // Enable foreign keys
                 $pdo->exec('PRAGMA foreign_keys = ON;');
                 return $pdo;
             }

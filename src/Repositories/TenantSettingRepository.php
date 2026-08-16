@@ -28,32 +28,14 @@ class TenantSettingRepository extends BaseRepository
         $stmt = $this->db->prepare("
             INSERT INTO tenant_settings (tenant_id, setting_key, setting_value)
             VALUES (:tenant_id, :key, :value)
-            ON DUPLICATE KEY UPDATE setting_value = :value
+            ON CONFLICT(tenant_id, setting_key) DO UPDATE SET setting_value = :value
         ");
         
-        try {
-            $stmt->execute([
-                'tenant_id' => $this->tenantId,
-                'key' => $key,
-                'value' => $value
-            ]);
-        } catch (\PDOException $e) {
-            // For SQLite fallback since ON DUPLICATE KEY UPDATE is MySQL specific
-            if (str_contains($e->getMessage(), 'syntax error')) {
-                $stmt = $this->db->prepare("
-                    INSERT INTO tenant_settings (tenant_id, setting_key, setting_value)
-                    VALUES (:tenant_id, :key, :value)
-                    ON CONFLICT(tenant_id, setting_key) DO UPDATE SET setting_value = :value
-                ");
-                $stmt->execute([
-                    'tenant_id' => $this->tenantId,
-                    'key' => $key,
-                    'value' => $value
-                ]);
-            } else {
-                throw $e;
-            }
-        }
+        $stmt->execute([
+            'tenant_id' => $this->tenantId,
+            'key' => $key,
+            'value' => $value
+        ]);
     }
 
     public function getAll(array $options = []): array

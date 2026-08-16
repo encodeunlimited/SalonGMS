@@ -15,7 +15,28 @@ return function (ContainerBuilder $containerBuilder) {
             
             if (($settings['connection'] ?? 'mysql') === 'sqlite') {
                 // SQLite Connection
-                $dbPath = __DIR__ . '/../data/database.sqlite';
+                // Handle PHAR execution - SQLite needs a real file path
+                if (str_starts_with(__DIR__, 'phar://')) {
+                    $pharPath = \Phar::running(false);
+                    $baseDir = dirname($pharPath);
+                    $dataDir = $baseDir . '/data';
+                    $dbPath = $dataDir . '/database.sqlite';
+                    
+                    if (!is_dir($dataDir)) {
+                        mkdir($dataDir, 0777, true);
+                    }
+                    
+                    // If the DB doesn't exist outside, extract it from the PHAR
+                    if (!file_exists($dbPath)) {
+                        $internalDbPath = __DIR__ . '/../data/database.sqlite';
+                        if (file_exists($internalDbPath)) {
+                            copy($internalDbPath, $dbPath);
+                        }
+                    }
+                } else {
+                    $dbPath = __DIR__ . '/../data/database.sqlite';
+                }
+                
                 $pdo = new PDO("sqlite:$dbPath");
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -102,8 +123,17 @@ return function (ContainerBuilder $containerBuilder) {
 
         Twig::class => function (ContainerInterface $c) {
             $settings = $c->get('settings');
+            
+            // Handle PHAR execution for Twig cache
+            if (str_starts_with(__DIR__, 'phar://')) {
+                $baseDir = dirname(\Phar::running(false));
+                $cacheDir = $baseDir . '/data/cache/twig';
+            } else {
+                $cacheDir = __DIR__ . '/../data/cache/twig';
+            }
+            
             // Use Twig caching if not in development mode
-            $cache = $settings['displayErrorDetails'] ? false : __DIR__ . '/../data/cache/twig';
+            $cache = $settings['displayErrorDetails'] ? false : $cacheDir;
             return Twig::create(__DIR__ . '/../templates', ['cache' => $cache]);
         },
 

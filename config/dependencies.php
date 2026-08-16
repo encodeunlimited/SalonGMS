@@ -150,37 +150,7 @@ return function (ContainerBuilder $containerBuilder) {
             );
         },
 
-        PDO::class => function (ContainerInterface $c) {
-            $settings = $c->get('settings')['db'];
-            $connection = $settings['connection'];
-            
-            if ($connection === 'sqlite') {
-                $dbPath = __DIR__ . '/../' . $settings['database'];
-                // Ensure data directory exists
-                if (!file_exists(dirname($dbPath))) {
-                    mkdir(dirname($dbPath), 0755, true);
-                }
-                $dsn = "sqlite:" . $dbPath;
-                $pdo = new PDO($dsn);
-            } else {
-                // MySQL / PostgreSQL
-                $dsn = "$connection:host={$settings['host']};port={$settings['port']};dbname={$settings['database']};charset=utf8mb4";
-                
-                $options = [
-                    PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-                ];
-                if (!empty($settings['ssl_ca'])) {
-                    $options[PDO::MYSQL_ATTR_SSL_CA] = $settings['ssl_ca'];
-                }
-                
-                $pdo = new PDO($dsn, $settings['username'], $settings['password'], $options);
-            }
-            
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            
-            return $pdo;
-        },
+
 
         \App\Web\Controllers\Portal\DashboardController::class => function (ContainerInterface $c) {
             return new \App\Web\Controllers\Portal\DashboardController(

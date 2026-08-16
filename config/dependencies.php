@@ -26,8 +26,8 @@ return function (ContainerBuilder $containerBuilder) {
                         mkdir($dataDir, 0777, true);
                     }
                     
-                    // If the DB doesn't exist outside, extract it from the PHAR
-                    if (!file_exists($dbPath)) {
+                    // If the DB doesn't exist outside or is an empty file (from previous bug), extract it from the PHAR
+                    if (!file_exists($dbPath) || filesize($dbPath) === 0) {
                         $internalDbPath = __DIR__ . '/../data/database.sqlite';
                         if (file_exists($internalDbPath)) {
                             copy($internalDbPath, $dbPath);

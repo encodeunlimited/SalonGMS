@@ -43,6 +43,9 @@ try {
     if (file_exists($baseDir . '/.env')) {
         $phar->addFile($baseDir . '/.env', '.env');
     }
+    if (file_exists($baseDir . '/data/database.sqlite')) {
+        $phar->addFile($baseDir . '/data/database.sqlite', 'data/database.sqlite');
+    }
 
     // Set the entry point to public/index.php
     $phar->setStub($phar->createDefaultStub('public/index.php'));

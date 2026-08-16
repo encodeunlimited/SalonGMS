@@ -258,7 +258,7 @@
         element.style.backgroundColor = 'rgba(234, 179, 8, 0.1)'; // bg-brand-accent/10
         
         document.getElementById('summary-service').textContent = name;
-        document.getElementById('summary-total').textContent = '$' + parseFloat(price).toFixed(2);
+        document.getElementById('summary-total').textContent = 'QAR ' + parseFloat(price).toFixed(2);
         document.getElementById('summary-specialist').textContent = 'Not selected';
         
         document.getElementById('step2-container').innerHTML = '<div class="text-center p-16 text-brand-textMuted"><div class="spinner"></div>Loading specialists...</div>';
@@ -333,7 +333,7 @@
             const label = checkedService.closest('.service-book-item');
             if (label) {
                 const name = label.getAttribute('data-name');
-                const priceMatch = label.innerHTML.match(/\$([\d\.]+)/);
+                const priceMatch = label.innerHTML.match(/QAR\s*([\d\.]+)/);
                 const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
                 selectService(checkedService.value, name, price, label);
             }

@@ -102,6 +102,15 @@ return function (App $app) {
         // Reports
         $group->get('/reports', \App\Web\Controllers\ReportController::class . ':index');
         
+        // Notifications
+        $group->get('/notifications/dropdown', \App\Web\Controllers\NotificationController::class . ':getDropdown');
+        $group->get('/notifications/badge', \App\Web\Controllers\NotificationController::class . ':getBadge');
+        $group->post('/notifications/{id}/read', \App\Web\Controllers\NotificationController::class . ':markAsRead');
+        $group->post('/notifications/read-all', \App\Web\Controllers\NotificationController::class . ':markAllAsRead');
+
+        // Birthdays
+        $group->get('/birthdays', \App\Web\Controllers\BirthdayController::class . ':index');
+        
     })->add(\App\Middleware\WebSessionAuthMiddleware::class);
 
     // ---------------------------------------------------------

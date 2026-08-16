@@ -40,6 +40,22 @@ return function (ContainerBuilder $containerBuilder) {
         \App\Repositories\BookingTypeRepository::class => function (ContainerInterface $c) {
             return new \App\Repositories\BookingTypeRepository($c->get(PDO::class));
         },
+        \App\Repositories\NotificationRepository::class => function (ContainerInterface $c) {
+            return new \App\Repositories\NotificationRepository($c->get(PDO::class));
+        },
+        \App\Web\Controllers\NotificationController::class => function (ContainerInterface $c) {
+            return new \App\Web\Controllers\NotificationController(
+                $c->get(\Slim\Views\Twig::class),
+                $c->get(\App\Repositories\NotificationRepository::class)
+            );
+        },
+        \App\Web\Controllers\BirthdayController::class => function (ContainerInterface $c) {
+            return new \App\Web\Controllers\BirthdayController(
+                $c->get(\Slim\Views\Twig::class),
+                $c->get(\App\Repositories\CustomerRepository::class),
+                $c->get(\App\Repositories\PackageRepository::class)
+            );
+        },
         \App\Services\LoyaltyService::class => function (ContainerInterface $c) {
             return new \App\Services\LoyaltyService(
                 $c->get(PDO::class),

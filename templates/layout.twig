@@ -130,6 +130,10 @@
                 <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'employees' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 Employees
             </a>
+            <a href="/web/birthdays" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'birthdays' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
+                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'birthdays' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Birthdays & Offers
+            </a>
         </nav>
         
         <!-- Reports / Settings / Logout -->
@@ -165,10 +169,13 @@
             <!-- Right Actions -->
             <div class="flex items-center space-x-6">
                 <!-- Notifications -->
-                <button class="relative text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
-                </button>
+                <!-- Notifications -->
+                <div class="relative" x-data="{ open: false }" hx-get="/web/notifications/dropdown" hx-trigger="load" hx-swap="innerHTML" id="notifications-wrapper">
+                    <!-- Dropdown content will be loaded here by HTMX -->
+                    <button class="relative text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    </button>
+                </div>
                 
                 <!-- Profile Dropdown (Alpine) -->
                 <div class="relative" x-data="{ open: false }">

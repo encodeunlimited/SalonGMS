@@ -138,8 +138,7 @@
         
         <div class="p-4">
             <!-- HTMX Form bridging Alpine data -->
-            <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:before-request="prepareForm($event)" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
-                
+            <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
                 <!-- Customer Selection -->
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Select Customer</label>
@@ -276,7 +275,43 @@
                     </div>
                 </div>
                 
-                <div id="hidden-inputs-container"></div>
+                <!-- Reactive hidden inputs to bridge Alpine data to HTMX -->
+                <div id="hidden-inputs-container">
+                    <template x-for="(item, index) in items" :key="index">
+                        <div>
+                            <input type="hidden" :name="`items[${index}][id]`" :value="item.id">
+                            <input type="hidden" :name="`items[${index}][type]`" :value="item.type">
+                            <input type="hidden" :name="`items[${index}][name]`" :value="item.name">
+                            <input type="hidden" :name="`items[${index}][price]`" :value="item.price">
+                            <input type="hidden" :name="`items[${index}][quantity]`" :value="item.quantity">
+                        </div>
+                    </template>
+                    
+                    <input type="hidden" name="customer_id" :value="customer_id" x-if="customer_id">
+                    <input type="hidden" name="redeem_points" :value="redeem_points" x-if="customer_id && redeem_points > 0">
+                    <input type="hidden" name="employee_id" :value="employee_id">
+                    <input type="hidden" name="payment_method" :value="payment_method">
+                    
+                    <template x-if="parseFloat(discount_value) > 0">
+                        <input type="hidden" name="custom_discount" :value="discount_type === 'amount' ? discount_value : (subtotal * (discount_value / 100)).toFixed(2)">
+                    </template>
+                    
+                    <template x-if="payment_method === 'Cash' && tender_amount !== ''">
+                        <div>
+                            <input type="hidden" name="tender_amount" :value="tender_amount">
+                            <input type="hidden" name="change_amount" :value="change_due.toFixed(2)">
+                        </div>
+                    </template>
+                    
+                    <template x-if="payment_method === 'Split'">
+                        <template x-for="(split, index) in split_details" :key="index">
+                            <div>
+                                <input type="hidden" :name="`split_details[${index}][method]`" :value="split.method">
+                                <input type="hidden" :name="`split_details[${index}][amount]`" :value="split.amount">
+                            </div>
+                        </template>
+                    </template>
+                </div>
                 {% if appointment_to_checkout %}
                     <input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">
                 {% endif %}
@@ -379,48 +414,7 @@ function posSystem() {
             this.tender_amount = '';
             this.split_details = [{method: 'Cash', amount: ''}];
             this.redeem_points = 0;
-        },
-        prepareForm(event) {
-            // Bridge Alpine JS array to HTMX form data before it sends
-            const container = document.getElementById('hidden-inputs-container');
-            container.innerHTML = ''; // clear
-            
-            this.items.forEach((item, index) => {
-                if (item.id) container.innerHTML += `<input type="hidden" name="items[${index}][id]" value="${item.id}">`;
-                if (item.type) container.innerHTML += `<input type="hidden" name="items[${index}][type]" value="${item.type}">`;
-                container.innerHTML += `<input type="hidden" name="items[${index}][name]" value="${item.name}">`;
-                container.innerHTML += `<input type="hidden" name="items[${index}][price]" value="${item.price}">`;
-                container.innerHTML += `<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`;
-            });
-
-            if (this.customer_id) {
-                container.innerHTML += `<input type="hidden" name="customer_id" value="${this.customer_id}">`;
-                if (this.redeem_points > 0) {
-                    container.innerHTML += `<input type="hidden" name="redeem_points" value="${this.redeem_points}">`;
-                }
-            }
-            container.innerHTML += `<input type="hidden" name="employee_id" value="${this.employee_id}">`;
-            container.innerHTML += `<input type="hidden" name="payment_method" value="${this.payment_method}">`;
-            {% if appointment_to_checkout %}
-            container.innerHTML += `<input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">`;
-            {% endif %}
-            
-            let d_val = parseFloat(this.discount_value) || 0;
-            if (d_val > 0) {
-                let actualDiscount = this.discount_type === 'amount' ? d_val : (this.subtotal * (d_val / 100));
-                container.innerHTML += `<input type="hidden" name="custom_discount" value="${actualDiscount.toFixed(2)}">`;
-            }
-            
-            
-            if (this.payment_method === 'Cash' && this.tender_amount !== '') {
-                container.innerHTML += `<input type="hidden" name="tender_amount" value="${this.tender_amount}">`;
-                container.innerHTML += `<input type="hidden" name="change_amount" value="${this.change_due.toFixed(2)}">`;
-            } else if (this.payment_method === 'Split') {
-                this.split_details.forEach((split, index) => {
-                    container.innerHTML += `<input type="hidden" name="split_details[${index}][method]" value="${split.method}">`;
-                    container.innerHTML += `<input type="hidden" name="split_details[${index}][amount]" value="${split.amount}">`;
-                });
-            }
+            this.discount_value = '';
         }
     }
 }

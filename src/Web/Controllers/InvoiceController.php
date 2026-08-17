@@ -191,7 +191,7 @@ class InvoiceController
                     </div>
                 </div>
             ');
-            return $response->withStatus(200);
+            return $response->withStatus(400);
         }
     }
 

@@ -74,19 +74,28 @@ class ReportRepository extends BaseRepository
     {
         $stmt = $this->db->prepare("
             SELECT u.id, u.name, 
-                   COUNT(a.id) as total_appointments,
-                   SUM(i.total_amount) as total_revenue
+                   (SELECT COUNT(id) FROM appointments a WHERE a.user_id = u.id AND a.status IN ('done', 'paid') AND a.apt_date >= :start_date AND a.apt_date <= :end_date) as total_appointments,
+                   (SELECT SUM(i.total_amount) 
+                    FROM invoices i 
+                    WHERE i.status = 'paid' 
+                      AND i.created_at >= :start_date_rev 
+                      AND i.created_at <= :end_date_rev 
+                      AND i.id IN (
+                          SELECT a.invoice_id FROM appointments a WHERE a.user_id = u.id AND a.invoice_id IS NOT NULL
+                          UNION
+                          SELECT c.invoice_id FROM commissions c WHERE c.user_id = u.id
+                      )
+                   ) as total_revenue
             FROM users u
-            LEFT JOIN appointments a ON a.user_id = u.id AND a.status IN ('done', 'paid') AND a.apt_date >= :start_date AND a.apt_date <= :end_date
-            LEFT JOIN invoices i ON a.invoice_id = i.id AND i.status = 'paid'
             WHERE u.tenant_id = :tenant_id AND u.role = 'stylist'
-            GROUP BY u.id, u.name
             ORDER BY total_revenue DESC
         ");
         $stmt->execute([
             'tenant_id' => $this->getTenantId(),
             'start_date' => $startDate,
-            'end_date' => $endDate
+            'end_date' => $endDate,
+            'start_date_rev' => $startDate . ' 00:00:00',
+            'end_date_rev' => $endDate . ' 23:59:59'
         ]);
         $performance = $stmt->fetchAll();
         

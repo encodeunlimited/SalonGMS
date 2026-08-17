@@ -106,4 +106,22 @@ class AnalyticsRepository extends BaseRepository
             'series' => $series
         ];
     }
+
+    public function getStylistCommissionThisMonth(int $userId): float
+    {
+        $tenantId = $this->getTenantId();
+        $startOfMonth = date('Y-m-01 00:00:00');
+        $endOfMonth = date('Y-m-t 23:59:59');
+
+        $stmt = $this->db->prepare("
+            SELECT SUM(commission_amount) 
+            FROM commissions 
+            WHERE tenant_id = ? 
+              AND user_id = ? 
+              AND created_at >= ? 
+              AND created_at <= ?
+        ");
+        $stmt->execute([$tenantId, $userId, $startOfMonth, $endOfMonth]);
+        return (float)($stmt->fetchColumn() ?: 0.00);
+    }
 }

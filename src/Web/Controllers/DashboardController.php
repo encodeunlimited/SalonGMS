@@ -41,41 +41,80 @@ class DashboardController
         $this->invoiceRepo->setTenantId($tenantId);
         $this->customerRepo->setTenantId($tenantId);
         
-        $kpi = $this->analytics->getDashboardKPIs();
-        $weeklyRevenue = $this->analytics->getWeeklyRevenueData();
-        $servicesBreakdown = $this->analytics->getServicesBreakdown();
+        $role = $request->getAttribute('role') ?? 'stylist';
+        $userId = (int)$request->getAttribute('user_id');
 
-        // Fetch appointments
         $today = date('Y-m-d');
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
-        
-        $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today], 'limit' => 50])['data'];
-        $tomorrowAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $tomorrow], 'limit' => 50])['data'];
-        
-        // Fetch unpaid invoices
-        $pendingPayments = $this->invoiceRepo->getUnpaidInvoicesWithCustomer();
 
-        // Fetch today's birthdays
-        $customers = $this->customerRepo->getAll();
-        $todaysBirthdays = array_filter($customers, function($c) use ($today) {
-            if (empty($c['date_of_birth'])) return false;
-            return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
-        });
+        if ($role === 'admin') {
+            $kpi = $this->analytics->getDashboardKPIs();
+            $weeklyRevenue = $this->analytics->getWeeklyRevenueData();
+            $servicesBreakdown = $this->analytics->getServicesBreakdown();
+            
+            $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today], 'limit' => 50])['data'];
+            $tomorrowAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $tomorrow], 'limit' => 50])['data'];
+            
+            $pendingPayments = $this->invoiceRepo->getUnpaidInvoicesWithCustomer();
+            
+            $customers = $this->customerRepo->getAll();
+            $todaysBirthdays = array_filter($customers, function($c) use ($today) {
+                if (empty($c['date_of_birth'])) return false;
+                return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
+            });
 
-        return $this->view->render($response, 'dashboard.twig', [
-            'title' => 'Dashboard',
-            'active_menu' => 'dashboard',
-            'kpi' => $kpi,
-            'today_appointments' => $todayAppointments,
-            'tomorrow_appointments' => $tomorrowAppointments,
-            'pending_payments' => $pendingPayments,
-            'todays_birthdays' => $todaysBirthdays,
-            'charts' => [
-                'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
-                'weekly_revenue' => json_encode($weeklyRevenue['series']),
-                'services_labels' => json_encode($servicesBreakdown['labels']),
-                'services_series' => json_encode($servicesBreakdown['series'])
-            ]
-        ]);
+            return $this->view->render($response, 'dashboard_admin.twig', [
+                'title' => 'Dashboard',
+                'active_menu' => 'dashboard',
+                'kpi' => $kpi,
+                'today_appointments' => $todayAppointments,
+                'tomorrow_appointments' => $tomorrowAppointments,
+                'pending_payments' => $pendingPayments,
+                'todays_birthdays' => $todaysBirthdays,
+                'charts' => [
+                    'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
+                    'weekly_revenue' => json_encode($weeklyRevenue['series']),
+                    'services_labels' => json_encode($servicesBreakdown['labels']),
+                    'services_series' => json_encode($servicesBreakdown['series'])
+                ]
+            ]);
+        } elseif ($role === 'receptionist') {
+            $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today], 'limit' => 50])['data'];
+            $tomorrowAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $tomorrow], 'limit' => 50])['data'];
+            
+            $pendingPayments = $this->invoiceRepo->getUnpaidInvoicesWithCustomer();
+            
+            $customers = $this->customerRepo->getAll();
+            $todaysBirthdays = array_filter($customers, function($c) use ($today) {
+                if (empty($c['date_of_birth'])) return false;
+                return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
+            });
+
+            return $this->view->render($response, 'dashboard_receptionist.twig', [
+                'title' => 'Front Desk Dashboard',
+                'active_menu' => 'dashboard',
+                'today_appointments' => $todayAppointments,
+                'tomorrow_appointments' => $tomorrowAppointments,
+                'pending_payments' => $pendingPayments,
+                'todays_birthdays' => $todaysBirthdays
+            ]);
+        } else {
+            // Stylist dashboard
+            $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today, 'user_id' => $userId], 'limit' => 50])['data'];
+            $tomorrowAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $tomorrow, 'user_id' => $userId], 'limit' => 50])['data'];
+            
+            // Calculate my commission for this month
+            $myCommission = $this->analytics->getStylistCommissionThisMonth($userId);
+            
+            $kpi = ['my_commission' => $myCommission];
+
+            return $this->view->render($response, 'dashboard_stylist.twig', [
+                'title' => 'Stylist Dashboard',
+                'active_menu' => 'dashboard',
+                'today_appointments' => $todayAppointments,
+                'tomorrow_appointments' => $tomorrowAppointments,
+                'kpi' => $kpi
+            ]);
+        }
     }
 }

@@ -40,6 +40,12 @@ class AppointmentRepository extends BaseRepository
             $params['date'] = $options['filters']['date'];
         }
 
+        // Filter by user_id if needed
+        if (!empty($options['filters']['user_id'])) {
+            $baseSql .= " AND a.user_id = :user_id";
+            $params['user_id'] = $options['filters']['user_id'];
+        }
+
         $countSql = "SELECT COUNT(*) " . $baseSql;
         $countStmt = $this->db->prepare($countSql);
         $countStmt->execute($params);

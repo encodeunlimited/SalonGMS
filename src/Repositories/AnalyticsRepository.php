@@ -37,11 +37,17 @@ class AnalyticsRepository extends BaseRepository
         $stmt->execute([$tenantId, $startOfMonth, $endOfMonth]);
         $newCustomers = $stmt->fetchColumn() ?: 0;
 
+        // Expenses today
+        $stmt = $this->db->prepare("SELECT SUM(amount) FROM expenses WHERE tenant_id = ? AND expense_date = ?");
+        $stmt->execute([$tenantId, $today]);
+        $expensesToday = $stmt->fetchColumn() ?: 0.00;
+
         return [
             'revenue_today' => $revenueToday,
             'appointments_today' => $appointmentsToday,
             'active_stylists' => $activeStylists,
-            'new_customers' => $newCustomers
+            'new_customers' => $newCustomers,
+            'expenses_today' => $expensesToday
         ];
     }
     

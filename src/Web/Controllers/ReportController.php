@@ -6,16 +6,19 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\ReportRepository;
+use App\Repositories\ExpenseRepository;
 
 class ReportController
 {
     private Twig $view;
     private ReportRepository $reports;
+    private ExpenseRepository $expenseRepo;
 
-    public function __construct(Twig $view, ReportRepository $reports)
+    public function __construct(Twig $view, ReportRepository $reports, ExpenseRepository $expenseRepo)
     {
         $this->view = $view;
         $this->reports = $reports;
+        $this->expenseRepo = $expenseRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -29,7 +32,11 @@ class ReportController
         $startDate = $params['start_date'] ?? date('Y-m-01');
         $endDate = $params['end_date'] ?? date('Y-m-t');
 
+        $this->expenseRepo->setTenantId($tenantId);
+        $totalExpenses = $this->expenseRepo->getTotalExpensesByDateRange($startDate, $endDate);
+
         $data = $this->getReportData($startDate, $endDate);
+        $data['total_expenses'] = $totalExpenses;
 
         // If it's an HTMX request, we might just want to render the partials
         if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {

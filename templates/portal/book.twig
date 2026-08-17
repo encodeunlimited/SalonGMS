@@ -226,6 +226,9 @@
                                                         <span class="mr-3 font-medium text-brand-accent">Available: {{ cps.total_quantity - cps.used_quantity }}</span>
                                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
                                                         {{ cps.duration_minutes }} mins
+                                                        {% if cps.expires_at %}
+                                                        <span class="ml-3 text-red-400 font-medium">Expires: {{ cps.expires_at|date('M d, Y') }}</span>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                                 <div class="text-lg font-bold text-brand-text shrink-0">

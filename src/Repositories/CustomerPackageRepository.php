@@ -11,15 +11,16 @@ class CustomerPackageRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, customer_id, package_id, status)
-            VALUES (:tenant_id, :customer_id, :package_id, :status)
+            INSERT INTO {$this->table} (tenant_id, customer_id, package_id, status, expires_at)
+            VALUES (:tenant_id, :customer_id, :package_id, :status, :expires_at)
         ");
         
         $insertData = [
             'tenant_id' => $this->getTenantId(),
             'customer_id' => $data['customer_id'],
             'package_id' => $data['package_id'],
-            'status' => $data['status'] ?? 'active'
+            'status' => $data['status'] ?? 'active',
+            'expires_at' => $data['expires_at'] ?? null
         ];
         
         $stmt->execute($insertData);
@@ -51,6 +52,7 @@ class CustomerPackageRepository extends BaseRepository
                 cps.total_quantity,
                 cps.used_quantity,
                 cp.id as customer_package_id,
+                cp.expires_at,
                 p.name as package_name,
                 s.id as service_id,
                 s.name as service_name,
@@ -62,6 +64,7 @@ class CustomerPackageRepository extends BaseRepository
             WHERE cp.tenant_id = :tenant_id
               AND cp.customer_id = :customer_id
               AND cp.status = 'active'
+              AND (cp.expires_at IS NULL OR cp.expires_at > CURRENT_TIMESTAMP)
               AND cps.used_quantity < cps.total_quantity
         ");
         

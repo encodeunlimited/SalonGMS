@@ -61,6 +61,7 @@ class PackageController
             'description' => $data['description'] ?? '',
             'price' => (float)($data['price'] ?? 0),
             'active' => isset($data['active']) ? 1 : 0,
+            'validity_months' => $data['validity_months'] ?? null,
             'service_ids' => $data['service_ids'] ?? []
         ]);
 
@@ -103,6 +104,7 @@ class PackageController
             'description' => $data['description'] ?? '',
             'price' => (float)($data['price'] ?? 0),
             'active' => isset($data['active']) ? 1 : 0,
+            'validity_months' => $data['validity_months'] ?? null,
             'service_ids' => $data['service_ids'] ?? []
         ]);
 

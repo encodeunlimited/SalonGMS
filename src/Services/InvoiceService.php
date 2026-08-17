@@ -149,12 +149,19 @@ class InvoiceService extends BaseService
             if ($customerId && $itemType === 'package' && $itemId) {
                 $package = $this->packageRepo->getById($itemId);
                 if ($package && !empty($package['services'])) {
+                    
+                    $expiresAt = null;
+                    if (!empty($package['validity_months'])) {
+                        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$package['validity_months']} months"));
+                    }
+
                     // Create customer package for each quantity
                     for ($i = 0; $i < $pItem['quantity']; $i++) {
                         $cp = $this->customerPackageRepo->create([
                             'customer_id' => $customerId,
                             'package_id' => $itemId,
-                            'status' => 'active'
+                            'status' => 'active',
+                            'expires_at' => $expiresAt
                         ]);
                         
                         foreach ($package['services'] as $pkgService) {

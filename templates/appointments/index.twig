@@ -54,21 +54,29 @@
                                                 @htmx:after-swap.window="if ($event.detail.target.id === 'service_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
                                                 class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                             <option value="">Select a service...</option>
-                                            {% for service in services %}
-                                                <option value="{{ service.id }}">{{ service.name }}</option>
-                                            {% endfor %}
+                                            <optgroup label="Regular Services">
+                                                {% for service in services %}
+                                                    <option value="{{ service.id }}">{{ service.name }}</option>
+                                                {% endfor %}
+                                            </optgroup>
+                                            {% if packages|length > 0 %}
+                                            <optgroup label="Buy New Package (Select Initial Service)">
+                                                {% for package in packages %}
+                                                    {% if package.services|length > 0 %}
+                                                        {% for ps in package.services %}
+                                                            <option value="pkg_{{ package.id }}_srv_{{ ps.id }}">{{ package.name }} - Initial: {{ ps.name }}</option>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </optgroup>
+                                            {% endif %}
                                         </select>
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Stylist</label>
-                                        <select id="stylist_id" name="stylist_id" required 
-                                                x-data="{ tom: null }" 
-                                                x-init="if (!$el.tomselect) { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
-                                                @htmx:before-swap.window="if ($event.detail.target.id === 'stylist_id' && tom) { tom.destroy(); tom = null; }"
-                                                @htmx:after-swap.window="if ($event.detail.target.id === 'stylist_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
-                                                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
-                                            <option value="">Select a service first...</option>
-                                        </select>
+                                        <div id="stylist_id" class="mt-1 min-h-[50px]">
+                                            <div class="text-sm text-gray-500 py-2">Select a service first to see available stylists...</div>
+                                        </div>
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Booking Type</label>

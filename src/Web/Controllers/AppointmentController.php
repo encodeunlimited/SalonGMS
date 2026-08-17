@@ -108,6 +108,7 @@ class AppointmentController
             'open_hour' => $openHour,
             'close_hour' => $closeHour,
             'booking_types' => $bookingTypes,
+            'packages' => $this->packages->getAll(['active' => 1]),
             'base_url' => $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '')
         ]);
     }
@@ -266,13 +267,22 @@ class AppointmentController
         $this->users->setTenantId($tenantId);
         $allUsers = $this->users->getAll();
         
-        $html = '<option value="">Select a stylist...</option>';
+        $html = '<div class="flex space-x-3 overflow-x-auto pb-2" style="scroll-snap-type: x mandatory;">';
         foreach ($allUsers as $user) {
             // Include roles that might act as stylists if needed, or just check specialist areas
-            if (in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
-                $html .= '<option value="' . $user['id'] . '">' . htmlspecialchars($user['name']) . '</option>';
+            if (empty($serviceId) || in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
+                $img = !empty($user['profile_image']) 
+                    ? '<img src="' . htmlspecialchars($user['profile_image']) . '" class="w-10 h-10 rounded-full object-cover mb-1 border border-gray-200">'
+                    : '<div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 font-bold flex items-center justify-center mb-1 text-sm border border-gray-300">' . strtoupper(substr($user['name'], 0, 2)) . '</div>';
+                
+                $html .= '<label class="flex-shrink-0 w-20 flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer border-2 transition-all border-gray-100 bg-white hover:border-gray-300 has-[:checked]:border-salon-accent has-[:checked]:bg-yellow-50">';
+                $html .= '<input type="radio" name="stylist_id" value="' . $user['id'] . '" required class="hidden">';
+                $html .= $img;
+                $html .= '<span class="text-xs font-medium text-gray-700 text-center truncate w-full">' . htmlspecialchars(explode(' ', $user['name'])[0]) . '</span>';
+                $html .= '</label>';
             }
         }
+        $html .= '</div>';
 
         $response->getBody()->write($html);
         return $response->withStatus(200);

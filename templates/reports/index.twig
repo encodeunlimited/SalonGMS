@@ -112,6 +112,41 @@
                 window.chartInstances['appointments'].render();
             }
 
+            // 4. Stylist Performance (Horizontal Bar Chart)
+            if (document.querySelector("#stylistPerformanceChart") && data.stylist_performance.length > 0) {
+                const stylists = data.stylist_performance.map(item => item.name);
+                const revenues = data.stylist_performance.map(item => parseFloat(item.total_revenue || 0));
+                
+                var stylistOptions = {
+                    series: [{ name: 'Revenue', data: revenues }],
+                    chart: { type: 'bar', height: 300, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                    colors: ['#d4af37'],
+                    plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: stylists, labels: { formatter: function (value) { return "QAR " + value; } } }
+                };
+                window.chartInstances['stylistPerf'] = new ApexCharts(document.querySelector("#stylistPerformanceChart"), stylistOptions);
+                window.chartInstances['stylistPerf'].render();
+            }
+
+            // 5. Top Services (Bar Chart)
+            if (document.querySelector("#topServicesChart") && data.top_services.length > 0) {
+                const services = data.top_services.map(item => item.service_name);
+                const revenues = data.top_services.map(item => parseFloat(item.revenue || 0));
+                
+                var topServicesOptions = {
+                    series: [{ name: 'Revenue', data: revenues }],
+                    chart: { type: 'bar', height: 300, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                    colors: ['#0f172a'],
+                    plotOptions: { bar: { borderRadius: 4, columnWidth: '40%' } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: services },
+                    yaxis: { labels: { formatter: function (value) { return "QAR " + value; } } }
+                };
+                window.chartInstances['topServices'] = new ApexCharts(document.querySelector("#topServicesChart"), topServicesOptions);
+                window.chartInstances['topServices'].render();
+            }
+
         } catch (e) {
             console.error("Error rendering charts", e);
         }

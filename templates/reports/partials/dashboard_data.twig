@@ -157,12 +157,27 @@
     </div>
 </div>
 
+<!-- New Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Stylist Performance (Revenue)</h3>
+        <div id="stylistPerformanceChart" class="flex-1"></div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Top Services by Revenue</h3>
+        <div id="topServicesChart" class="flex-1"></div>
+    </div>
+</div>
+
 <!-- Trigger JS to re-render charts. We inject JSON data so JS can read it. -->
 <script type="application/json" id="reportsDataJSON">
 {{ {
     revenue_over_time: revenue_over_time,
     revenue_by_payment_method: revenue_by_payment_method,
-    appointments_summary: appointments_summary
+    appointments_summary: appointments_summary,
+    stylist_performance: stylist_performance,
+    top_services: top_services
 }|json_encode|raw }}
 </script>
 

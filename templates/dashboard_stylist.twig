@@ -30,6 +30,21 @@
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+        <h3 class="text-base font-bold text-gray-900 mb-4">My Weekly Commission</h3>
+        <div id="commission-chart"></div>
+    </div>
+    
+    <!-- Donut Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-base font-bold text-gray-900 mb-4">My Top Services</h3>
+        <div id="services-chart" class="flex justify-center mt-6"></div>
+    </div>
+</div>
+
 <!-- Appointments Section -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
     
@@ -125,4 +140,68 @@
 
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Commission Trend Bar Chart
+        var commissionOptions = {
+            series: [{
+                name: 'Commission',
+                data: {{ charts.commission_series|raw }}
+            }],
+            chart: {
+                type: 'bar',
+                height: 300,
+                toolbar: { show: false },
+                fontFamily: 'Inter, sans-serif'
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    columnWidth: '40%',
+                }
+            },
+            colors: ['#d4af37'],
+            dataLabels: { enabled: false },
+            xaxis: {
+                categories: {{ charts.commission_labels|raw }},
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: { formatter: function (value) { return "QAR " + value; } }
+            },
+            grid: {
+                borderColor: '#f1f5f9',
+                strokeDashArray: 4,
+                yaxis: { lines: { show: true } }
+            }
+        };
+
+        var commissionChart = new ApexCharts(document.querySelector("#commission-chart"), commissionOptions);
+        commissionChart.render();
+
+        // Stylist Services Donut Chart
+        var servicesOptions = {
+            series: {{ charts.services_series|raw }},
+            chart: {
+                type: 'donut',
+                height: 320,
+                fontFamily: 'Inter, sans-serif'
+            },
+            labels: {{ charts.services_labels|raw }},
+            colors: ['#0f172a', '#d4af37', '#94a3b8', '#475569'],
+            dataLabels: { enabled: false },
+            plotOptions: {
+                pie: { donut: { size: '70%' } }
+            },
+            legend: { position: 'bottom' }
+        };
+
+        var servicesChart = new ApexCharts(document.querySelector("#services-chart"), servicesOptions);
+        servicesChart.render();
+    });
+</script>
 {% endblock %}

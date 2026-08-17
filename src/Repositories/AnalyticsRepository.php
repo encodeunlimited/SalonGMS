@@ -124,4 +124,101 @@ class AnalyticsRepository extends BaseRepository
         $stmt->execute([$tenantId, $userId, $startOfMonth, $endOfMonth]);
         return (float)($stmt->fetchColumn() ?: 0.00);
     }
+
+    public function getAppointmentsByStatus(?int $userId = null): array
+    {
+        $tenantId = $this->getTenantId();
+        $today = date('Y-m-d');
+        
+        $sql = "SELECT status, COUNT(*) as count FROM appointments WHERE tenant_id = ? AND apt_date = ?";
+        $params = [$tenantId, $today];
+        
+        if ($userId) {
+            $sql .= " AND user_id = ?";
+            $params[] = $userId;
+        }
+        
+        $sql .= " GROUP BY status";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $results = $stmt->fetchAll();
+        
+        $labels = [];
+        $series = [];
+        
+        foreach ($results as $row) {
+            $labels[] = ucfirst($row['status']);
+            $series[] = (int)$row['count'];
+        }
+        
+        if (empty($labels)) {
+            $labels = ['No Appointments'];
+            $series = [1]; // Prevent chart error
+        }
+        
+        return [
+            'labels' => $labels,
+            'series' => $series
+        ];
+    }
+
+    public function getStylistServicesBreakdown(int $userId): array
+    {
+        $tenantId = $this->getTenantId();
+        
+        $stmt = $this->db->prepare("
+            SELECT s.name, COUNT(ii.id) as item_count 
+            FROM invoice_items ii 
+            JOIN services s ON ii.service_id = s.id 
+            JOIN invoices i ON ii.invoice_id = i.id
+            WHERE i.tenant_id = ? AND i.user_id = ? 
+            GROUP BY s.name 
+            ORDER BY item_count DESC 
+            LIMIT 5
+        ");
+        $stmt->execute([$tenantId, $userId]);
+        $results = $stmt->fetchAll();
+        
+        $labels = [];
+        $series = [];
+        
+        foreach ($results as $row) {
+            $labels[] = $row['name'] ?: 'Unknown';
+            $series[] = (int)$row['item_count'];
+        }
+        
+        if (empty($labels)) {
+            $labels = ['No Data'];
+            $series = [1];
+        }
+        
+        return [
+            'labels' => $labels,
+            'series' => $series
+        ];
+    }
+
+    public function getStylistCommissionTrend(int $userId): array
+    {
+        $tenantId = $this->getTenantId();
+        $revenueData = [];
+        $labels = [];
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $dateStr = strtotime("-$i days");
+            $date = date('Y-m-d', $dateStr);
+            $labels[] = date('D', $dateStr);
+            
+            $stmt = $this->db->prepare("SELECT SUM(amount) FROM commissions WHERE tenant_id = ? AND user_id = ? AND created_at >= ? AND created_at <= ?");
+            $stmt->execute([$tenantId, $userId, $date . ' 00:00:00', $date . ' 23:59:59']);
+            $total = $stmt->fetchColumn();
+            $revenueData[] = (float)($total ?: 0.00);
+        }
+        
+        return [
+            'labels' => $labels,
+            'series' => $revenueData
+        ];
+    }
 }

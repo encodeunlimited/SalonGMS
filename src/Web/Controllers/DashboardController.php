@@ -62,6 +62,8 @@ class DashboardController
                 if (empty($c['date_of_birth'])) return false;
                 return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
             });
+            
+            $appointmentsStatus = $this->analytics->getAppointmentsByStatus();
 
             return $this->view->render($response, 'dashboard_admin.twig', [
                 'title' => 'Dashboard',
@@ -75,7 +77,9 @@ class DashboardController
                     'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
                     'weekly_revenue' => json_encode($weeklyRevenue['series']),
                     'services_labels' => json_encode($servicesBreakdown['labels']),
-                    'services_series' => json_encode($servicesBreakdown['series'])
+                    'services_series' => json_encode($servicesBreakdown['series']),
+                    'apt_status_labels' => json_encode($appointmentsStatus['labels']),
+                    'apt_status_series' => json_encode($appointmentsStatus['series'])
                 ]
             ]);
         } elseif ($role === 'receptionist') {
@@ -89,6 +93,8 @@ class DashboardController
                 if (empty($c['date_of_birth'])) return false;
                 return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
             });
+            
+            $appointmentsStatus = $this->analytics->getAppointmentsByStatus();
 
             return $this->view->render($response, 'dashboard_receptionist.twig', [
                 'title' => 'Front Desk Dashboard',
@@ -96,7 +102,11 @@ class DashboardController
                 'today_appointments' => $todayAppointments,
                 'tomorrow_appointments' => $tomorrowAppointments,
                 'pending_payments' => $pendingPayments,
-                'todays_birthdays' => $todaysBirthdays
+                'todays_birthdays' => $todaysBirthdays,
+                'charts' => [
+                    'apt_status_labels' => json_encode($appointmentsStatus['labels']),
+                    'apt_status_series' => json_encode($appointmentsStatus['series'])
+                ]
             ]);
         } else {
             // Stylist dashboard
@@ -107,13 +117,22 @@ class DashboardController
             $myCommission = $this->analytics->getStylistCommissionThisMonth($userId);
             
             $kpi = ['my_commission' => $myCommission];
+            
+            $commissionTrend = $this->analytics->getStylistCommissionTrend($userId);
+            $servicesBreakdown = $this->analytics->getStylistServicesBreakdown($userId);
 
             return $this->view->render($response, 'dashboard_stylist.twig', [
                 'title' => 'Stylist Dashboard',
                 'active_menu' => 'dashboard',
                 'today_appointments' => $todayAppointments,
                 'tomorrow_appointments' => $tomorrowAppointments,
-                'kpi' => $kpi
+                'kpi' => $kpi,
+                'charts' => [
+                    'commission_labels' => json_encode($commissionTrend['labels']),
+                    'commission_series' => json_encode($commissionTrend['series']),
+                    'services_labels' => json_encode($servicesBreakdown['labels']),
+                    'services_series' => json_encode($servicesBreakdown['series'])
+                ]
             ]);
         }
     }

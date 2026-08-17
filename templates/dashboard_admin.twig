@@ -68,6 +68,14 @@
     </div>
 </div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <!-- Appointments Status Pie Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-base font-bold text-gray-900 mb-4">Appointments Status</h3>
+        <div id="apt-status-chart" class="flex justify-center mt-6"></div>
+    </div>
+</div>
+
 <!-- Appointments & Payments Section -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
     
@@ -304,6 +312,23 @@
 
         var servicesChart = new ApexCharts(document.querySelector("#services-chart"), servicesOptions);
         servicesChart.render();
+
+        // Appointments Status Pie Chart
+        var aptStatusOptions = {
+            series: {{ charts.apt_status_series|raw }},
+            chart: {
+                type: 'pie',
+                height: 320,
+                fontFamily: 'Inter, sans-serif'
+            },
+            labels: {{ charts.apt_status_labels|raw }},
+            colors: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#3b82f6'],
+            dataLabels: { enabled: true },
+            legend: { position: 'bottom' }
+        };
+
+        var aptStatusChart = new ApexCharts(document.querySelector("#apt-status-chart"), aptStatusOptions);
+        aptStatusChart.render();
     });
 </script>
 {% endblock %}

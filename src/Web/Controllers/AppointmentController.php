@@ -73,6 +73,7 @@ class AppointmentController
         $this->users->setTenantId($tenantId);
         $this->settings->setTenantId($tenantId);
         $this->bookingTypes->setTenantId($tenantId);
+        $this->packages->setTenantId($tenantId);
 
         $params = $request->getQueryParams();
         $options = [

@@ -172,7 +172,8 @@ class AnalyticsRepository extends BaseRepository
             FROM invoice_items ii 
             JOIN services s ON ii.service_id = s.id 
             JOIN invoices i ON ii.invoice_id = i.id
-            WHERE i.tenant_id = ? AND i.user_id = ? 
+            JOIN appointments a ON i.appointment_id = a.id
+            WHERE i.tenant_id = ? AND a.user_id = ? 
             GROUP BY s.name 
             ORDER BY item_count DESC 
             LIMIT 5

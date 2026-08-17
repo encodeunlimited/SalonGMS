@@ -108,6 +108,8 @@ return function (ContainerBuilder $containerBuilder) {
                 $c->get(\App\Repositories\CommissionRepository::class),
                 $c->get(\App\Repositories\UserRepository::class),
                 $c->get(\App\Repositories\AppointmentRepository::class),
+                $c->get(\App\Repositories\PackageRepository::class),
+                $c->get(\App\Repositories\CustomerPackageRepository::class),
                 $c->get(\App\Services\LoyaltyService::class)
             );
         },

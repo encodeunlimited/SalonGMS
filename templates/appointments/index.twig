@@ -32,7 +32,7 @@
                                     <div id="form-messages" class="mb-4"></div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Customer</label>
-                                        <select name="customer_id" required x-data x-init="new TomSelect($el, {
+                                        <select name="customer_id" required hx-get="/web/appointments/services" hx-target="#service_id" hx-swap="innerHTML" x-data x-init="new TomSelect($el, {
                                             maxOptions: 50,
                                             create: function(input, callback) {
                                                 $dispatch('open-customer-modal', { input: input, callback: callback });
@@ -47,8 +47,11 @@
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Service</label>
-                                        <select name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML"
-                                                x-data x-init="new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }})" 
+                                        <select id="service_id" name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML"
+                                                x-data="{ tom: null }" 
+                                                x-init="if (!$el.tomselect) { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
+                                                @htmx:before-swap.window="if ($event.detail.target.id === 'service_id' && tom) { tom.destroy(); tom = null; }"
+                                                @htmx:after-swap.window="if ($event.detail.target.id === 'service_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
                                                 class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                             <option value="">Select a service...</option>
                                             {% for service in services %}

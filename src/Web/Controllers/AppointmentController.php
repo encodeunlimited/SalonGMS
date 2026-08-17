@@ -13,6 +13,7 @@ use App\Repositories\CustomerRepository;
 use App\Repositories\ServiceRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\TenantSettingRepository;
+use App\Repositories\CustomerPackageRepository;
 use App\Services\PdfService;
 use App\Services\WhatsAppService;
 
@@ -29,6 +30,7 @@ class AppointmentController
     private InvoiceService $invoiceService;
     private PdfService $pdfService;
     private WhatsAppService $whatsappService;
+    private CustomerPackageRepository $customerPackages;
 
     public function __construct(
         Twig $view, 
@@ -41,7 +43,8 @@ class AppointmentController
         \App\Repositories\BookingTypeRepository $bookingTypes,
         InvoiceService $invoiceService,
         PdfService $pdfService,
-        WhatsAppService $whatsappService
+        WhatsAppService $whatsappService,
+        CustomerPackageRepository $customerPackages
     ) {
         $this->view = $view;
         $this->appointments = $appointments;
@@ -54,6 +57,7 @@ class AppointmentController
         $this->invoiceService = $invoiceService;
         $this->pdfService = $pdfService;
         $this->whatsappService = $whatsappService;
+        $this->customerPackages = $customerPackages;
     }
 
     public function index(Request $request, Response $response): Response
@@ -121,10 +125,26 @@ class AppointmentController
             if ($customer) $data['customer_name'] = $customer['name'];
         }
         
+        $cpsId = null;
         if (!empty($data['service_id'])) {
+            if (is_string($data['service_id']) && strpos($data['service_id'], 'cps_') === 0) {
+                $cpsId = (int)str_replace('cps_', '', $data['service_id']);
+                $this->customerPackages->setTenantId($tenantId);
+                $cps = $this->customerPackages->getCustomerPackageServiceById($cpsId);
+                if ($cps) {
+                    $data['service_id'] = $cps['service_id'];
+                    $data['customer_package_service_id'] = $cpsId;
+                } else {
+                    $data['service_id'] = 0; // Invalid
+                }
+            }
+
             $service = $this->services->getById((int)$data['service_id']);
             if ($service) {
                 $data['service_name'] = $service['name'];
+                if ($cpsId) {
+                    $data['service_name'] .= ' (Package Redemption)';
+                }
                 
                 // Calculate end time based on duration
                 $date = $data['date'] ?? date('Y-m-d');
@@ -148,6 +168,10 @@ class AppointmentController
         try {
             $newAppointment = $this->appointmentService->createAppointment($data);
             
+            if ($cpsId) {
+                $this->customerPackages->incrementUsedQuantity($cpsId);
+            }
+
             // Clear any previous error messages out of band, and append the new row
             $response->getBody()->write('
                 <div id="form-messages" class="mb-4" hx-swap-oob="true"></div>
@@ -166,6 +190,40 @@ class AppointmentController
             ');
             return $response->withStatus(200); // 200 required for HTMX standard swap
         }
+    }
+
+    public function getServicesForCustomer(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$request->getQueryParams()['customer_id'] ?? 0;
+
+        $this->services->setTenantId($tenantId);
+        $regularServices = $this->services->getAll();
+
+        $html = '<option value="">Select a service...</option>';
+
+        if ($customerId > 0) {
+            $this->customerPackages->setTenantId($tenantId);
+            $packageServices = $this->customerPackages->getAvailableServicesForCustomer($customerId);
+            
+            if (count($packageServices) > 0) {
+                $html .= '<optgroup label="Available Package Services">';
+                foreach ($packageServices as $cps) {
+                    $remaining = $cps['total_quantity'] - $cps['used_quantity'];
+                    $html .= '<option value="cps_' . $cps['customer_package_service_id'] . '">' . htmlspecialchars($cps['service_name']) . ' (from ' . htmlspecialchars($cps['package_name']) . ' - ' . $remaining . ' left)</option>';
+                }
+                $html .= '</optgroup>';
+            }
+        }
+        
+        $html .= '<optgroup label="Regular Services">';
+        foreach ($regularServices as $service) {
+            $html .= '<option value="' . $service['id'] . '">' . htmlspecialchars($service['name']) . '</option>';
+        }
+        $html .= '</optgroup>';
+
+        $response->getBody()->write($html);
+        return $response->withStatus(200);
     }
 
     public function getStylistsForService(Request $request, Response $response): Response

@@ -101,6 +101,23 @@ return function (ContainerBuilder $containerBuilder) {
             );
         },
 
+        \App\Web\Controllers\AppointmentController::class => function (ContainerInterface $c) {
+            return new \App\Web\Controllers\AppointmentController(
+                $c->get(\Slim\Views\Twig::class),
+                $c->get(\App\Repositories\AppointmentRepository::class),
+                $c->get(\App\Services\AppointmentService::class),
+                $c->get(\App\Repositories\CustomerRepository::class),
+                $c->get(\App\Repositories\ServiceRepository::class),
+                $c->get(\App\Repositories\UserRepository::class),
+                $c->get(\App\Repositories\TenantSettingRepository::class),
+                $c->get(\App\Repositories\BookingTypeRepository::class),
+                $c->get(\App\Services\InvoiceService::class),
+                $c->get(\App\Services\PdfService::class),
+                $c->get(\App\Services\WhatsAppService::class),
+                $c->get(\App\Repositories\CustomerPackageRepository::class)
+            );
+        },
+
         \App\Services\InvoiceService::class => function (ContainerInterface $c) {
             return new \App\Services\InvoiceService(
                 $c->get(\App\Repositories\InvoiceRepository::class),

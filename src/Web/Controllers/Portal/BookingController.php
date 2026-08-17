@@ -67,11 +67,24 @@ class BookingController
         $this->packageRepo->setTenantId($tenantId);
         $packages = $this->packageRepo->getAll(['active' => 1]);
         
-        $availablePackageServices = [];
+        $groupedPackageServices = [];
         $customerId = $request->getAttribute('customer_id');
         if ($customerId) {
             $this->customerPackageRepo->setTenantId($tenantId);
             $availablePackageServices = $this->customerPackageRepo->getAvailableServicesForCustomer($customerId);
+            
+            foreach ($availablePackageServices as $cps) {
+                $cpId = $cps['customer_package_id'];
+                if (!isset($groupedPackageServices[$cpId])) {
+                    $groupedPackageServices[$cpId] = [
+                        'customer_package_id' => $cpId,
+                        'package_name' => $cps['package_name'],
+                        'expires_at' => $cps['expires_at'],
+                        'services' => []
+                    ];
+                }
+                $groupedPackageServices[$cpId]['services'][] = $cps;
+            }
         }
         
         $queryParams = $request->getQueryParams();
@@ -81,7 +94,7 @@ class BookingController
         return $this->view->render($response, 'portal/book.twig', [
             'services_by_category' => $servicesByCategory,
             'packages' => $packages,
-            'available_package_services' => $availablePackageServices,
+            'grouped_package_services' => $groupedPackageServices,
             'booking_types' => $bookingTypes,
             'selected_service_id' => $selectedServiceId,
             'selected_package_id' => $selectedPackageId

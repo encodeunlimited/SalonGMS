@@ -114,7 +114,7 @@ class AnalyticsRepository extends BaseRepository
         $endOfMonth = date('Y-m-t 23:59:59');
 
         $stmt = $this->db->prepare("
-            SELECT SUM(commission_amount) 
+            SELECT SUM(amount) 
             FROM commissions 
             WHERE tenant_id = ? 
               AND user_id = ? 

@@ -9,6 +9,8 @@ use App\Repositories\CustomerRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\InvoiceRepository;
 use App\Services\LoyaltyService;
+use App\Repositories\PackageRepository;
+use App\Repositories\CustomerPackageRepository;
 
 class CustomerController
 {
@@ -17,19 +19,25 @@ class CustomerController
     private AppointmentRepository $appointments;
     private InvoiceRepository $invoices;
     private LoyaltyService $loyaltyService;
+    private ?PackageRepository $packages;
+    private ?CustomerPackageRepository $customerPackages;
 
     public function __construct(
         Twig $view, 
         CustomerRepository $customers,
         AppointmentRepository $appointments,
         InvoiceRepository $invoices,
-        LoyaltyService $loyaltyService
+        LoyaltyService $loyaltyService,
+        ?PackageRepository $packages = null,
+        ?CustomerPackageRepository $customerPackages = null
     ) {
         $this->view = $view;
         $this->customers = $customers;
         $this->appointments = $appointments;
         $this->invoices = $invoices;
         $this->loyaltyService = $loyaltyService;
+        $this->packages = $packages;
+        $this->customerPackages = $customerPackages;
     }
 
     public function index(Request $request, Response $response): Response
@@ -234,6 +242,49 @@ class CustomerController
         
         $appointments = $this->appointments->getByCustomerId($customerId);
         $unbilledAppointments = $this->appointments->getUnbilledDoneAppointments($customerId);
+        
+        // Fetch packages and their remaining services
+        $activePackages = [];
+        if ($this->packages && $this->customerPackages) {
+            $this->packages->setTenantId($tenantId);
+            $this->customerPackages->setTenantId($tenantId);
+            
+            $packagesList = $this->packages->getAll(['active' => 1]);
+            $packagesByName = [];
+            foreach ($packagesList as $pkg) {
+                $packagesByName[$pkg['name']] = $pkg;
+            }
+            
+            $availableServices = $this->customerPackages->getAvailableServicesForCustomer($customerId);
+            $packagesMap = [];
+            foreach ($availableServices as $srv) {
+                $cpId = $srv['customer_package_id'];
+                if (!isset($packagesMap[$cpId])) {
+                    $packagesMap[$cpId] = [
+                        'id' => $cpId,
+                        'name' => $srv['package_name'],
+                        'expires_at' => $srv['expires_at'],
+                        'services' => []
+                    ];
+                }
+                $packagesMap[$cpId]['services'][] = $srv;
+            }
+            $activePackages = array_values($packagesMap);
+            
+            // Fix unbilled appointments price if it's a package
+            foreach ($unbilledAppointments as &$apt) {
+                if (strpos($apt['service'], 'Package: ') === 0) {
+                    $packageName = preg_replace('/^Package: (.*?) \(First Service: .*\)$/', '$1', $apt['service']);
+                    $packageName = str_replace('Package: ', '', $packageName);
+                    
+                    if (isset($packagesByName[$packageName])) {
+                        $apt['service_price'] = $packagesByName[$packageName]['price'];
+                    }
+                }
+            }
+            unset($apt);
+        }
+        
         $invoices = $this->invoices->getByCustomerId($customerId);
         $loyaltyTransactions = $this->loyaltyService->getCustomerTransactions($customerId);
         
@@ -254,6 +305,7 @@ class CustomerController
             'customer' => $customer,
             'appointments' => $appointments,
             'unbilled_appointments' => $unbilledAppointments,
+            'active_packages' => $activePackages,
             'invoices' => $invoices,
             'loyalty_transactions' => $loyaltyTransactions,
             'base_url' => $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : ''),

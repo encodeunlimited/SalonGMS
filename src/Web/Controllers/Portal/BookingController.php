@@ -107,7 +107,11 @@ class BookingController
         $queryParams = $request->getQueryParams();
         $isPackage = false;
         $isRedemption = false;
-        if (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
+        if (is_string($queryParams['service_id'] ?? null) && preg_match('/^pkg_(\d+)_srv_(\d+)$/', $queryParams['service_id'], $matches)) {
+            $isPackage = true;
+            $packageId = (int)$matches[1];
+            $serviceId = (int)$matches[2];
+        } elseif (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
             $isPackage = true;
             $packageId = (int)str_replace('pkg_', '', $queryParams['service_id']);
             $serviceId = 0; // Or whatever
@@ -126,7 +130,9 @@ class BookingController
         
         $specialists = [];
         foreach ($allUsers as $user) {
-            if ($isPackage || in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
+            if ($isPackage && $serviceId === 0) {
+                $specialists[] = $user;
+            } elseif (in_array((string)$serviceId, $user['specialist_areas'] ?? [], true) || in_array((int)$serviceId, $user['specialist_areas'] ?? [], true)) {
                 $specialists[] = $user;
             }
         }
@@ -144,7 +150,12 @@ class BookingController
         $employeeId = (int)($queryParams['employee_id'] ?? 0);
         $isPackage = false;
         $isRedemption = false;
-        if (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
+        
+        if (is_string($queryParams['service_id'] ?? null) && preg_match('/^pkg_(\d+)_srv_(\d+)$/', $queryParams['service_id'], $matches)) {
+            $isPackage = true;
+            $packageId = (int)$matches[1];
+            $serviceId = (int)$matches[2];
+        } elseif (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
             $isPackage = true;
             $packageId = (int)str_replace('pkg_', '', $queryParams['service_id']);
         } elseif (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'cps_') === 0) {
@@ -158,7 +169,13 @@ class BookingController
         if ($isPackage) {
             $this->packageRepo->setTenantId($tenantId);
             $service = $this->packageRepo->getById($packageId);
-            $durationMinutes = 60; // Assuming default 60 min for packages
+            if (!empty($serviceId)) {
+                $this->serviceRepo->setTenantId($tenantId);
+                $initialService = $this->serviceRepo->getById($serviceId);
+                $durationMinutes = $initialService['duration_minutes'] ?? 60;
+            } else {
+                $durationMinutes = 60;
+            }
         } elseif ($isRedemption) {
             $this->customerPackageRepo->setTenantId($tenantId);
             $cps = $this->customerPackageRepo->getCustomerPackageServiceById($cpsId);
@@ -251,7 +268,18 @@ class BookingController
         $isPackage = false;
         $isRedemption = false;
         $cpsId = null;
-        if (is_string($serviceIdParam) && strpos($serviceIdParam, 'pkg_') === 0) {
+        $initialService = null;
+        
+        if (is_string($serviceIdParam) && preg_match('/^pkg_(\d+)_srv_(\d+)$/', $serviceIdParam, $matches)) {
+            $isPackage = true;
+            $packageId = (int)$matches[1];
+            $serviceId = (int)$matches[2];
+            $this->packageRepo->setTenantId($tenantId);
+            $service = $this->packageRepo->getById($packageId);
+            
+            $this->serviceRepo->setTenantId($tenantId);
+            $initialService = $this->serviceRepo->getById($serviceId);
+        } elseif (is_string($serviceIdParam) && strpos($serviceIdParam, 'pkg_') === 0) {
             $isPackage = true;
             $packageId = (int)str_replace('pkg_', '', $serviceIdParam);
             $this->packageRepo->setTenantId($tenantId);
@@ -290,9 +318,18 @@ class BookingController
         }
 
         $startDateTimeObj = new \DateTime("$date $time:00");
-        $durationMinutes = $isPackage ? 60 : ($service['duration_minutes'] ?? 60);
+        $durationMinutes = ($isPackage && $initialService) ? ($initialService['duration_minutes'] ?? 60) : ($isPackage ? 60 : ($service['duration_minutes'] ?? 60));
         $startDateTimeObj->add(new \DateInterval('PT' . $durationMinutes . 'M'));
         $endTime = $startDateTimeObj->format('H:i');
+
+        // Construct service name
+        if ($isPackage && $initialService) {
+            $serviceName = 'Package: ' . $service['name'] . ' (First Service: ' . $initialService['name'] . ')';
+        } elseif ($isPackage) {
+            $serviceName = 'Package: ' . $service['name'];
+        } else {
+            $serviceName = $service['name'];
+        }
 
         try {
             $this->appointmentRepo->setTenantId($tenantId);
@@ -301,7 +338,7 @@ class BookingController
                 'stylist_id' => $employee['id'],
                 'service_id' => $serviceId,
                 'customer_name' => $_SESSION['customer_name'] ?? 'Guest', 
-                'service_name' => $isPackage ? 'Package: ' . $service['name'] : $service['name'],
+                'service_name' => $serviceName,
                 'stylist_name' => $employee['name'],
                 'date' => $date,
                 'time' => $time,

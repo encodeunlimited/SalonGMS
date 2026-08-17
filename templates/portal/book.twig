@@ -168,33 +168,50 @@
                                 <div x-show="activeCategory === 'Packages' || (searchQuery.length > 0 && Array.from($el.querySelectorAll('.service-book-item')).some(item => item.getAttribute('data-name').toLowerCase().includes(searchQuery.toLowerCase())))" x-transition>
                                     <h3 x-show="searchQuery.length > 0" class="text-lg text-brand-text font-semibold mb-4 mt-0">Packages</h3>
                                     
-                                    <div class="space-y-4 flex flex-col gap-4">
+                                    <div class="space-y-6 flex flex-col gap-4">
                                         {% for package in packages %}
-                                            <label class="service-book-item flex items-center p-4 rounded-xl border hover:border-brand-accent/50 cursor-pointer transition-all group m-0 w-full"
-                                                   :class="'{{ selected_package_id }}' == '{{ package.id }}' ? 'bg-brand-accent/10 border-brand-accent' : 'bg-brand-bg border-brand-border'"
-                                                   data-name="{{ package.name }}"
-                                                   x-show="searchQuery.length === 0 || '{{ package.name|lower }}'.includes(searchQuery.toLowerCase())"
-                                                   onclick="selectService('pkg_{{ package.id }}', '{{ package.name|escape('js') }}', {{ package.price }}, this)">
-                                                
-                                                <input type="radio" id="service_pkg_{{ package.id }}" name="service_id" value="pkg_{{ package.id }}" required class="hidden" 
-                                                       {% if selected_package_id == package.id %}checked{% endif %}
-                                                       onchange="document.querySelectorAll('.service-book-item').forEach(el => { el.classList.remove('border-brand-accent'); el.style.backgroundColor='#111827'; el.classList.add('border-brand-border'); }); this.parentElement.classList.remove('border-brand-border'); this.parentElement.classList.add('border-brand-accent'); this.parentElement.style.backgroundColor='rgba(234, 179, 8, 0.1)';">
-                                                
-                                                <div class="w-12 h-12 rounded-lg bg-brand-card flex items-center justify-center mr-4 text-brand-accent shrink-0">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                                                </div>
-                                                <div class="flex-grow pr-4">
-                                                    <h3 class="text-base font-semibold text-brand-text group-hover:text-brand-accent transition-colors m-0">{{ package.name }}</h3>
-                                                    <p class="text-sm text-brand-textMuted mt-1 m-0 leading-snug">{{ package.description }}</p>
-                                                    <div class="flex items-center mt-2 text-xs text-brand-textMuted">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-                                                        Special Package Deal
+                                            <div class="bg-brand-bg border border-brand-border rounded-xl overflow-hidden shadow-sm" x-data="{ expanded: false }">
+                                                <div class="px-4 py-3 bg-brand-card flex justify-between items-center cursor-pointer hover:bg-brand-card/80 transition-colors" @click="expanded = !expanded">
+                                                    <div>
+                                                        <h4 class="text-brand-text font-semibold m-0">{{ package.name }}</h4>
+                                                        <span class="text-xs text-brand-accent mt-1 block">QAR {{ package.price|number_format(2) }}</span>
+                                                        <p class="text-sm text-brand-textMuted mt-1 mb-0">{{ package.description }}</p>
                                                     </div>
+                                                    <svg class="w-5 h-5 text-brand-textMuted transition-transform duration-200" :class="expanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                                 </div>
-                                                <div class="text-lg font-bold text-brand-text shrink-0">
-                                                    QAR {{ package.price|number_format(2) }}
+                                                
+                                                <div x-show="expanded" x-collapse class="p-4 space-y-4 flex flex-col gap-4 border-t border-brand-border">
+                                                    <p class="text-sm text-brand-textMuted italic mb-2">Select the first service to book today. The rest will be saved to your account.</p>
+                                                    {% for service in package.services %}
+                                                        <label class="service-book-item flex items-center p-4 rounded-xl border hover:border-brand-accent/50 cursor-pointer transition-all group m-0 w-full"
+                                                            :class="'{{ selected_service_id }}' == 'pkg_{{ package.id }}_srv_{{ service.id }}' ? 'bg-brand-accent/10 border-brand-accent' : 'bg-brand-bg border-brand-border'"
+                                                            data-name="{{ service.name }} ({{ package.name }})"
+                                                            x-show="searchQuery.length === 0 || '{{ service.name|lower }}'.includes(searchQuery.toLowerCase())"
+                                                            onclick="selectService('pkg_{{ package.id }}_srv_{{ service.id }}', '{{ package.name|escape('js') }} - {{ service.name|escape('js') }}', {{ package.price }}, this)">
+                                                            
+                                                            <input type="radio" id="service_pkg_{{ package.id }}_srv_{{ service.id }}" name="service_id" value="pkg_{{ package.id }}_srv_{{ service.id }}" required class="hidden" 
+                                                                {% if selected_service_id == 'pkg_' ~ package.id ~ '_srv_' ~ service.id %}checked{% endif %}
+                                                                onchange="document.querySelectorAll('.service-book-item').forEach(el => { el.classList.remove('border-brand-accent'); el.style.backgroundColor='#111827'; el.classList.add('border-brand-border'); }); this.parentElement.classList.remove('border-brand-border'); this.parentElement.classList.add('border-brand-accent'); this.parentElement.style.backgroundColor='rgba(234, 179, 8, 0.1)';">
+                                                            
+                                                            <div class="w-12 h-12 rounded-lg bg-brand-card flex items-center justify-center mr-4 text-brand-accent shrink-0">
+                                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                            </div>
+                                                            <div class="flex-grow pr-4">
+                                                                <h3 class="text-base font-semibold text-brand-text group-hover:text-brand-accent transition-colors m-0">{{ service.name }}</h3>
+                                                                <p class="text-sm text-brand-textMuted mt-1 m-0 leading-snug">{{ service.description }}</p>
+                                                                <div class="flex items-center mt-2 text-xs text-brand-textMuted">
+                                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                                                    {{ service.duration_minutes }} mins
+                                                                    <span class="ml-3 font-medium text-brand-accent">Included: {{ service.quantity }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-lg font-bold text-brand-text shrink-0">
+                                                                Select
+                                                            </div>
+                                                        </label>
+                                                    {% endfor %}
                                                 </div>
-                                            </label>
+                                            </div>
                                         {% endfor %}
                                     </div>
                                 </div>

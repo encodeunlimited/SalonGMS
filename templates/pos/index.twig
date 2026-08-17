@@ -10,7 +10,7 @@
 
 <div id="pos-alerts"></div>
 
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem('{{ appointment_to_checkout.service|escape('js') }}', {{ appointment_to_checkout.service_price|default(0) }})"{% endif %}>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem({{ appointment_to_checkout.item_id|default(0) }}, '{{ appointment_to_checkout.item_type|default('service')|escape('js') }}', '{{ appointment_to_checkout.item_name|escape('js') }}', {{ appointment_to_checkout.item_price|default(0) }})"{% endif %}>
     <!-- Left: Service Selection -->
     <div class="lg:col-span-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-[calc(100vh-140px)] flex flex-col">
@@ -401,6 +401,9 @@ function posSystem() {
             }
             container.innerHTML += `<input type="hidden" name="employee_id" value="${this.employee_id}">`;
             container.innerHTML += `<input type="hidden" name="payment_method" value="${this.payment_method}">`;
+            {% if appointment_to_checkout %}
+            container.innerHTML += `<input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">`;
+            {% endif %}
             
             let d_val = parseFloat(this.discount_value) || 0;
             if (d_val > 0) {

@@ -93,6 +93,37 @@ class InvoiceController
         if ($appointmentId > 0) {
             $this->appointmentRepo->setTenantId($tenantId);
             $appointmentToCheckout = $this->appointmentRepo->getAppointmentDetails($appointmentId);
+            
+            if ($appointmentToCheckout) {
+                $appointmentToCheckout['item_type'] = 'service';
+                $appointmentToCheckout['item_id'] = $appointmentToCheckout['service_id'] ?? 0;
+                $appointmentToCheckout['item_name'] = $appointmentToCheckout['service'];
+                $appointmentToCheckout['item_price'] = $appointmentToCheckout['service_price'] ?? 0;
+                
+                if (strpos($appointmentToCheckout['service'], 'Package: ') === 0 && strpos($appointmentToCheckout['service'], '(First Service: ') !== false) {
+                    $packageName = preg_replace('/^Package: (.*?) \(First Service: .*\)$/', '$1', $appointmentToCheckout['service']);
+                    foreach ($packages as $pkg) {
+                        if ($pkg['name'] === $packageName) {
+                            $appointmentToCheckout['item_type'] = 'package';
+                            $appointmentToCheckout['item_id'] = $pkg['id'];
+                            $appointmentToCheckout['item_name'] = $pkg['name'];
+                            $appointmentToCheckout['item_price'] = $pkg['price'];
+                            break;
+                        }
+                    }
+                } elseif (strpos($appointmentToCheckout['service'], 'Package: ') === 0) {
+                    $packageName = str_replace('Package: ', '', $appointmentToCheckout['service']);
+                    foreach ($packages as $pkg) {
+                        if ($pkg['name'] === $packageName) {
+                            $appointmentToCheckout['item_type'] = 'package';
+                            $appointmentToCheckout['item_id'] = $pkg['id'];
+                            $appointmentToCheckout['item_name'] = $pkg['name'];
+                            $appointmentToCheckout['item_price'] = $pkg['price'];
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         return $this->view->render($response, 'pos/index.twig', [

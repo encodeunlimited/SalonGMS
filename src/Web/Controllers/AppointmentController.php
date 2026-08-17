@@ -31,6 +31,7 @@ class AppointmentController
     private PdfService $pdfService;
     private WhatsAppService $whatsappService;
     private CustomerPackageRepository $customerPackages;
+    private \App\Repositories\PackageRepository $packages;
 
     public function __construct(
         Twig $view, 
@@ -44,7 +45,8 @@ class AppointmentController
         InvoiceService $invoiceService,
         PdfService $pdfService,
         WhatsAppService $whatsappService,
-        CustomerPackageRepository $customerPackages
+        CustomerPackageRepository $customerPackages,
+        \App\Repositories\PackageRepository $packages
     ) {
         $this->view = $view;
         $this->appointments = $appointments;
@@ -58,6 +60,7 @@ class AppointmentController
         $this->pdfService = $pdfService;
         $this->whatsappService = $whatsappService;
         $this->customerPackages = $customerPackages;
+        $this->packages = $packages;
     }
 
     public function index(Request $request, Response $response): Response
@@ -126,8 +129,17 @@ class AppointmentController
         }
         
         $cpsId = null;
+        $isNewPackage = false;
+        $newPackageId = null;
+        $initialServiceId = null;
+
         if (!empty($data['service_id'])) {
-            if (is_string($data['service_id']) && strpos($data['service_id'], 'cps_') === 0) {
+            if (is_string($data['service_id']) && preg_match('/^pkg_(\d+)_srv_(\d+)$/', $data['service_id'], $matches)) {
+                $isNewPackage = true;
+                $newPackageId = (int)$matches[1];
+                $initialServiceId = (int)$matches[2];
+                $data['service_id'] = $initialServiceId;
+            } elseif (is_string($data['service_id']) && strpos($data['service_id'], 'cps_') === 0) {
                 $cpsId = (int)str_replace('cps_', '', $data['service_id']);
                 $this->customerPackages->setTenantId($tenantId);
                 $cps = $this->customerPackages->getCustomerPackageServiceById($cpsId);
@@ -141,9 +153,15 @@ class AppointmentController
 
             $service = $this->services->getById((int)$data['service_id']);
             if ($service) {
-                $data['service_name'] = $service['name'];
-                if ($cpsId) {
-                    $data['service_name'] .= ' (Package Redemption)';
+                if ($isNewPackage) {
+                    $this->packages->setTenantId($tenantId);
+                    $package = $this->packages->getById($newPackageId);
+                    $data['service_name'] = 'Package: ' . ($package ? $package['name'] : 'Unknown') . ' (First Service: ' . $service['name'] . ')';
+                } else {
+                    $data['service_name'] = $service['name'];
+                    if ($cpsId) {
+                        $data['service_name'] .= ' (Package Redemption)';
+                    }
                 }
                 
                 // Calculate end time based on duration
@@ -221,6 +239,20 @@ class AppointmentController
             $html .= '<option value="' . $service['id'] . '">' . htmlspecialchars($service['name']) . '</option>';
         }
         $html .= '</optgroup>';
+
+        $this->packages->setTenantId($tenantId);
+        $availablePackages = $this->packages->getAll(['active' => 1]);
+        if (count($availablePackages) > 0) {
+            $html .= '<optgroup label="Buy New Package (Select Initial Service)">';
+            foreach ($availablePackages as $package) {
+                if (!empty($package['services'])) {
+                    foreach ($package['services'] as $ps) {
+                        $html .= '<option value="pkg_' . $package['id'] . '_srv_' . $ps['id'] . '">' . htmlspecialchars($package['name']) . ' - Initial: ' . htmlspecialchars($ps['name']) . '</option>';
+                    }
+                }
+            }
+            $html .= '</optgroup>';
+        }
 
         $response->getBody()->write($html);
         return $response->withStatus(200);

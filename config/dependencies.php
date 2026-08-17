@@ -114,7 +114,8 @@ return function (ContainerBuilder $containerBuilder) {
                 $c->get(\App\Services\InvoiceService::class),
                 $c->get(\App\Services\PdfService::class),
                 $c->get(\App\Services\WhatsAppService::class),
-                $c->get(\App\Repositories\CustomerPackageRepository::class)
+                $c->get(\App\Repositories\CustomerPackageRepository::class),
+                $c->get(\App\Repositories\PackageRepository::class)
             );
         },
 

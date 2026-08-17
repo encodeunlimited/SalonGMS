@@ -90,8 +90,8 @@ class AppointmentRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, customer_id, user_id, service_id, customer_name, service, stylist, apt_date, apt_time, apt_end_time, status, booking_type)
-            VALUES (:tenant_id, :customer_id, :user_id, :service_id, :customer_name, :service, :stylist, :date, :time, :end_time, :status, :booking_type)
+            INSERT INTO {$this->table} (tenant_id, customer_id, user_id, service_id, customer_name, service, stylist, apt_date, apt_time, apt_end_time, status, booking_type, customer_package_service_id)
+            VALUES (:tenant_id, :customer_id, :user_id, :service_id, :customer_name, :service, :stylist, :date, :time, :end_time, :status, :booking_type, :cps_id)
         ");
         
         $insertData = [
@@ -106,7 +106,8 @@ class AppointmentRepository extends BaseRepository
             'time' => $data['time'] ?? '12:00',
             'end_time' => $data['end_time'] ?? date('H:i', strtotime(($data['time'] ?? '12:00') . ' +1 hour')),
             'status' => 'scheduled',
-            'booking_type' => $data['booking_type'] ?? 'In Salon'
+            'booking_type' => $data['booking_type'] ?? 'In Salon',
+            'cps_id' => !empty($data['customer_package_service_id']) ? (int)$data['customer_package_service_id'] : null
         ];
         
         $stmt->execute($insertData);
@@ -171,7 +172,7 @@ class AppointmentRepository extends BaseRepository
     public function getAppointmentDetails(int $id): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT a.id, a.user_id, a.customer_id, a.invoice_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
+            SELECT a.id, a.user_id, a.customer_id, a.invoice_id, a.customer_package_service_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
                    c.profile_image as customer_image, c.phone as customer_phone,
                    u.profile_image as stylist_image,
                    s.price as service_price

@@ -11,6 +11,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\TenantSettingRepository;
 use App\Repositories\BookingTypeRepository;
 use App\Repositories\PackageRepository;
+use App\Repositories\CustomerPackageRepository;
 
 class BookingController
 {
@@ -21,6 +22,7 @@ class BookingController
     private TenantSettingRepository $settings;
     private BookingTypeRepository $bookingTypeRepo;
     private PackageRepository $packageRepo;
+    private CustomerPackageRepository $customerPackageRepo;
 
     public function __construct(
         Twig $view, 
@@ -29,7 +31,8 @@ class BookingController
         UserRepository $userRepo,
         TenantSettingRepository $settings,
         BookingTypeRepository $bookingTypeRepo,
-        PackageRepository $packageRepo
+        PackageRepository $packageRepo,
+        CustomerPackageRepository $customerPackageRepo
     ) {
         $this->view = $view;
         $this->serviceRepo = $serviceRepo;
@@ -38,6 +41,7 @@ class BookingController
         $this->settings = $settings;
         $this->bookingTypeRepo = $bookingTypeRepo;
         $this->packageRepo = $packageRepo;
+        $this->customerPackageRepo = $customerPackageRepo;
     }
 
     public function step1(Request $request, Response $response): Response
@@ -63,13 +67,21 @@ class BookingController
         $this->packageRepo->setTenantId($tenantId);
         $packages = $this->packageRepo->getAll(['active' => 1]);
         
+        $availablePackageServices = [];
+        $customerId = $request->getAttribute('customer_id');
+        if ($customerId) {
+            $this->customerPackageRepo->setTenantId($tenantId);
+            $availablePackageServices = $this->customerPackageRepo->getAvailableServicesForCustomer($customerId);
+        }
+        
         $queryParams = $request->getQueryParams();
-        $selectedServiceId = isset($queryParams['service_id']) ? (int)$queryParams['service_id'] : null;
+        $selectedServiceId = isset($queryParams['service_id']) ? $queryParams['service_id'] : null;
         $selectedPackageId = isset($queryParams['package_id']) ? (int)$queryParams['package_id'] : null;
 
         return $this->view->render($response, 'portal/book.twig', [
             'services_by_category' => $servicesByCategory,
             'packages' => $packages,
+            'available_package_services' => $availablePackageServices,
             'booking_types' => $bookingTypes,
             'selected_service_id' => $selectedServiceId,
             'selected_package_id' => $selectedPackageId
@@ -81,10 +93,17 @@ class BookingController
         $tenantId = $request->getAttribute('tenant_id', 1);
         $queryParams = $request->getQueryParams();
         $isPackage = false;
+        $isRedemption = false;
         if (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
             $isPackage = true;
             $packageId = (int)str_replace('pkg_', '', $queryParams['service_id']);
             $serviceId = 0; // Or whatever
+        } elseif (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'cps_') === 0) {
+            $isRedemption = true;
+            $cpsId = (int)str_replace('cps_', '', $queryParams['service_id']);
+            $this->customerPackageRepo->setTenantId($tenantId);
+            $cps = $this->customerPackageRepo->getCustomerPackageServiceById($cpsId);
+            $serviceId = $cps ? (int)$cps['service_id'] : 0;
         } else {
             $serviceId = (int)($queryParams['service_id'] ?? 0);
         }
@@ -111,9 +130,13 @@ class BookingController
         $queryParams = $request->getQueryParams();
         $employeeId = (int)($queryParams['employee_id'] ?? 0);
         $isPackage = false;
+        $isRedemption = false;
         if (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'pkg_') === 0) {
             $isPackage = true;
             $packageId = (int)str_replace('pkg_', '', $queryParams['service_id']);
+        } elseif (is_string($queryParams['service_id'] ?? null) && strpos($queryParams['service_id'], 'cps_') === 0) {
+            $isRedemption = true;
+            $cpsId = (int)str_replace('cps_', '', $queryParams['service_id']);
         } else {
             $serviceId = (int)($queryParams['service_id'] ?? 0);
         }
@@ -123,6 +146,10 @@ class BookingController
             $this->packageRepo->setTenantId($tenantId);
             $service = $this->packageRepo->getById($packageId);
             $durationMinutes = 60; // Assuming default 60 min for packages
+        } elseif ($isRedemption) {
+            $this->customerPackageRepo->setTenantId($tenantId);
+            $cps = $this->customerPackageRepo->getCustomerPackageServiceById($cpsId);
+            $durationMinutes = $cps['duration_minutes'] ?? 60;
         } else {
             $this->serviceRepo->setTenantId($tenantId);
             $service = $this->serviceRepo->getById($serviceId);
@@ -209,12 +236,27 @@ class BookingController
         }
 
         $isPackage = false;
+        $isRedemption = false;
+        $cpsId = null;
         if (is_string($serviceIdParam) && strpos($serviceIdParam, 'pkg_') === 0) {
             $isPackage = true;
             $packageId = (int)str_replace('pkg_', '', $serviceIdParam);
             $this->packageRepo->setTenantId($tenantId);
             $service = $this->packageRepo->getById($packageId);
             $serviceId = null; // Don't assign a service_id for packages for now
+        } elseif (is_string($serviceIdParam) && strpos($serviceIdParam, 'cps_') === 0) {
+            $isRedemption = true;
+            $cpsId = (int)str_replace('cps_', '', $serviceIdParam);
+            $this->customerPackageRepo->setTenantId($tenantId);
+            $cps = $this->customerPackageRepo->getCustomerPackageServiceById($cpsId);
+            if ($cps) {
+                $serviceId = (int)$cps['service_id'];
+                $this->serviceRepo->setTenantId($tenantId);
+                $service = $this->serviceRepo->getById($serviceId);
+                $service['name'] = $service['name'] . ' (Package Redemption)';
+            } else {
+                $service = null;
+            }
         } else {
             $serviceId = (int)$serviceIdParam;
             $this->serviceRepo->setTenantId($tenantId);
@@ -251,8 +293,13 @@ class BookingController
                 'date' => $date,
                 'time' => $time,
                 'end_time' => $endTime,
-                'booking_type' => $bookingType
+                'booking_type' => $bookingType,
+                'customer_package_service_id' => $cpsId
             ]);
+            
+            if ($isRedemption && $cpsId) {
+                $this->customerPackageRepo->incrementUsedQuantity($cpsId);
+            }
 
             return $response->withHeader('HX-Redirect', '/portal/dashboard')->withStatus(200);
 

@@ -7,6 +7,8 @@ use App\Repositories\InvoiceItemRepository;
 use App\Repositories\CommissionRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\AppointmentRepository;
+use App\Repositories\PackageRepository;
+use App\Repositories\CustomerPackageRepository;
 use App\Services\LoyaltyService;
 use Exception;
 
@@ -17,6 +19,8 @@ class InvoiceService extends BaseService
     private CommissionRepository $commissionRepo;
     private UserRepository $userRepo;
     private AppointmentRepository $appointmentRepo;
+    private PackageRepository $packageRepo;
+    private CustomerPackageRepository $customerPackageRepo;
     private LoyaltyService $loyaltyService;
 
     public function __construct(
@@ -25,6 +29,8 @@ class InvoiceService extends BaseService
         CommissionRepository $commissionRepo,
         UserRepository $userRepo,
         AppointmentRepository $appointmentRepo,
+        PackageRepository $packageRepo,
+        CustomerPackageRepository $customerPackageRepo,
         LoyaltyService $loyaltyService
     ) {
         $this->invoiceRepo = $invoiceRepo;
@@ -32,6 +38,8 @@ class InvoiceService extends BaseService
         $this->commissionRepo = $commissionRepo;
         $this->userRepo = $userRepo;
         $this->appointmentRepo = $appointmentRepo;
+        $this->packageRepo = $packageRepo;
+        $this->customerPackageRepo = $customerPackageRepo;
         $this->loyaltyService = $loyaltyService;
     }
 
@@ -43,6 +51,8 @@ class InvoiceService extends BaseService
         $this->commissionRepo->setTenantId($tenantId);
         $this->userRepo->setTenantId($tenantId);
         $this->appointmentRepo->setTenantId($tenantId);
+        $this->packageRepo->setTenantId($tenantId);
+        $this->customerPackageRepo->setTenantId($tenantId);
         $this->loyaltyService->setTenantId($tenantId);
         return $this;
     }
@@ -81,6 +91,8 @@ class InvoiceService extends BaseService
             $totalAmount += $subtotal;
             
             $processedItems[] = [
+                'type' => $item['type'] ?? 'service',
+                'item_id' => $item['id'] ?? null,
                 'description' => $item['name'] ?? 'Service',
                 'quantity' => $qty,
                 'unit_price' => $price,
@@ -121,8 +133,37 @@ class InvoiceService extends BaseService
 
         // 4. Create Items
         foreach ($processedItems as $pItem) {
+            $itemType = $pItem['type'];
+            $itemId = $pItem['item_id'];
+            
+            unset($pItem['type'], $pItem['item_id']);
             $pItem['invoice_id'] = $invoice['id'];
+            
+            if ($itemType === 'service' && $itemId) {
+                $pItem['service_id'] = $itemId;
+            }
+            
             $this->itemRepo->create($pItem);
+            
+            // Provision package if purchased by a customer
+            if ($customerId && $itemType === 'package' && $itemId) {
+                $package = $this->packageRepo->getById($itemId);
+                if ($package && !empty($package['services'])) {
+                    // Create customer package for each quantity
+                    for ($i = 0; $i < $pItem['quantity']; $i++) {
+                        $cp = $this->customerPackageRepo->create([
+                            'customer_id' => $customerId,
+                            'package_id' => $itemId,
+                            'status' => 'active'
+                        ]);
+                        
+                        foreach ($package['services'] as $pkgService) {
+                            // Defaulting quantity to 1 for each service in the package bundle
+                            $this->customerPackageRepo->addService($cp['id'], $pkgService['id'], 1);
+                        }
+                    }
+                }
+            }
         }
 
         if ($discountAmount > 0) {

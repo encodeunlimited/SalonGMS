@@ -110,6 +110,13 @@
                                     {{ category }}
                                 </button>
                             {% endfor %}
+                            {% if available_package_services|length > 0 %}
+                                <button type="button" @click="activeCategory = 'My Packages'; searchQuery = '';" 
+                                        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer border shrink-0"
+                                        :class="activeCategory === 'My Packages' ? 'bg-brand-accent text-brand-bg border-brand-accent' : 'border-brand-border text-brand-textMuted hover:text-brand-text hover:border-brand-textMuted bg-transparent'">
+                                    My Packages
+                                </button>
+                            {% endif %}
                             {% if packages|length > 0 %}
                                 <button type="button" @click="activeCategory = 'Packages'; searchQuery = '';" 
                                         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer border shrink-0"
@@ -186,6 +193,43 @@
                                                 </div>
                                                 <div class="text-lg font-bold text-brand-text shrink-0">
                                                     QAR {{ package.price|number_format(2) }}
+                                                </div>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            {% if available_package_services|length > 0 %}
+                                <div x-show="activeCategory === 'My Packages' || (searchQuery.length > 0 && Array.from($el.querySelectorAll('.service-book-item')).some(item => item.getAttribute('data-name').toLowerCase().includes(searchQuery.toLowerCase())))" x-transition>
+                                    <h3 x-show="searchQuery.length > 0" class="text-lg text-brand-text font-semibold mb-4 mt-0">My Packages</h3>
+                                    
+                                    <div class="space-y-4 flex flex-col gap-4">
+                                        {% for cps in available_package_services %}
+                                            <label class="service-book-item flex items-center p-4 rounded-xl border hover:border-brand-accent/50 cursor-pointer transition-all group m-0 w-full"
+                                                   :class="'{{ selected_service_id }}' == 'cps_{{ cps.customer_package_service_id }}' ? 'bg-brand-accent/10 border-brand-accent' : 'bg-brand-bg border-brand-border'"
+                                                   data-name="{{ cps.service_name }} ({{ cps.package_name }})"
+                                                   x-show="searchQuery.length === 0 || '{{ cps.service_name|lower }}'.includes(searchQuery.toLowerCase())"
+                                                   onclick="selectService('cps_{{ cps.customer_package_service_id }}', '{{ cps.service_name|escape('js') }}', 0, this)">
+                                                
+                                                <input type="radio" id="service_cps_{{ cps.customer_package_service_id }}" name="service_id" value="cps_{{ cps.customer_package_service_id }}" required class="hidden" 
+                                                       {% if selected_service_id == 'cps_' ~ cps.customer_package_service_id %}checked{% endif %}
+                                                       onchange="document.querySelectorAll('.service-book-item').forEach(el => { el.classList.remove('border-brand-accent'); el.style.backgroundColor='#111827'; el.classList.add('border-brand-border'); }); this.parentElement.classList.remove('border-brand-border'); this.parentElement.classList.add('border-brand-accent'); this.parentElement.style.backgroundColor='rgba(234, 179, 8, 0.1)';">
+                                                
+                                                <div class="w-12 h-12 rounded-lg bg-brand-card flex items-center justify-center mr-4 text-brand-accent shrink-0">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                </div>
+                                                <div class="flex-grow pr-4">
+                                                    <h3 class="text-base font-semibold text-brand-text group-hover:text-brand-accent transition-colors m-0">{{ cps.service_name }}</h3>
+                                                    <p class="text-sm text-brand-textMuted mt-1 m-0 leading-snug">From package: {{ cps.package_name }}</p>
+                                                    <div class="flex items-center mt-2 text-xs text-brand-textMuted">
+                                                        <span class="mr-3 font-medium text-brand-accent">Available: {{ cps.total_quantity - cps.used_quantity }}</span>
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                                        {{ cps.duration_minutes }} mins
+                                                    </div>
+                                                </div>
+                                                <div class="text-lg font-bold text-brand-text shrink-0">
+                                                    Redeem
                                                 </div>
                                             </label>
                                         {% endfor %}

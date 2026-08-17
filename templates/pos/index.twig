@@ -24,7 +24,7 @@
                     <h3 class="font-bold text-gray-800 text-sm mb-3 uppercase tracking-wider">Packages</h3>
                     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         {% for pkg in packages %}
-                        <div @click="addItem('{{ pkg.name|escape('js') }}', {{ pkg.price }})" 
+                        <div @click="addItem({{ pkg.id }}, 'package', '{{ pkg.name|escape('js') }}', {{ pkg.price }})" 
                              class="bg-white border border-gray-100 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-salon-accent transition-all group flex flex-col justify-between h-full relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-8 h-8 bg-salon-accent/10 rounded-bl-full -mr-2 -mt-2 group-hover:scale-150 transition-transform"></div>
                             <div>
@@ -48,7 +48,7 @@
                     <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">{{ category }}</h4>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {% for service in services %}
-                        <div @click="addItem('{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
+                        <div @click="addItem({{ service.id }}, 'service', '{{ service.name|escape('js') }}', {{ service.price }})" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
                             <div class="h-8 w-8 rounded-full bg-salon-dark text-white flex items-center justify-center mb-2 group-hover:bg-salon-accent transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </div>
@@ -61,12 +61,12 @@
                 {% else %}
                     <!-- Fallback mock services if DB is empty -->
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        <div @click="addItem('Haircut', 45.00)" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
+                        <div @click="addItem(0, 'service', 'Haircut', 45.00)" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
                             <div class="h-8 w-8 rounded-full bg-salon-dark text-white flex items-center justify-center mb-2 group-hover:bg-salon-accent transition-colors text-lg">✂️</div>
                             <h4 class="font-medium text-gray-900 text-xs">Haircut</h4>
                             <p class="text-salon-accent font-bold mt-1 text-sm">QAR 45.00</p>
                         </div>
-                        <div @click="addItem('Coloring', 120.00)" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
+                        <div @click="addItem(0, 'service', 'Coloring', 120.00)" class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-salon-accent hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-gray-50">
                             <div class="h-8 w-8 rounded-full bg-salon-dark text-white flex items-center justify-center mb-2 group-hover:bg-salon-accent transition-colors">🎨</div>
                             <h4 class="font-medium text-gray-900 text-xs">Coloring</h4>
                             <p class="text-salon-accent font-bold mt-1 text-sm">QAR 120.00</p>
@@ -363,12 +363,12 @@ function posSystem() {
                 this.customer_points = 0;
             }
         },
-        addItem(name, price) {
-            const existing = this.items.find(i => i.name === name);
+        addItem(id, type, name, price) {
+            const existing = this.items.find(i => i.id === id && i.type === type && i.name === name);
             if (existing) {
                 existing.quantity++;
             } else {
-                this.items.push({ name, price, quantity: 1 });
+                this.items.push({ id, type, name, price, quantity: 1 });
             }
         },
         removeItem(index) {
@@ -386,6 +386,8 @@ function posSystem() {
             container.innerHTML = ''; // clear
             
             this.items.forEach((item, index) => {
+                if (item.id) container.innerHTML += `<input type="hidden" name="items[${index}][id]" value="${item.id}">`;
+                if (item.type) container.innerHTML += `<input type="hidden" name="items[${index}][type]" value="${item.type}">`;
                 container.innerHTML += `<input type="hidden" name="items[${index}][name]" value="${item.name}">`;
                 container.innerHTML += `<input type="hidden" name="items[${index}][price]" value="${item.price}">`;
                 container.innerHTML += `<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`;

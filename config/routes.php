@@ -103,6 +103,13 @@ return function (App $app) {
         // Reports
         $group->get('/reports', \App\Web\Controllers\ReportController::class . ':index');
         
+        // Expenses
+        $group->get('/expenses', \App\Web\Controllers\ExpenseController::class . ':index');
+        $group->post('/expenses', \App\Web\Controllers\ExpenseController::class . ':store');
+        $group->get('/expenses/{id}/edit', \App\Web\Controllers\ExpenseController::class . ':edit');
+        $group->post('/expenses/{id}/edit', \App\Web\Controllers\ExpenseController::class . ':update');
+        $group->post('/expenses/{id}/delete', \App\Web\Controllers\ExpenseController::class . ':delete');
+        
         // Notifications
         $group->get('/notifications/dropdown', \App\Web\Controllers\NotificationController::class . ':getDropdown');
         $group->get('/notifications/badge', \App\Web\Controllers\NotificationController::class . ':getBadge');

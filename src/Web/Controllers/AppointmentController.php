@@ -159,6 +159,46 @@ class AppointmentController
                     $this->packages->setTenantId($tenantId);
                     $package = $this->packages->getById($newPackageId);
                     $data['service_name'] = 'Package: ' . ($package ? $package['name'] : 'Unknown') . ' (First Service: ' . $service['name'] . ')';
+
+                    // Create the customer package since it's a new purchase
+                    $expiresAt = null;
+                    if (!empty($package['validity_days'])) {
+                        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$package['validity_days']} days"));
+                    }
+                    
+                    $this->customerPackages->setTenantId($tenantId);
+                    $newCustomerPackage = $this->customerPackages->create([
+                        'customer_id' => $data['customer_id'],
+                        'package_id' => $newPackageId,
+                        'status' => 'active',
+                        'expires_at' => $expiresAt
+                    ]);
+                    $customerPackageId = $newCustomerPackage['id'];
+                    
+                    // Add all services from the package to the customer's package
+                    $initialCpsId = null;
+                    if (!empty($package['services'])) {
+                        foreach ($package['services'] as $pkgSrv) {
+                            $quantity = $pkgSrv['quantity'] ?? 1; // Default to 1 if quantity not specified in package items
+                            $this->customerPackages->addService($customerPackageId, $pkgSrv['id'], $quantity);
+                        }
+                        
+                        // We also need to mark the initial service as used.
+                        // We can fetch the newly created customer_package_services and increment the used quantity
+                        $newPackageServices = $this->customerPackages->getAvailableServicesForCustomer($data['customer_id']);
+                        foreach ($newPackageServices as $cps) {
+                            if ($cps['customer_package_id'] == $customerPackageId && $cps['service_id'] == $initialServiceId) {
+                                $initialCpsId = $cps['customer_package_service_id'];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if ($initialCpsId) {
+                        $cpsId = $initialCpsId; // So it gets incremented below
+                        $data['customer_package_service_id'] = $cpsId; // Link the appointment
+                    }
+
                 } else {
                     $data['service_name'] = $service['name'];
                     if ($cpsId) {

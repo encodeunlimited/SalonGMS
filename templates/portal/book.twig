@@ -298,6 +298,23 @@
                         <div id="step3-container" class="min-h-[350px]">
                             {% include 'portal/partials/booking_times.twig' with {'date': 'now'|date('Y-m-d')} %}
                         </div>
+
+                        {% if not auth_customer %}
+                        <div class="mt-8 pt-6 border-t border-brand-border">
+                            <h3 class="text-lg font-bold text-brand-accent mb-4">Your Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="guest_name" class="block text-sm font-medium text-brand-text mb-1">Full Name *</label>
+                                    <input type="text" name="guest_name" id="guest_name" required class="w-full border border-brand-border rounded-lg p-3 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-bg text-brand-text outline-none transition-shadow">
+                                </div>
+                                <div>
+                                    <label for="guest_phone" class="block text-sm font-medium text-brand-text mb-1">WhatsApp Number *</label>
+                                    <input type="text" name="guest_phone" id="guest_phone" required placeholder="e.g. 12345678" class="w-full border border-brand-border rounded-lg p-3 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-bg text-brand-text outline-none transition-shadow">
+                                </div>
+                            </div>
+                            <p class="text-xs text-brand-textMuted mt-3">We use your WhatsApp number to easily identify your account without a password.</p>
+                        </div>
+                        {% endif %}
                         
                         <div class="flex justify-between mt-7 gap-4 pt-6 border-t border-brand-border">
                             <button type="button" @click="step = 2" class="px-6 py-3 border border-brand-border text-brand-text rounded-lg hover:bg-brand-card transition-colors font-semibold cursor-pointer m-0 bg-transparent">&larr; Back</button>

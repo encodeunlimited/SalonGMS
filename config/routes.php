@@ -187,11 +187,14 @@ return function (App $app) {
     $app->post('/portal/register', \App\Web\Controllers\Portal\AuthController::class . ':processRegister');
     $app->get('/portal/logout', \App\Web\Controllers\Portal\AuthController::class . ':logout');
 
+    $app->get('/portal/book', \App\Web\Controllers\Portal\BookingController::class . ':step1');
+    $app->get('/portal/book/employees', \App\Web\Controllers\Portal\BookingController::class . ':getEmployeesForService');
+    $app->get('/portal/book/times', \App\Web\Controllers\Portal\BookingController::class . ':getAvailableTimes');
+    $app->post('/portal/book/confirm', \App\Web\Controllers\Portal\BookingController::class . ':confirm');
+
     $app->group('/portal', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', \App\Web\Controllers\Portal\DashboardController::class . ':index');
-        $group->get('/book', \App\Web\Controllers\Portal\BookingController::class . ':step1');
-        $group->get('/book/employees', \App\Web\Controllers\Portal\BookingController::class . ':getEmployeesForService');
-        $group->get('/book/times', \App\Web\Controllers\Portal\BookingController::class . ':getAvailableTimes');
-        $group->post('/book/confirm', \App\Web\Controllers\Portal\BookingController::class . ':confirm');
+        $group->get('/profile', \App\Web\Controllers\Portal\ProfileController::class . ':index');
+        $group->post('/profile', \App\Web\Controllers\Portal\ProfileController::class . ':update');
     })->add(\App\Middleware\CustomerSessionAuthMiddleware::class);
 };

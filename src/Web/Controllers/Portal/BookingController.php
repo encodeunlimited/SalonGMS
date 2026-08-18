@@ -23,6 +23,7 @@ class BookingController
     private BookingTypeRepository $bookingTypeRepo;
     private PackageRepository $packageRepo;
     private CustomerPackageRepository $customerPackageRepo;
+    private \App\Repositories\CustomerRepository $customerRepo;
 
     public function __construct(
         Twig $view, 
@@ -32,7 +33,8 @@ class BookingController
         TenantSettingRepository $settings,
         BookingTypeRepository $bookingTypeRepo,
         PackageRepository $packageRepo,
-        CustomerPackageRepository $customerPackageRepo
+        CustomerPackageRepository $customerPackageRepo,
+        \App\Repositories\CustomerRepository $customerRepo
     ) {
         $this->view = $view;
         $this->serviceRepo = $serviceRepo;
@@ -42,6 +44,7 @@ class BookingController
         $this->bookingTypeRepo = $bookingTypeRepo;
         $this->packageRepo = $packageRepo;
         $this->customerPackageRepo = $customerPackageRepo;
+        $this->customerRepo = $customerRepo;
     }
 
     public function step1(Request $request, Response $response): Response
@@ -254,6 +257,9 @@ class BookingController
         $date = $data['date'] ?? null;
         $time = $data['time'] ?? null;
         $bookingType = $data['booking_type'] ?? 'In Salon';
+        
+        $guestName = $data['guest_name'] ?? null;
+        $guestPhone = $data['guest_phone'] ?? null;
 
         if (!$serviceIdParam || !$employeeId || !$date || !$time) {
             $response->getBody()->write('
@@ -332,12 +338,44 @@ class BookingController
         }
 
         try {
+            // Handle guest booking
+            if (!$customerId && $guestName && $guestPhone) {
+                $this->customerRepo->setTenantId($tenantId);
+                $existingCustomer = $this->customerRepo->getByPhone($guestPhone);
+                
+                if ($existingCustomer) {
+                    $customerId = $existingCustomer['id'];
+                    $customerNameForApt = $existingCustomer['name'];
+                } else {
+                    // Auto-register new customer
+                    $newCustomer = $this->customerRepo->create([
+                        'name' => $guestName,
+                        'phone' => $guestPhone,
+                        'email' => null, // Dummy profile, no email initially
+                        'password' => null
+                    ]);
+                    $customerId = $newCustomer['id'];
+                    $customerNameForApt = $newCustomer['name'];
+                }
+                
+                // Auto login the user so they can view dashboard
+                if (session_status() === PHP_SESSION_NONE) {
+                    session_start();
+                }
+                $_SESSION['customer_id'] = $customerId;
+                $_SESSION['tenant_id'] = $tenantId;
+                $_SESSION['customer_name'] = $customerNameForApt;
+                $_SESSION['customer_profile_image'] = null;
+            } else {
+                $customerNameForApt = $_SESSION['customer_name'] ?? 'Guest';
+            }
+
             $this->appointmentRepo->setTenantId($tenantId);
             $this->appointmentRepo->create([
                 'customer_id' => $customerId,
                 'stylist_id' => $employee['id'],
                 'service_id' => $serviceId,
-                'customer_name' => $_SESSION['customer_name'] ?? 'Guest', 
+                'customer_name' => $customerNameForApt, 
                 'service_name' => $serviceName,
                 'stylist_name' => $employee['name'],
                 'date' => $date,

@@ -9,6 +9,12 @@
                 <span class="material-symbols-outlined" style="margin-right: 0.5rem; font-size: 1.25rem;">stars</span>
                 {{ customer.loyalty_points|default(0) }} Loyalty Points
             </div>
+            <div style="margin-top: 1rem;">
+                <a href="/portal/profile" class="text-brand-accent hover:underline font-medium text-sm inline-flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Edit Profile
+                </a>
+            </div>
         </div>
         <a href="/portal/book" class="btn-primary" style="width: auto;">Book New Appointment</a>
     </div>

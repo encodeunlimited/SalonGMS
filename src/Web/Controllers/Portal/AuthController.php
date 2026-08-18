@@ -37,15 +37,16 @@ class AuthController
     public function processLogin(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $email = $data['email'] ?? '';
-        $password = $data['password'] ?? '';
+        $phone = $data['phone'] ?? '';
 
         try {
-            // Note: tenant is assumed to be 1 for now, or based on subdomain.
-            // For a single-tenant portal, this is fine.
-            $this->customerRepo->setTenantId(1); // Set default tenant id for public portal
+            $this->customerRepo->setTenantId(1);
             
-            $customer = $this->authService->attemptCustomerLogin($email, $password, $this->customerRepo);
+            $customer = $this->customerRepo->getByPhone($phone);
+            
+            if (!$customer) {
+                throw new Exception("We couldn't find an account with that WhatsApp number.");
+            }
             
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();

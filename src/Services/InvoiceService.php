@@ -108,7 +108,7 @@ class InvoiceService extends BaseService
         // Calculate final total to check points payment
         $finalTotalAmount = $totalAmount;
         if ($customerId && $redeemPoints > 0) {
-            $discountAmount = $redeemPoints * 0.1; // estimate since we don't know the exact conversion here, but LoyaltyService uses 0.1
+            $discountAmount = $redeemPoints * $this->loyaltyService->getCurrencyPerPoint();
             $finalTotalAmount = max(0, $finalTotalAmount - $discountAmount);
         }
         $customDiscount = isset($data['custom_discount']) ? (float)$data['custom_discount'] : 0.00;
@@ -134,7 +134,7 @@ class InvoiceService extends BaseService
             if (!$customerId) {
                 throw new Exception("Customer must be selected to pay with points.");
             }
-            $pointsNeeded = (int)ceil($pointsPaymentAmount / 0.1); // Assuming 0.1 CURRENCY_PER_POINT
+            $pointsNeeded = (int)ceil($pointsPaymentAmount / $this->loyaltyService->getCurrencyPerPoint());
             $customerPoints = $this->loyaltyService->getCustomerPoints($customerId);
             // We need to make sure they have enough for BOTH the discount redeem AND the payment
             if ($customerPoints < ($redeemPoints + $pointsNeeded)) {
@@ -285,7 +285,7 @@ class InvoiceService extends BaseService
             if (!$customerId) {
                 throw new Exception("Customer must be selected to pay with points.");
             }
-            $pointsNeeded = (int)ceil($pointsPaymentAmount / 0.1);
+            $pointsNeeded = (int)ceil($pointsPaymentAmount / $this->loyaltyService->getCurrencyPerPoint());
             $customerPoints = $this->loyaltyService->getCustomerPoints($customerId);
             if ($customerPoints < $pointsNeeded) {
                 throw new Exception("Insufficient loyalty points balance for this transaction.");

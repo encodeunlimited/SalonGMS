@@ -128,6 +128,10 @@ class InvoiceController
             }
         }
 
+        $settings = $this->settingsRepo->getAll();
+        $loyaltyPointsPerCurrency = (float)($settings['loyalty_points_per_currency'] ?? 0.1);
+        $loyaltyCurrencyPerPoint = (float)($settings['loyalty_currency_per_point'] ?? 0.1);
+
         return $this->view->render($response, 'pos/index.twig', [
             'title' => 'Point of Sale',
             'active_menu' => 'pos',
@@ -137,6 +141,8 @@ class InvoiceController
             'employees' => $employees,
             'customers' => $customers,
             'appointment_to_checkout' => $appointmentToCheckout,
+            'loyalty_points_per_currency' => $loyaltyPointsPerCurrency,
+            'loyalty_currency_per_point' => $loyaltyCurrencyPerPoint,
             'hide_sidebar' => true
         ]);
     }

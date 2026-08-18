@@ -5,30 +5,38 @@ namespace App\Services;
 use PDO;
 use Exception;
 use App\Repositories\CustomerRepository;
+use App\Repositories\TenantSettingRepository;
 
 class LoyaltyService
 {
     private PDO $db;
     private CustomerRepository $customerRepo;
+    private TenantSettingRepository $settingsRepo;
     private ?int $tenantId = null;
 
-    // Default Configuration
-    // 1 point per 10 QAR spent
-    private const POINTS_PER_CURRENCY = 0.1; 
-    // 100 points = 10 QAR (each point is worth 0.1 QAR)
-    private const CURRENCY_PER_POINT = 0.1;
-
-    public function __construct(PDO $db, CustomerRepository $customerRepo)
+    public function __construct(PDO $db, CustomerRepository $customerRepo, TenantSettingRepository $settingsRepo)
     {
         $this->db = $db;
         $this->customerRepo = $customerRepo;
+        $this->settingsRepo = $settingsRepo;
     }
 
     public function setTenantId(int $tenantId): self
     {
         $this->tenantId = $tenantId;
         $this->customerRepo->setTenantId($tenantId);
+        $this->settingsRepo->setTenantId($tenantId);
         return $this;
+    }
+
+    public function getPointsPerCurrency(): float
+    {
+        return (float)$this->settingsRepo->get('loyalty_points_per_currency', 0.1);
+    }
+
+    public function getCurrencyPerPoint(): float
+    {
+        return (float)$this->settingsRepo->get('loyalty_currency_per_point', 0.1);
     }
 
     public function awardPoints(int $customerId, int $invoiceId, float $invoiceTotal): void
@@ -37,7 +45,7 @@ class LoyaltyService
             throw new Exception("Tenant ID not set for LoyaltyService.");
         }
 
-        $pointsEarned = (int)floor($invoiceTotal * self::POINTS_PER_CURRENCY);
+        $pointsEarned = (int)floor($invoiceTotal * $this->getPointsPerCurrency());
 
         if ($pointsEarned > 0) {
             // Update customer balance
@@ -79,7 +87,7 @@ class LoyaltyService
             throw new Exception("Insufficient loyalty points balance.");
         }
 
-        $discountAmount = $pointsToRedeem * self::CURRENCY_PER_POINT;
+        $discountAmount = $pointsToRedeem * $this->getCurrencyPerPoint();
 
         // Update customer balance
         $stmt = $this->db->prepare("UPDATE customers SET loyalty_points = loyalty_points - :points WHERE id = :id AND tenant_id = :tenant_id");
@@ -140,7 +148,7 @@ class LoyaltyService
             return;
         }
 
-        $pointsNeeded = (int)ceil($amountToPay / self::CURRENCY_PER_POINT);
+        $pointsNeeded = (int)ceil($amountToPay / $this->getCurrencyPerPoint());
 
         // Verify balance
         $customer = $this->customerRepo->getById($customerId);

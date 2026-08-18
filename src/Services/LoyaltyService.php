@@ -130,4 +130,43 @@ class LoyaltyService
         ]);
         return $stmt->fetchAll();
     }
+    public function payWithPoints(int $customerId, int $invoiceId, float $amountToPay): void
+    {
+        if (!$this->tenantId) {
+            throw new Exception("Tenant ID not set for LoyaltyService.");
+        }
+
+        if ($amountToPay <= 0) {
+            return;
+        }
+
+        $pointsNeeded = (int)ceil($amountToPay / self::CURRENCY_PER_POINT);
+
+        // Verify balance
+        $customer = $this->customerRepo->getById($customerId);
+        if (!$customer || $customer['loyalty_points'] < $pointsNeeded) {
+            throw new Exception("Insufficient loyalty points balance for payment.");
+        }
+
+        // Update customer balance
+        $stmt = $this->db->prepare("UPDATE customers SET loyalty_points = loyalty_points - :points WHERE id = :id AND tenant_id = :tenant_id");
+        $stmt->execute([
+            'points' => $pointsNeeded,
+            'id' => $customerId,
+            'tenant_id' => $this->tenantId
+        ]);
+
+        // Record transaction
+        $stmt = $this->db->prepare("
+            INSERT INTO loyalty_transactions (tenant_id, customer_id, invoice_id, points_spent, description)
+            VALUES (:tenant_id, :customer_id, :invoice_id, :points, :desc)
+        ");
+        $stmt->execute([
+            'tenant_id' => $this->tenantId,
+            'customer_id' => $customerId,
+            'invoice_id' => $invoiceId,
+            'points' => $pointsNeeded,
+            'desc' => "Paid QAR {$amountToPay} using points for Invoice #$invoiceId"
+        ]);
+    }
 }

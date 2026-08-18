@@ -89,12 +89,22 @@
                 </div>
                 
                 {% if invoice.status == 'paid' %}
-                <div class="flex justify-between items-center py-2 text-sm text-gray-500">
-                    <span>Paid via {{ invoice.payment_method|default('Cash') }}</span>
-                    {% if invoice.tender_amount %}
-                    <span>Tendered: QAR {{ invoice.tender_amount|number_format(2) }}</span>
-                    {% endif %}
-                </div>
+                {% if invoice.payment_method == 'Split' and invoice.split_details %}
+                    {% set splits = invoice.split_details|json_decode %}
+                    {% for split in splits %}
+                    <div class="flex justify-between items-center py-1 text-sm text-gray-500">
+                        <span>Paid via {{ split.method }}</span>
+                        <span>QAR {{ split.amount|number_format(2) }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="flex justify-between items-center py-2 text-sm text-gray-500">
+                        <span>Paid via {{ invoice.payment_method|default('Cash') }}</span>
+                        {% if invoice.tender_amount %}
+                        <span>Tendered: QAR {{ invoice.tender_amount|number_format(2) }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
                 {% if invoice.change_amount %}
                 <div class="flex justify-between items-center py-1 text-sm text-gray-500">
                     <span>Change</span>

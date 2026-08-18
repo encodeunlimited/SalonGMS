@@ -105,30 +105,69 @@ class InvoiceService extends BaseService
         $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;
         $redeemPoints = !empty($data['redeem_points']) ? (int)$data['redeem_points'] : 0;
 
+        // Calculate final total to check points payment
+        $finalTotalAmount = $totalAmount;
+        if ($customerId && $redeemPoints > 0) {
+            $discountAmount = $redeemPoints * 0.1; // estimate since we don't know the exact conversion here, but LoyaltyService uses 0.1
+            $finalTotalAmount = max(0, $finalTotalAmount - $discountAmount);
+        }
+        $customDiscount = isset($data['custom_discount']) ? (float)$data['custom_discount'] : 0.00;
+        if ($customDiscount > 0) {
+            $finalTotalAmount = max(0, $finalTotalAmount - $customDiscount);
+        }
+
+        $paymentMethod = $data['payment_method'] ?? 'cash';
+        $pointsPaymentAmount = 0.00;
+
+        if ($paymentMethod === 'Points') {
+            $pointsPaymentAmount = $finalTotalAmount;
+        } elseif ($paymentMethod === 'Split' && !empty($data['split_details'])) {
+            $splits = is_string($data['split_details']) ? json_decode($data['split_details'], true) : $data['split_details'];
+            foreach ($splits as $split) {
+                if (($split['method'] ?? '') === 'Points') {
+                    $pointsPaymentAmount += (float)($split['amount'] ?? 0);
+                }
+            }
+        }
+
+        if ($pointsPaymentAmount > 0) {
+            if (!$customerId) {
+                throw new Exception("Customer must be selected to pay with points.");
+            }
+            $pointsNeeded = (int)ceil($pointsPaymentAmount / 0.1); // Assuming 0.1 CURRENCY_PER_POINT
+            $customerPoints = $this->loyaltyService->getCustomerPoints($customerId);
+            // We need to make sure they have enough for BOTH the discount redeem AND the payment
+            if ($customerPoints < ($redeemPoints + $pointsNeeded)) {
+                throw new Exception("Insufficient loyalty points balance for this transaction.");
+            }
+        }
+
         // 3. Create Invoice
         $invoice = $this->invoiceRepo->create([
             'customer_id' => $customerId,
-            'total_amount' => $totalAmount, // We store original total, discount applied later or as an item? Let's keep original total for commission, but tender will be lower. Actually, let's adjust total.
+            'total_amount' => $totalAmount, 
             'status' => 'paid',
-            'payment_method' => $data['payment_method'] ?? 'cash',
+            'payment_method' => $paymentMethod,
             'tender_amount' => isset($data['tender_amount']) ? (float)$data['tender_amount'] : null,
             'change_amount' => isset($data['change_amount']) ? (float)$data['change_amount'] : null,
-            'split_details' => !empty($data['split_details']) ? json_encode($data['split_details']) : null
+            'split_details' => !empty($data['split_details']) ? (is_string($data['split_details']) ? $data['split_details'] : json_encode($data['split_details'])) : null
         ]);
 
         if ($customerId && $redeemPoints > 0) {
-            $discountAmount = $this->loyaltyService->redeemPoints($customerId, $invoice['id'], $redeemPoints);
-            if ($discountAmount > 0) {
-                // Adjust total amount in DB
-                $totalAmount = max(0, $totalAmount - $discountAmount);
+            $actualDiscountAmount = $this->loyaltyService->redeemPoints($customerId, $invoice['id'], $redeemPoints);
+            if ($actualDiscountAmount > 0) {
+                $totalAmount = max(0, $totalAmount - $actualDiscountAmount);
                 $this->invoiceRepo->update($invoice['id'], ['total_amount' => $totalAmount]);
             }
         }
         
-        $customDiscount = isset($data['custom_discount']) ? (float)$data['custom_discount'] : 0.00;
         if ($customDiscount > 0) {
             $totalAmount = max(0, $totalAmount - $customDiscount);
             $this->invoiceRepo->update($invoice['id'], ['total_amount' => $totalAmount]);
+        }
+
+        if ($pointsPaymentAmount > 0) {
+            $this->loyaltyService->payWithPoints($customerId, $invoice['id'], $pointsPaymentAmount);
         }
 
         // 4. Create Items
@@ -216,9 +255,6 @@ class InvoiceService extends BaseService
         return $invoice;
     }
 
-    /**
-     * Mark an existing invoice as paid.
-     */
     public function payInvoice(int $invoiceId, array $data): array
     {
         $invoice = $this->invoiceRepo->getById($invoiceId);
@@ -229,19 +265,50 @@ class InvoiceService extends BaseService
             throw new Exception("Invoice is already paid.");
         }
 
+        $paymentMethod = $data['payment_method'] ?? 'cash';
+        $pointsPaymentAmount = 0.00;
+
+        if ($paymentMethod === 'Points') {
+            $pointsPaymentAmount = (float)$invoice['total_amount'];
+        } elseif ($paymentMethod === 'Split' && !empty($data['split_details'])) {
+            $splits = is_string($data['split_details']) ? json_decode($data['split_details'], true) : $data['split_details'];
+            foreach ($splits as $split) {
+                if (($split['method'] ?? '') === 'Points') {
+                    $pointsPaymentAmount += (float)($split['amount'] ?? 0);
+                }
+            }
+        }
+
+        $customerId = $invoice['customer_id'] ? (int)$invoice['customer_id'] : null;
+
+        if ($pointsPaymentAmount > 0) {
+            if (!$customerId) {
+                throw new Exception("Customer must be selected to pay with points.");
+            }
+            $pointsNeeded = (int)ceil($pointsPaymentAmount / 0.1);
+            $customerPoints = $this->loyaltyService->getCustomerPoints($customerId);
+            if ($customerPoints < $pointsNeeded) {
+                throw new Exception("Insufficient loyalty points balance for this transaction.");
+            }
+        }
+
         $updateData = [
             'status' => 'paid',
-            'payment_method' => $data['payment_method'] ?? 'cash',
+            'payment_method' => $paymentMethod,
             'tender_amount' => isset($data['tender_amount']) ? (float)$data['tender_amount'] : null,
             'change_amount' => isset($data['change_amount']) ? (float)$data['change_amount'] : null,
-            'split_details' => !empty($data['split_details']) ? json_encode($data['split_details']) : null
+            'split_details' => !empty($data['split_details']) ? (is_string($data['split_details']) ? $data['split_details'] : json_encode($data['split_details'])) : null
         ];
 
         $this->invoiceRepo->update($invoiceId, $updateData);
         
+        if ($pointsPaymentAmount > 0) {
+            $this->loyaltyService->payWithPoints($customerId, $invoiceId, $pointsPaymentAmount);
+        }
+
         // Award points
-        if (!empty($invoice['customer_id'])) {
-            $this->loyaltyService->awardPoints((int)$invoice['customer_id'], $invoiceId, (float)$invoice['total_amount']);
+        if ($customerId) {
+            $this->loyaltyService->awardPoints($customerId, $invoiceId, (float)$invoice['total_amount']);
         }
 
         // Return updated invoice

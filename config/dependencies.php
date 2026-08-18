@@ -88,7 +88,8 @@ return function (ContainerBuilder $containerBuilder) {
         \App\Services\LoyaltyService::class => function (ContainerInterface $c) {
             return new \App\Services\LoyaltyService(
                 $c->get(PDO::class),
-                $c->get(\App\Repositories\CustomerRepository::class)
+                $c->get(\App\Repositories\CustomerRepository::class),
+                $c->get(\App\Repositories\TenantSettingRepository::class)
             );
         },
 

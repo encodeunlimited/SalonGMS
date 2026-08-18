@@ -280,6 +280,8 @@ class CustomerController
                     if (isset($packagesByName[$packageName])) {
                         $apt['service_price'] = $packagesByName[$packageName]['price'];
                     }
+                } elseif (strpos($apt['service'], '(Package Redemption)') !== false) {
+                    $apt['service_price'] = 0.00;
                 }
             }
             unset($apt);

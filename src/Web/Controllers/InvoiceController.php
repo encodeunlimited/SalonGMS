@@ -122,6 +122,8 @@ class InvoiceController
                             break;
                         }
                     }
+                } elseif (strpos($appointmentToCheckout['service'], '(Package Redemption)') !== false) {
+                    $appointmentToCheckout['item_price'] = 0.00;
                 }
             }
         }

@@ -273,6 +273,23 @@ class InvoiceService extends BaseService
             }
 
             $price = (float)($appointment['service_price'] ?? 0);
+            
+            // Fix price for Package Redemption and Package Purchase
+            if (strpos($appointment['service'], 'Package: ') === 0) {
+                $packageName = preg_replace('/^Package: (.*?) \(First Service: .*\)$/', '$1', $appointment['service']);
+                $packageName = str_replace('Package: ', '', $packageName);
+                
+                $packagesList = $this->packageRepo->getAll(); // Cache optimization if called multiple times, but this is fine for bulk
+                foreach ($packagesList as $pkg) {
+                    if ($pkg['name'] === $packageName) {
+                        $price = (float)$pkg['price'];
+                        break;
+                    }
+                }
+            } elseif (strpos($appointment['service'], '(Package Redemption)') !== false) {
+                $price = 0.00;
+            }
+
             $totalAmount += $price;
 
             $processedItems[] = [

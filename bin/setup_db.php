@@ -63,6 +63,7 @@ $tables[] = "
         name VARCHAR(255) NOT NULL,
         phone VARCHAR(50) NULL,
         email VARCHAR(255) NULL,
+        loyalty_points INT DEFAULT 0,
         notes TEXT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
@@ -115,6 +116,9 @@ $tables[] = "
         total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
         status VARCHAR(50) DEFAULT 'unpaid',
         payment_method VARCHAR(50) NULL,
+        tender_amount DECIMAL(10,2) DEFAULT NULL,
+        change_amount DECIMAL(10,2) DEFAULT NULL,
+        split_details TEXT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
         FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL,

@@ -76,4 +76,29 @@ class CustomerRepository extends BaseRepository
         
         return $this->getById($id);
     }
+
+    /**
+     * Get customers whose birthday is today (month and day match).
+     * Much faster than fetching all customers and filtering in PHP.
+     */
+    public function getTodaysBirthdays(): array
+    {
+        $tenantId = $this->getTenantId();
+        $todayMonthDay = date('m-d'); // e.g., "08-18"
+        
+        // SQLite: strftime('%m-%d', date_of_birth)
+        // Works with 'YYYY-MM-DD' stored dates
+        $stmt = $this->db->prepare("
+            SELECT id, name, phone, email, date_of_birth, profile_image
+            FROM {$this->table}
+            WHERE tenant_id = :tenant_id
+              AND date_of_birth IS NOT NULL
+              AND strftime('%m-%d', date_of_birth) = :today_md
+        ");
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+            'today_md'  => $todayMonthDay
+        ]);
+        return $stmt->fetchAll();
+    }
 }

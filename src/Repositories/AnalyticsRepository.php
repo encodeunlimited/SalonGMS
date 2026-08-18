@@ -54,20 +54,39 @@ class AnalyticsRepository extends BaseRepository
     public function getWeeklyRevenueData(): array
     {
         $tenantId = $this->getTenantId();
-        $revenueData = [];
         
+        // Build date range for last 7 days
+        $dates = [];
         $labels = [];
-        
-        // Loop through the last 7 days (including today)
         for ($i = 6; $i >= 0; $i--) {
             $dateStr = strtotime("-$i days");
             $date = date('Y-m-d', $dateStr);
-            $labels[] = date('D', $dateStr); // e.g., 'Mon', 'Tue'
-            
-            $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND created_at >= ? AND created_at <= ?");
-            $stmt->execute([$tenantId, $date . ' 00:00:00', $date . ' 23:59:59']);
-            $total = $stmt->fetchColumn();
-            $revenueData[] = (float)($total ?: 0.00);
+            $dates[] = $date;
+            $labels[] = date('D', $dateStr);
+        }
+        $startDate = $dates[0] . ' 00:00:00';
+        $endDate   = end($dates) . ' 23:59:59';
+        
+        // Single query — group by date
+        $stmt = $this->db->prepare("
+            SELECT DATE(created_at) as day, SUM(total_amount) as total
+            FROM invoices
+            WHERE tenant_id = ? AND status = 'paid'
+              AND created_at >= ? AND created_at <= ?
+            GROUP BY DATE(created_at)
+        ");
+        $stmt->execute([$tenantId, $startDate, $endDate]);
+        $rows = $stmt->fetchAll();
+        
+        // Map results to date index
+        $revenueByDate = [];
+        foreach ($rows as $row) {
+            $revenueByDate[$row['day']] = (float)$row['total'];
+        }
+        
+        $revenueData = [];
+        foreach ($dates as $date) {
+            $revenueData[] = $revenueByDate[$date] ?? 0.00;
         }
         
         return [
@@ -209,18 +228,37 @@ class AnalyticsRepository extends BaseRepository
     public function getStylistCommissionTrend(int $userId): array
     {
         $tenantId = $this->getTenantId();
-        $revenueData = [];
-        $labels = [];
         
+        $dates = [];
+        $labels = [];
         for ($i = 6; $i >= 0; $i--) {
             $dateStr = strtotime("-$i days");
             $date = date('Y-m-d', $dateStr);
+            $dates[] = $date;
             $labels[] = date('D', $dateStr);
-            
-            $stmt = $this->db->prepare("SELECT SUM(amount) FROM commissions WHERE tenant_id = ? AND user_id = ? AND created_at >= ? AND created_at <= ?");
-            $stmt->execute([$tenantId, $userId, $date . ' 00:00:00', $date . ' 23:59:59']);
-            $total = $stmt->fetchColumn();
-            $revenueData[] = (float)($total ?: 0.00);
+        }
+        $startDate = $dates[0] . ' 00:00:00';
+        $endDate   = end($dates) . ' 23:59:59';
+        
+        // Single query — group by date
+        $stmt = $this->db->prepare("
+            SELECT DATE(created_at) as day, SUM(amount) as total
+            FROM commissions
+            WHERE tenant_id = ? AND user_id = ?
+              AND created_at >= ? AND created_at <= ?
+            GROUP BY DATE(created_at)
+        ");
+        $stmt->execute([$tenantId, $userId, $startDate, $endDate]);
+        $rows = $stmt->fetchAll();
+        
+        $byDate = [];
+        foreach ($rows as $row) {
+            $byDate[$row['day']] = (float)$row['total'];
+        }
+        
+        $revenueData = [];
+        foreach ($dates as $date) {
+            $revenueData[] = $byDate[$date] ?? 0.00;
         }
         
         return [

@@ -32,7 +32,7 @@
                                     <div id="form-messages" class="mb-4"></div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Customer</label>
-                                        <select name="customer_id" required hx-get="/web/appointments/services" hx-target="#service_id" hx-swap="innerHTML" x-data x-init="new TomSelect($el, {
+                                        <select name="customer_id" required hx-get="/web/appointments/services" hx-target="#service_selection_wrapper" hx-swap="innerHTML" x-data x-init="new TomSelect($el, {
                                             maxOptions: 50,
                                             create: function(input, callback) {
                                                 $dispatch('open-customer-modal', { input: input, callback: callback });
@@ -45,32 +45,34 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Service</label>
-                                        <select id="service_id" name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML"
-                                                x-data="{ tom: null }" 
-                                                x-init="if (!$el.tomselect) { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
-                                                @htmx:before-swap.window="if ($event.detail.target.id === 'service_id' && tom) { tom.destroy(); tom = null; }"
-                                                @htmx:after-swap.window="if ($event.detail.target.id === 'service_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
-                                                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
-                                            <option value="">Select a service...</option>
-                                            <optgroup label="Regular Services">
-                                                {% for service in services %}
-                                                    <option value="{{ service.id }}">{{ service.name }}</option>
-                                                {% endfor %}
-                                            </optgroup>
-                                            {% if packages|length > 0 %}
-                                            <optgroup label="Buy New Package (Select Initial Service)">
-                                                {% for package in packages %}
-                                                    {% if package.services|length > 0 %}
-                                                        {% for ps in package.services %}
-                                                            <option value="pkg_{{ package.id }}_srv_{{ ps.id }}">{{ package.name }} - Initial: {{ ps.name }}</option>
-                                                        {% endfor %}
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </optgroup>
-                                            {% endif %}
-                                        </select>
+                                    <div id="service_selection_wrapper">
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-gray-700">Service</label>
+                                            <select id="service_id" name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML"
+                                                    x-data="{ tom: null }" 
+                                                    x-init="if (!$el.tomselect) { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
+                                                    @htmx:before-swap.window="if ($event.detail.target.id === 'service_id' && tom) { tom.destroy(); tom = null; }"
+                                                    @htmx:after-swap.window="if ($event.detail.target.id === 'service_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
+                                                    class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                                <option value="">Select a service...</option>
+                                                <optgroup label="Regular Services">
+                                                    {% for service in services %}
+                                                        <option value="{{ service.id }}">{{ service.name }}</option>
+                                                    {% endfor %}
+                                                </optgroup>
+                                                {% if packages|length > 0 %}
+                                                <optgroup label="Buy New Package (Select Initial Service)">
+                                                    {% for package in packages %}
+                                                        {% if package.services|length > 0 %}
+                                                            {% for ps in package.services %}
+                                                                <option value="pkg_{{ package.id }}_srv_{{ ps.id }}">{{ package.name }} - Initial: {{ ps.name }}</option>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </optgroup>
+                                                {% endif %}
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700">Stylist</label>

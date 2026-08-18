@@ -220,41 +220,107 @@ class AppointmentController
         $this->services->setTenantId($tenantId);
         $regularServices = $this->services->getAll();
 
-        $html = '<option value="">Select a service...</option>';
-
+        $packageServices = [];
         if ($customerId > 0) {
             $this->customerPackages->setTenantId($tenantId);
             $packageServices = $this->customerPackages->getAvailableServicesForCustomer($customerId);
-            
-            if (count($packageServices) > 0) {
-                $html .= '<optgroup label="Available Package Services">';
-                foreach ($packageServices as $cps) {
-                    $remaining = $cps['total_quantity'] - $cps['used_quantity'];
-                    $html .= '<option value="cps_' . $cps['customer_package_service_id'] . '">' . htmlspecialchars($cps['service_name']) . ' (from ' . htmlspecialchars($cps['package_name']) . ' - ' . $remaining . ' left)</option>';
-                }
-                $html .= '</optgroup>';
-            }
         }
-        
-        $html .= '<optgroup label="Regular Services">';
-        foreach ($regularServices as $service) {
-            $html .= '<option value="' . $service['id'] . '">' . htmlspecialchars($service['name']) . '</option>';
-        }
-        $html .= '</optgroup>';
 
         $this->packages->setTenantId($tenantId);
         $availablePackages = $this->packages->getAll(['active' => 1]);
+
+        $html = '<div x-data="{ bookingMode: \'regular\', selectedPackage: \'\' }">';
+        
+        // Booking Mode Selection
+        $html .= '<div class="mb-4">';
+        $html .= '<label class="block text-sm font-medium text-gray-700 mb-2">Service Selection Mode</label>';
+        $html .= '<div class="flex space-x-4">';
+        $html .= '<label class="inline-flex items-center cursor-pointer"><input type="radio" x-model="bookingMode" @change="selectedPackage = \'\'" value="regular" class="text-salon-accent focus:ring-salon-accent border-gray-300"> <span class="ml-2 text-sm text-gray-700">Regular Service</span></label>';
+        
+        if (count($packageServices) > 0) {
+            $html .= '<label class="inline-flex items-center cursor-pointer"><input type="radio" x-model="bookingMode" @change="selectedPackage = \'\'" value="redeem" class="text-salon-accent focus:ring-salon-accent border-gray-300"> <span class="ml-2 text-sm text-gray-700 font-semibold text-green-700">Redeem Package</span></label>';
+        }
         if (count($availablePackages) > 0) {
-            $html .= '<optgroup label="Buy New Package (Select Initial Service)">';
-            foreach ($availablePackages as $package) {
-                if (!empty($package['services'])) {
-                    foreach ($package['services'] as $ps) {
-                        $html .= '<option value="pkg_' . $package['id'] . '_srv_' . $ps['id'] . '">' . htmlspecialchars($package['name']) . ' - Initial: ' . htmlspecialchars($ps['name']) . '</option>';
+            $html .= '<label class="inline-flex items-center cursor-pointer"><input type="radio" x-model="bookingMode" @change="selectedPackage = \'\'" value="new_package" class="text-salon-accent focus:ring-salon-accent border-gray-300"> <span class="ml-2 text-sm text-gray-700">Buy Package</span></label>';
+        }
+        $html .= '</div></div>';
+
+        // Regular Service Dropdown
+        $html .= '<div class="mb-4" x-show="bookingMode === \'regular\'" x-cloak>';
+        $html .= '<label class="block text-sm font-medium text-gray-700">Service</label>';
+        $html .= '<select :name="bookingMode === \'regular\' ? \'service_id\' : \'\'" :required="bookingMode === \'regular\'" hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">';
+        $html .= '<option value="">Select a service...</option>';
+        foreach ($regularServices as $service) {
+            $html .= '<option value="' . $service['id'] . '">' . htmlspecialchars($service['name']) . '</option>';
+        }
+        $html .= '</select></div>';
+
+        // Redeem Package Section
+        if (count($packageServices) > 0) {
+            $redeemPackages = [];
+            foreach ($packageServices as $cps) {
+                $pkgName = $cps['package_name'];
+                if (!isset($redeemPackages[$pkgName])) {
+                    $redeemPackages[$pkgName] = [];
+                }
+                $redeemPackages[$pkgName][] = $cps;
+            }
+
+            $html .= '<div class="mb-4 space-y-4 p-3 bg-green-50 border border-green-100 rounded-lg" x-show="bookingMode === \'redeem\'" x-cloak>';
+            $html .= '<div><label class="block text-sm font-medium text-gray-700">Select Active Package</label>';
+            $html .= '<select x-model="selectedPackage" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">';
+            $html .= '<option value="">Select a package to redeem from...</option>';
+            foreach (array_keys($redeemPackages) as $pkgName) {
+                $html .= '<option value="' . htmlspecialchars($pkgName) . '">' . htmlspecialchars($pkgName) . '</option>';
+            }
+            $html .= '</select></div>';
+
+            foreach ($redeemPackages as $pkgName => $services) {
+                $escapedPkgName = htmlspecialchars(addslashes($pkgName));
+                $html .= '<div x-show="selectedPackage === \'' . $escapedPkgName . '\'">';
+                $html .= '<label class="block text-sm font-medium text-gray-700">Service to Redeem</label>';
+                $html .= '<select :name="bookingMode === \'redeem\' && selectedPackage === \'' . $escapedPkgName . '\' ? \'service_id\' : \'\'" :required="bookingMode === \'redeem\' && selectedPackage === \'' . $escapedPkgName . '\'" hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">';
+                $html .= '<option value="">Select a service...</option>';
+                foreach ($services as $cps) {
+                    $remaining = $cps['total_quantity'] - $cps['used_quantity'];
+                    if ($remaining > 0) {
+                        $html .= '<option value="cps_' . $cps['customer_package_service_id'] . '">' . htmlspecialchars($cps['service_name']) . ' (' . $remaining . ' left)</option>';
                     }
                 }
+                $html .= '</select></div>';
             }
-            $html .= '</optgroup>';
+            $html .= '</div>';
         }
+
+        // Buy New Package Section
+        if (count($availablePackages) > 0) {
+            $html .= '<div class="mb-4 space-y-4 p-3 bg-blue-50 border border-blue-100 rounded-lg" x-show="bookingMode === \'new_package\'" x-cloak>';
+            $html .= '<div><label class="block text-sm font-medium text-gray-700">Select Package to Buy</label>';
+            $html .= '<select x-model="selectedPackage" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">';
+            $html .= '<option value="">Select package...</option>';
+            foreach ($availablePackages as $package) {
+                $html .= '<option value="' . $package['id'] . '">' . htmlspecialchars($package['name']) . ' - QAR ' . number_format($package['price'], 2) . '</option>';
+            }
+            $html .= '</select></div>';
+
+            foreach ($availablePackages as $package) {
+                if (!empty($package['services'])) {
+                    $html .= '<div x-show="selectedPackage == \'' . $package['id'] . '\'">';
+                    $html .= '<label class="block text-sm font-medium text-gray-700">Select Initial Service</label>';
+                    $html .= '<select :name="bookingMode === \'new_package\' && selectedPackage == \'' . $package['id'] . '\' ? \'service_id\' : \'\'" :required="bookingMode === \'new_package\' && selectedPackage == \'' . $package['id'] . '\'" hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">';
+                    $html .= '<option value="">Select initial service to start with...</option>';
+                    foreach ($package['services'] as $ps) {
+                        $html .= '<option value="pkg_' . $package['id'] . '_srv_' . $ps['id'] . '">' . htmlspecialchars($ps['name']) . '</option>';
+                    }
+                    $html .= '</select></div>';
+                }
+            }
+            $html .= '</div>';
+        }
+        $html .= '</div>'; // End x-data wrapper
+        
+        // Re-process htmx for the dynamically loaded selects so they can trigger /stylists endpoint
+        $html .= '<script>setTimeout(() => { if (typeof htmx !== "undefined") { htmx.process(document.getElementById("service_selection_wrapper")); } }, 50);</script>';
 
         $response->getBody()->write($html);
         return $response->withStatus(200);

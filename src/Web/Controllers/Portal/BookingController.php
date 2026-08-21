@@ -72,6 +72,15 @@ class BookingController
         
         $groupedPackageServices = [];
         $customerId = $request->getAttribute('customer_id');
+        
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (!$customerId && isset($_SESSION['customer_id'])) {
+            $customerId = $_SESSION['customer_id'];
+        }
+        
         if ($customerId) {
             $this->customerPackageRepo->setTenantId($tenantId);
             $availablePackageServices = $this->customerPackageRepo->getAvailableServicesForCustomer($customerId);

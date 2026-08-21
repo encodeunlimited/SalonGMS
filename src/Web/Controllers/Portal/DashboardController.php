@@ -58,6 +58,7 @@ class DashboardController
 
         // Separate into upcoming and past
         $now = new \DateTime();
+        $twoMonthsAgo = (clone $now)->modify('-2 months');
         $upcoming = [];
         $past = [];
 
@@ -75,7 +76,9 @@ class DashboardController
             if ($startTime >= $now && in_array(strtolower($app['status']), ['scheduled', 'pending', 'approved'])) {
                 $upcoming[] = $app;
             } else {
-                $past[] = $app;
+                if ($startTime >= $twoMonthsAgo) {
+                    $past[] = $app;
+                }
             }
         }
         unset($app);

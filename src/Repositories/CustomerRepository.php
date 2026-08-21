@@ -17,6 +17,14 @@ class CustomerRepository extends BaseRepository
         return $result ?: null;
     }
 
+    public function getByPhone(string $phone): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE phone = :phone AND tenant_id = :tenant_id LIMIT 1");
+        $stmt->execute(['phone' => $phone, 'tenant_id' => $this->getTenantId()]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("

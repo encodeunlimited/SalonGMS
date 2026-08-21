@@ -93,6 +93,7 @@ class DashboardController
                 ];
             }
             $groupedPackages[$cpId]['services'][] = [
+                'cps_id' => $cps['customer_package_service_id'],
                 'service_name' => $cps['service_name'],
                 'remaining' => $cps['total_quantity'] - $cps['used_quantity'],
                 'total' => $cps['total_quantity']

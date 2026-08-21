@@ -31,20 +31,20 @@
 
     <div x-data="{ activeTab: 'upcoming' }" style="margin-bottom: 2rem;">
         <div style="display: flex; gap: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; padding-left: 0.25rem;">
-            <div @click="activeTab = 'upcoming'" 
+            <a href="#" @click.prevent="activeTab = 'upcoming'" 
                  :style="activeTab === 'upcoming' ? 'border-bottom-color: var(--primary); color: var(--primary); font-weight: 600;' : 'border-bottom-color: transparent; color: var(--text-muted); font-weight: 500;'"
-                 style="border-bottom: 2px solid transparent; padding: 0 0 0.6rem 0; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; margin-bottom: -1px;"
+                 style="text-decoration: none; border-bottom: 2px solid transparent; padding: 0 0 0.85rem 0; font-size: 0.95rem; cursor: pointer !important; transition: all 0.2s; margin-bottom: -1px;"
                  onmouseover="if(activeTab !== 'upcoming') this.style.color='var(--text-main)'"
                  onmouseout="if(activeTab !== 'upcoming') this.style.color='var(--text-muted)'">
                 Upcoming Appointments
-            </div>
-            <div @click="activeTab = 'past'" 
+            </a>
+            <a href="#" @click.prevent="activeTab = 'past'" 
                  :style="activeTab === 'past' ? 'border-bottom-color: var(--primary); color: var(--primary); font-weight: 600;' : 'border-bottom-color: transparent; color: var(--text-muted); font-weight: 500;'"
-                 style="border-bottom: 2px solid transparent; padding: 0 0 0.6rem 0; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; margin-bottom: -1px;"
+                 style="text-decoration: none; border-bottom: 2px solid transparent; padding: 0 0 0.85rem 0; font-size: 0.95rem; cursor: pointer !important; transition: all 0.2s; margin-bottom: -1px;"
                  onmouseover="if(activeTab !== 'past') this.style.color='var(--text-main)'"
                  onmouseout="if(activeTab !== 'past') this.style.color='var(--text-muted)'">
                 Past Appointments
-            </div>
+            </a>
         </div>
 
         <!-- Upcoming Appointments -->

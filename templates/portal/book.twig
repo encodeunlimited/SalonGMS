@@ -483,6 +483,21 @@
     }
     
     document.addEventListener('DOMContentLoaded', function() {
+        // Fallback: check URL parameters and force selection if Twig missed it
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlServiceId = urlParams.get('service_id');
+        if (urlServiceId) {
+            setTimeout(function() {
+                const radio = document.getElementById('service_' + urlServiceId);
+                if (radio) {
+                    const label = radio.closest('.service-book-item');
+                    if (label) {
+                        label.click();
+                    }
+                }
+            }, 300);
+        }
+
         const checkedService = document.querySelector('input[name="service_id"]:checked');
         if (checkedService) {
             const label = checkedService.closest('.service-book-item');

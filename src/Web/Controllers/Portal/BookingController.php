@@ -355,6 +355,7 @@ class BookingController
                 if ($existingCustomer) {
                     $customerId = $existingCustomer['id'];
                     $customerNameForApt = $existingCustomer['name'];
+                    $customerProfileImage = $existingCustomer['profile_image'] ?? null;
                 } else {
                     // Auto-register new customer
                     $newCustomer = $this->customerRepo->create([
@@ -365,6 +366,7 @@ class BookingController
                     ]);
                     $customerId = $newCustomer['id'];
                     $customerNameForApt = $newCustomer['name'];
+                    $customerProfileImage = null;
                 }
                 
                 // Auto login the user so they can view dashboard
@@ -374,7 +376,7 @@ class BookingController
                 $_SESSION['customer_id'] = $customerId;
                 $_SESSION['tenant_id'] = $tenantId;
                 $_SESSION['customer_name'] = $customerNameForApt;
-                $_SESSION['customer_profile_image'] = null;
+                $_SESSION['customer_profile_image'] = $customerProfileImage;
             } else {
                 $customerNameForApt = $_SESSION['customer_name'] ?? 'Guest';
             }
@@ -409,5 +411,20 @@ class BookingController
             ');
             return $response->withStatus(200);
         }
+    }
+    public function lookupCustomer(Request $request, Response $response): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id', 1);
+        $phone = $request->getQueryParams()['phone'] ?? '';
+        
+        $this->customerRepo->setTenantId($tenantId);
+        $customer = $this->customerRepo->getByPhone($phone);
+        
+        $response->getBody()->write(json_encode([
+            'found' => (bool)$customer,
+            'name' => $customer ? $customer['name'] : ''
+        ]));
+        
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
 }

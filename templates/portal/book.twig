@@ -304,12 +304,12 @@
                             <h3 class="text-lg font-bold text-brand-accent mb-4">Your Details</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="guest_name" class="block text-sm font-medium text-brand-text mb-1">Full Name *</label>
-                                    <input type="text" name="guest_name" id="guest_name" required class="w-full border border-brand-border rounded-lg p-3 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-bg text-brand-text outline-none transition-shadow">
+                                    <label for="guest_phone" class="block text-sm font-medium text-brand-text mb-1">WhatsApp Number *</label>
+                                    <input type="text" name="guest_phone" id="guest_phone" required placeholder="e.g. 12345678" class="w-full border border-brand-border rounded-lg p-3 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-bg text-brand-text outline-none transition-shadow" onchange="if(this.value.length >= 8) { fetch('/portal/book/lookup-customer?phone=' + encodeURIComponent(this.value)).then(res => res.json()).then(data => { if(data.found && data.name) { document.getElementById('guest_name').value = data.name; } }); }">
                                 </div>
                                 <div>
-                                    <label for="guest_phone" class="block text-sm font-medium text-brand-text mb-1">WhatsApp Number *</label>
-                                    <input type="text" name="guest_phone" id="guest_phone" required placeholder="e.g. 12345678" class="w-full border border-brand-border rounded-lg p-3 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-bg text-brand-text outline-none transition-shadow">
+                                    <label for="guest_name" class="block text-sm font-medium text-brand-text mb-1">Full Name *</label>
+                                    <input type="text" name="guest_name" id="guest_name" required class="w-full border border-brand-border rounded-lg p-3 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-bg text-brand-text outline-none transition-shadow">
                                 </div>
                             </div>
                             <p class="text-xs text-brand-textMuted mt-3">We use your WhatsApp number to easily identify your account without a password.</p>

@@ -190,6 +190,7 @@ return function (App $app) {
     $app->get('/portal/book', \App\Web\Controllers\Portal\BookingController::class . ':step1');
     $app->get('/portal/book/employees', \App\Web\Controllers\Portal\BookingController::class . ':getEmployeesForService');
     $app->get('/portal/book/times', \App\Web\Controllers\Portal\BookingController::class . ':getAvailableTimes');
+    $app->get('/portal/book/lookup-customer', \App\Web\Controllers\Portal\BookingController::class . ':lookupCustomer');
     $app->post('/portal/book/confirm', \App\Web\Controllers\Portal\BookingController::class . ':confirm');
 
     $app->group('/portal', function (RouteCollectorProxy $group) {

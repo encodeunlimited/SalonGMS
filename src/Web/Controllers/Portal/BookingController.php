@@ -381,6 +381,30 @@ class BookingController
                 $customerNameForApt = $_SESSION['customer_name'] ?? 'Guest';
             }
 
+            if ($isPackage && !$isRedemption) {
+                $this->customerPackageRepo->setTenantId($tenantId);
+                $expiresAt = null;
+                if (!empty($service['validity_months'])) {
+                    $expiresAt = date('Y-m-d H:i:s', strtotime("+{$service['validity_months']} months"));
+                }
+                $newCp = $this->customerPackageRepo->create([
+                    'customer_id' => $customerId,
+                    'package_id' => $packageId,
+                    'status' => 'active',
+                    'expires_at' => $expiresAt
+                ]);
+                
+                if (!empty($service['services'])) {
+                    foreach ($service['services'] as $pkgService) {
+                        $newCpsId = $this->customerPackageRepo->addService($newCp['id'], $pkgService['id'], 1);
+                        if ($pkgService['id'] == $serviceId) {
+                            $cpsId = $newCpsId;
+                            $isRedemption = true;
+                        }
+                    }
+                }
+            }
+
             $this->appointmentRepo->setTenantId($tenantId);
             $this->appointmentRepo->create([
                 'customer_id' => $customerId,

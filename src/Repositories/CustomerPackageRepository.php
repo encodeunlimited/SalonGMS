@@ -29,7 +29,7 @@ class CustomerPackageRepository extends BaseRepository
         return $insertData;
     }
 
-    public function addService(int $customerPackageId, int $serviceId, int $quantity = 1): void
+    public function addService(int $customerPackageId, int $serviceId, int $quantity = 1): int
     {
         $stmt = $this->db->prepare("
             INSERT INTO customer_package_services (tenant_id, customer_package_id, service_id, total_quantity, used_quantity)
@@ -42,6 +42,8 @@ class CustomerPackageRepository extends BaseRepository
             'service_id' => $serviceId,
             'total_quantity' => $quantity
         ]);
+        
+        return (int)$this->db->lastInsertId();
     }
 
     public function getAvailableServicesForCustomer(int $customerId): array

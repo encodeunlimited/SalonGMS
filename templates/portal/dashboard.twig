@@ -29,11 +29,24 @@
     </div>
     {% endif %}
 
-    <div class="grid grid-cols-2 gap-4">
+    <div x-data="{ activeTab: 'upcoming' }" style="margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+            <button @click="activeTab = 'upcoming'" 
+                    :style="activeTab === 'upcoming' ? 'border-bottom: 2px solid var(--primary); color: var(--primary);' : 'border-bottom: 2px solid transparent; color: var(--text-muted);'"
+                    style="background: transparent; border: none; padding: 0.75rem 1rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; outline: none; transition: all 0.2s; margin-bottom: -1px;">
+                Upcoming Appointments
+            </button>
+            <button @click="activeTab = 'past'" 
+                    :style="activeTab === 'past' ? 'border-bottom: 2px solid var(--primary); color: var(--primary);' : 'border-bottom: 2px solid transparent; color: var(--text-muted);'"
+                    style="background: transparent; border: none; padding: 0.75rem 1rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; outline: none; transition: all 0.2s; margin-bottom: -1px;">
+                Past Appointments
+            </button>
+        </div>
+
         <!-- Upcoming Appointments -->
-        <div>
-            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Upcoming Appointments</h2>
+        <div x-show="activeTab === 'upcoming'">
             {% if upcoming_appointments|length > 0 %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for app in upcoming_appointments %}
                     <div class="card glass mb-4" style="padding: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem;">
@@ -62,6 +75,7 @@
                         </div>
                     </div>
                 {% endfor %}
+                </div>
             {% else %}
                 <div class="card glass text-center text-muted" style="padding: 2rem;">
                     No upcoming appointments found.
@@ -70,9 +84,9 @@
         </div>
 
         <!-- Past Appointments -->
-        <div>
-            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Past Appointments</h2>
+        <div x-show="activeTab === 'past'" style="display: none;">
             {% if past_appointments|length > 0 %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for app in past_appointments %}
                     <div class="card glass mb-4" style="padding: 1.5rem; opacity: 0.8;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.25rem;">
@@ -97,6 +111,7 @@
                         </div>
                     </div>
                 {% endfor %}
+                </div>
             {% else %}
                 <div class="card glass text-center text-muted" style="padding: 2rem;">
                     No past appointments.

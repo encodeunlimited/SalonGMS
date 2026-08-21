@@ -8,6 +8,7 @@ use Slim\Views\Twig;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\CustomerRepository;
 use App\Repositories\PackageRepository;
+use App\Repositories\CustomerPackageRepository;
 use App\Services\LoyaltyService;
 
 class DashboardController
@@ -17,19 +18,22 @@ class DashboardController
     private CustomerRepository $customerRepo;
     private LoyaltyService $loyaltyService;
     private PackageRepository $packageRepo;
+    private CustomerPackageRepository $customerPackageRepo;
 
     public function __construct(
         Twig $view, 
         AppointmentRepository $appointmentRepo, 
         CustomerRepository $customerRepo,
         LoyaltyService $loyaltyService,
-        PackageRepository $packageRepo
+        PackageRepository $packageRepo,
+        CustomerPackageRepository $customerPackageRepo
     ) {
         $this->view = $view;
         $this->appointmentRepo = $appointmentRepo;
         $this->customerRepo = $customerRepo;
         $this->loyaltyService = $loyaltyService;
         $this->packageRepo = $packageRepo;
+        $this->customerPackageRepo = $customerPackageRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -41,14 +45,13 @@ class DashboardController
         $this->customerRepo->setTenantId($tenantId);
         $this->loyaltyService->setTenantId($tenantId);
         $this->packageRepo->setTenantId($tenantId);
+        $this->customerPackageRepo->setTenantId($tenantId);
 
         $customer = $this->customerRepo->getById($customerId);
         $loyaltyTransactions = $this->loyaltyService->getCustomerTransactions($customerId);
         
         // Fetch appointments for this customer
         $appointments = $this->appointmentRepo->getAll(['sort' => 'apt_date', 'dir' => 'DESC']);
-        // Filter in memory for now, or add getByCustomerId to repository.
-        // Assuming AppointmentRepository has a way to filter, but let's just filter here if it doesn't.
         $customerAppointments = array_filter($appointments, function($app) use ($customerId) {
             return $app['customer_id'] == $customerId;
         });
@@ -69,13 +72,32 @@ class DashboardController
             $endTime = new \DateTime("$aptDate $aptEndTime");
             $app['end_time'] = $endTime->format('Y-m-d H:i:s');
             
-            if ($startTime >= $now && in_array(strtolower($app['status']), ['scheduled'])) {
+            if ($startTime >= $now && in_array(strtolower($app['status']), ['scheduled', 'pending', 'approved'])) {
                 $upcoming[] = $app;
             } else {
                 $past[] = $app;
             }
         }
         unset($app);
+
+        // Fetch My Packages
+        $availablePackageServices = $this->customerPackageRepo->getAvailableServicesForCustomer($customerId);
+        $groupedPackages = [];
+        foreach ($availablePackageServices as $cps) {
+            $cpId = $cps['customer_package_id'];
+            if (!isset($groupedPackages[$cpId])) {
+                $groupedPackages[$cpId] = [
+                    'package_name' => $cps['package_name'],
+                    'expires_at' => $cps['expires_at'],
+                    'services' => []
+                ];
+            }
+            $groupedPackages[$cpId]['services'][] = [
+                'service_name' => $cps['service_name'],
+                'remaining' => $cps['total_quantity'] - $cps['used_quantity'],
+                'total' => $cps['total_quantity']
+            ];
+        }
 
         $today = date('m-d');
         $isBirthday = false;
@@ -88,7 +110,8 @@ class DashboardController
             'upcoming_appointments' => $upcoming,
             'past_appointments' => $past,
             'loyalty_transactions' => $loyaltyTransactions,
-            'is_birthday' => $isBirthday
+            'is_birthday' => $isBirthday,
+            'my_packages' => $groupedPackages
         ]);
     }
 }

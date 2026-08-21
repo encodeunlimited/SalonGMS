@@ -36,9 +36,9 @@
             {% if upcoming_appointments|length > 0 %}
                 {% for app in upcoming_appointments %}
                     <div class="card glass mb-4" style="padding: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                            <span style="font-weight: 600; font-size: 1.1rem;">
-                                {{ app.start_time|date("l, F j, Y") }}
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-weight: 700; font-size: 1.2rem; color: var(--text-main);">
+                                {{ app.service }}
                             </span>
                             {% if app.status == 'scheduled' or app.status == 'pending' %}
                                 <span style="background-color: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ app.status }}</span>
@@ -54,10 +54,11 @@
                                 <span style="background-color: #e5e7eb; color: #374151; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ app.status }}</span>
                             {% endif %}
                         </div>
-                        <div class="text-muted">
-                            <div style="margin-bottom: 0.5rem;">
-                                🕒 {{ app.start_time|date("g:i A") }} - {{ app.end_time|date("g:i A") }}
-                            </div>
+                        <div style="margin-bottom: 0.75rem; color: var(--text-muted); font-size: 0.95rem;">
+                            With <span style="font-weight: 500; color: var(--text-main);">{{ app.stylist }}</span>
+                        </div>
+                        <div class="text-muted" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                            🕒 {{ app.start_time|date("l, M j, Y") }} | {{ app.start_time|date("g:i A") }} - {{ app.end_time|date("g:i A") }}
                         </div>
                     </div>
                 {% endfor %}
@@ -74,9 +75,9 @@
             {% if past_appointments|length > 0 %}
                 {% for app in past_appointments %}
                     <div class="card glass mb-4" style="padding: 1.5rem; opacity: 0.8;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="font-weight: 500;">
-                                {{ app.start_time|date("M j, Y") }}
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span style="font-weight: 600; color: var(--text-main);">
+                                {{ app.service }}
                             </span>
                             {% if app.status == 'paid' or app.status == 'completed' %}
                                 <span style="color: #065f46; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Paid</span>
@@ -88,8 +89,11 @@
                                 <span class="text-muted" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">{{ app.status }}</span>
                             {% endif %}
                         </div>
-                        <div class="text-muted" style="font-size: 0.875rem;">
-                            {{ app.start_time|date("g:i A") }}
+                        <div class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            With {{ app.stylist }}
+                        </div>
+                        <div class="text-muted" style="font-size: 0.85rem;">
+                            {{ app.start_time|date("M j, Y") }} at {{ app.start_time|date("g:i A") }}
                         </div>
                     </div>
                 {% endfor %}
@@ -100,5 +104,36 @@
             {% endif %}
         </div>
     </div>
+    
+    {% if my_packages|length > 0 %}
+    <div style="margin-top: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">My Packages</h2>
+        <div class="grid grid-cols-2 gap-4">
+            {% for package in my_packages %}
+                <div class="card glass" style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--primary);">{{ package.package_name }}</h3>
+                        {% if package.expires_at %}
+                            <span style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg-elevated); padding: 0.25rem 0.5rem; border-radius: 9999px;">
+                                Expires: {{ package.expires_at|date("M j, Y") }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% for service in package.services %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;">
+                                <span style="font-weight: 500; font-size: 0.95rem;">{{ service.service_name }}</span>
+                                <span style="background-color: var(--primary-container); color: var(--on-primary-container); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600;">
+                                    {{ service.remaining }} / {{ service.total }} left
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

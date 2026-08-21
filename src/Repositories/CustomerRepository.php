@@ -17,10 +17,40 @@ class CustomerRepository extends BaseRepository
         return $result ?: null;
     }
 
+    private function normalizePhone(?string $phone): ?string
+    {
+        if (empty($phone)) {
+            return null;
+        }
+        
+        $phone = preg_replace('/[^\d+]/', '', $phone);
+        
+        if (strpos($phone, '+94') === 0) {
+            return '0' . substr($phone, 3);
+        }
+        if (strpos($phone, '0094') === 0) {
+            return '0' . substr($phone, 4);
+        }
+        if (strpos($phone, '94') === 0 && strlen($phone) === 11) {
+            return '0' . substr($phone, 2);
+        }
+        return $phone;
+    }
+
     public function getByPhone(string $phone): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE phone = :phone AND tenant_id = :tenant_id LIMIT 1");
-        $stmt->execute(['phone' => $phone, 'tenant_id' => $this->getTenantId()]);
+        $local = $this->normalizePhone($phone);
+        $intl = (strpos($local, '0') === 0 && strlen($local) === 10) ? '+94' . substr($local, 1) : $local;
+        $intl2 = (strpos($local, '0') === 0 && strlen($local) === 10) ? '94' . substr($local, 1) : $local;
+
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE (phone = :local OR phone = :intl OR phone = :intl2 OR phone = :raw) AND tenant_id = :tenant_id LIMIT 1");
+        $stmt->execute([
+            'local' => $local, 
+            'intl' => $intl, 
+            'intl2' => $intl2,
+            'raw' => $phone,
+            'tenant_id' => $this->getTenantId()
+        ]);
         $result = $stmt->fetch();
         return $result ?: null;
     }
@@ -35,7 +65,7 @@ class CustomerRepository extends BaseRepository
         $insertData = [
             'tenant_id' => $this->getTenantId(),
             'name' => $data['name'],
-            'phone' => $data['phone'] ?? null,
+            'phone' => isset($data['phone']) ? $this->normalizePhone($data['phone']) : null,
             'email' => $data['email'] ?? null,
             'password_hash' => !empty($data['password']) ? password_hash($data['password'], PASSWORD_DEFAULT) : null,
             'notes' => $data['notes'] ?? null,
@@ -57,7 +87,7 @@ class CustomerRepository extends BaseRepository
             'id' => $id,
             'tenant_id' => $this->getTenantId(),
             'name' => $data['name'],
-            'phone' => $data['phone'] ?? null,
+            'phone' => isset($data['phone']) ? $this->normalizePhone($data['phone']) : null,
             'email' => $data['email'] ?? null,
             'notes' => $data['notes'] ?? null
         ];

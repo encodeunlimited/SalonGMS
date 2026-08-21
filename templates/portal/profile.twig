@@ -3,25 +3,25 @@
 {% block content %}
 <div class="animate-fade-in" style="max-width: 600px; margin: 2rem auto;">
     <div class="card glass">
-        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-brand-border">
-            <h2 class="text-xl font-bold text-brand-accent m-0">Your Profile</h2>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin: 0;">Your Profile</h2>
         </div>
 
-        <form hx-post="/portal/profile" hx-target="#profile-error" hx-swap="outerHTML" enctype="multipart/form-data">
+        <form hx-post="/portal/profile" hx-target="#profile-error" hx-swap="innerHTML" enctype="multipart/form-data">
             <div id="profile-error"></div>
             
-            <div class="flex justify-center mb-6">
-                <div class="relative group">
-                    <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-brand-border bg-brand-bg flex items-center justify-center text-3xl">
+            <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                <div style="position: relative; display: inline-block;">
+                    <div class="profile-image-container" style="width: 6rem; height: 6rem; border-radius: 50%; overflow: hidden; border: 4px solid var(--border-color); background-color: var(--bg-base); display: flex; align-items: center; justify-content: center; font-size: 1.875rem;">
                         {% if customer.profile_image %}
-                            <img src="{{ customer.profile_image }}" alt="{{ customer.name }}" class="w-full h-full object-cover">
+                            <img src="{{ customer.profile_image }}" alt="{{ customer.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
                             🧑‍💼
                         {% endif %}
                     </div>
-                    <label class="absolute bottom-0 right-0 bg-brand-accent text-brand-bg rounded-full p-2 cursor-pointer shadow-md hover:bg-brand-accentHover transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <input type="file" name="profile_image" class="hidden" accept="image/*" onchange="previewImage(this)">
+                    <label style="position: absolute; bottom: 0; right: 0; background-color: var(--primary); color: var(--bg-base); border-radius: 50%; padding: 0.5rem; cursor: pointer; box-shadow: var(--shadow-md); display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--primary-hover)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                        <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <input type="file" name="profile_image" style="display: none;" accept="image/*" onchange="previewImage(this)">
                     </label>
                 </div>
             </div>
@@ -48,9 +48,9 @@
                 </div>
             </div>
             
-            <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-brand-border">
-                <a href="/portal/dashboard" class="px-6 py-2.5 border border-brand-border text-brand-text rounded-lg hover:bg-brand-card transition-colors font-medium cursor-pointer bg-transparent no-underline">Cancel</a>
-                <button type="submit" class="px-6 py-2.5 bg-brand-accent text-brand-bg rounded-lg hover:bg-brand-accentHover transition-colors font-medium shadow-sm cursor-pointer border-none">Save Changes</button>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <a href="/portal/dashboard" style="padding: 0.625rem 1.5rem; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 0.5rem; cursor: pointer; background: transparent; text-decoration: none; font-weight: 500;" onmouseover="this.style.backgroundColor='var(--bg-elevated)'" onmouseout="this.style.backgroundColor='transparent'">Cancel</a>
+                <button type="submit" class="btn-primary" style="width: auto; padding: 0.625rem 1.5rem; border: none;">Save Changes</button>
             </div>
         </form>
     </div>
@@ -61,8 +61,8 @@ function previewImage(input) {
     if (input.files && input.files[0]) {
         var reader = new FileReader();
         reader.onload = function(e) {
-            const container = input.closest('.relative').querySelector('.w-24.h-24');
-            container.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+            const container = input.closest('div').querySelector('.profile-image-container');
+            container.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
         }
         reader.readAsDataURL(input.files[0]);
     }

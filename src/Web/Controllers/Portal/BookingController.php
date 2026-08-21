@@ -94,6 +94,15 @@ class BookingController
         $selectedServiceId = isset($queryParams['service_id']) ? $queryParams['service_id'] : null;
         $selectedPackageId = isset($queryParams['package_id']) ? (int)$queryParams['package_id'] : null;
 
+        if ($selectedPackageId && !$selectedServiceId) {
+            foreach ($packages as $pkg) {
+                if ($pkg['id'] == $selectedPackageId && !empty($pkg['services'])) {
+                    $selectedServiceId = 'pkg_' . $pkg['id'] . '_srv_' . $pkg['services'][0]['id'];
+                    break;
+                }
+            }
+        }
+
         return $this->view->render($response, 'portal/book.twig', [
             'services_by_category' => $servicesByCategory,
             'packages' => $packages,

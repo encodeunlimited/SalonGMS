@@ -47,7 +47,7 @@
 
 {% block content %}
 <div class="animate-fade-in font-sans antialiased text-brand-text max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full"
-     x-data="{ step: 1, activeCategory: '{{ services_by_category|keys|first }}', searchQuery: '' }">
+     x-data="{ step: 1, activeCategory: '{% if selected_service_id and 'pkg_' in selected_service_id %}Packages{% elseif selected_service_id and 'cps_' in selected_service_id %}My Packages{% else %}{{ services_by_category|keys|first }}{% endif %}', searchQuery: '' }">
     
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
@@ -170,7 +170,7 @@
                                     
                                     <div class="space-y-6 flex flex-col gap-4">
                                         {% for package in packages %}
-                                            <div class="bg-brand-bg border border-brand-border rounded-xl overflow-hidden shadow-sm" x-data="{ expanded: false }">
+                                            <div class="bg-brand-bg border border-brand-border rounded-xl overflow-hidden shadow-sm" x-data="{ expanded: {% if selected_package_id == package.id or (selected_service_id and 'pkg_' ~ package.id ~ '_srv_' in selected_service_id) %}true{% else %}false{% endif %} }">
                                                 <div class="px-4 py-3 bg-brand-card flex justify-between items-center cursor-pointer hover:bg-brand-card/80 transition-colors" @click="expanded = !expanded">
                                                     <div>
                                                         <h4 class="text-brand-text font-semibold m-0">{{ package.name }}</h4>

@@ -195,10 +195,9 @@
                     </div>
                 </div>
 
-                <!-- Payment Methods -->
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Payment Method</label>
-                    <div class="grid grid-cols-5 gap-2">
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
                         <button type="button" @click="setMethod('Cash')" 
                                 class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
                                 :class="payment_method == 'Cash' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
@@ -218,6 +217,11 @@
                                 class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
                                 :class="payment_method == 'Points' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
                             Points
+                        </button>
+                        <button type="button" @click="setMethod('Credit')" 
+                                class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
+                                :class="payment_method == 'Credit' ? 'border-salon-accent bg-yellow-50 text-salon-accent' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                            Credit
                         </button>
                         <button type="button" @click="setMethod('Split')" 
                                 class="py-2 px-1 text-sm font-medium rounded-md border-2 transition-all text-center"
@@ -257,6 +261,7 @@
                                 <option value="Card">Card</option>
                                 <option value="Bank Transfer">Transfer</option>
                                 <option value="Points">Points</option>
+                                <option value="Credit">Credit</option>
                             </select>
                             <div class="relative flex-1">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

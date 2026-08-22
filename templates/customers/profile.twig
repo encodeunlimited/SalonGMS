@@ -69,6 +69,15 @@
                         ⭐
                     </div>
                 </div>
+                <div class="col-span-2 bg-red-50 rounded-xl shadow-sm border border-red-100 p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-red-800 uppercase tracking-wider mb-1">Outstanding Credit</p>
+                        <p class="text-2xl font-bold text-red-600">QAR {{ customer.credit_balance|default(0)|number_format(2) }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Spent</p>
                     <p class="text-2xl font-bold text-gray-900">QAR {{ stats.total_spent|number_format(2) }}</p>
@@ -232,7 +241,25 @@
                 </div>
                 
                 <!-- Billing Tab -->
-                <div x-show="tab === 'billing'" class="p-0 relative" x-cloak style="display: none;" x-data="{ showPaymentModal: false, selectedInvoice: null, paymentMethod: 'Cash', tenderAmount: '', totalAmount: 0 }">
+                <div x-show="tab === 'billing'" class="p-0 relative" x-cloak style="display: none;" 
+                     x-data="{ 
+                        showPaymentModal: false, 
+                        selectedInvoice: null, 
+                        selectedInvoices: [], 
+                        paymentMethod: 'Cash', 
+                        tenderAmount: '', 
+                        totalAmount: 0,
+                        toggleInvoice: function(id, amount) {
+                            const index = this.selectedInvoices.indexOf(id);
+                            if (index === -1) {
+                                this.selectedInvoices.push(id);
+                                this.totalAmount += parseFloat(amount);
+                            } else {
+                                this.selectedInvoices.splice(index, 1);
+                                this.totalAmount -= parseFloat(amount);
+                            }
+                        }
+                     }">
                     {% if unbilled_appointments|length > 0 %}
                     <div class="p-6 border-b border-gray-100 bg-yellow-50/50">
                         <div class="flex justify-between items-center mb-4">
@@ -279,18 +306,26 @@
                     {% if invoices|length > 0 %}
                         <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h3 class="text-lg font-medium text-gray-900">Invoices</h3>
-                            {% if stats.pending_amount > 0 %}
-                            <form hx-post="/web/customers/{{ customer.id }}/pay-all-invoices" hx-swap="none">
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-salon-navy text-white text-sm font-medium rounded-md hover:bg-salon-dark transition-colors shadow-sm">
-                                    Pay All Unpaid (QAR {{ stats.pending_amount|number_format(2) }})
+                            <div class="space-x-2 flex items-center">
+                                <button x-show="selectedInvoices.length > 0" 
+                                        @click="showPaymentModal = true; selectedInvoice = null;"
+                                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors shadow-sm" style="display: none;">
+                                    Pay Selected (<span x-text="'QAR ' + totalAmount.toFixed(2)"></span>)
                                 </button>
-                            </form>
-                            {% endif %}
+                                {% if stats.pending_amount > 0 %}
+                                <form hx-post="/web/customers/{{ customer.id }}/pay-all-invoices" hx-swap="none">
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-salon-navy text-white text-sm font-medium rounded-md hover:bg-salon-dark transition-colors shadow-sm">
+                                        Pay All Unpaid (QAR {{ stats.pending_amount|number_format(2) }})
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                                        <th class="px-6 py-3 font-medium w-10 text-center">Select</th>
                                         <th class="px-6 py-3 font-medium">Invoice ID</th>
                                         <th class="px-6 py-3 font-medium">Date</th>
                                         <th class="px-6 py-3 font-medium">Service Info</th>
@@ -302,6 +337,13 @@
                                 <tbody class="divide-y divide-gray-100">
                                     {% for invoice in invoices %}
                                         <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-6 py-4 text-center">
+                                                {% if invoice.status != 'paid' %}
+                                                <input type="checkbox" 
+                                                       @change="toggleInvoice({{ invoice.id }}, {{ invoice.total_amount }})" 
+                                                       class="w-4 h-4 rounded border-gray-300 text-salon-accent focus:ring-salon-accent cursor-pointer">
+                                                {% endif %}
+                                            </td>
                                             <td class="px-6 py-4 font-mono text-sm text-gray-600">
                                                 #INV-{{ "%05d"|format(invoice.id) }}
                                             </td>
@@ -335,7 +377,7 @@
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                                                 </a>
                                                 {% if invoice.status != 'paid' %}
-                                                    <button @click="selectedInvoice = {{ invoice.id }}; totalAmount = {{ invoice.total_amount }}; showPaymentModal = true;" 
+                                                    <button @click="selectedInvoice = {{ invoice.id }}; selectedInvoices = []; totalAmount = {{ invoice.total_amount }}; showPaymentModal = true;" 
                                                             class="inline-flex items-center justify-center px-3 py-2 bg-salon-navy text-white text-xs font-medium rounded-md hover:bg-salon-dark transition-colors">
                                                         Pay Now
                                                     </button>
@@ -374,7 +416,13 @@
                                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
                                  class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
                                 
-                                <form @submit.prevent="htmx.ajax('POST', '/web/invoices/' + selectedInvoice + '/pay', {source: $el, target: '#payment-alerts', swap: 'outerHTML'})">
+                                <form @submit.prevent="
+                                    let url = selectedInvoices.length > 0 ? '/web/customers/{{ customer.id }}/pay-selected-invoices' : '/web/invoices/' + selectedInvoice + '/pay';
+                                    htmx.ajax('POST', url, {source: $el, target: '#payment-alerts', swap: 'outerHTML'});
+                                ">
+                                    <template x-for="id in selectedInvoices">
+                                        <input type="hidden" name="invoice_ids[]" :value="id">
+                                    </template>
                                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                         <div id="payment-alerts"></div>
                                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Pay Remaining Balance</h3>

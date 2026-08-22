@@ -9,6 +9,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\PackageRepository;
 use App\Repositories\CustomerPackageRepository;
+use App\Repositories\CustomerRepository;
 use App\Services\LoyaltyService;
 use Exception;
 
@@ -22,6 +23,7 @@ class InvoiceService extends BaseService
     private PackageRepository $packageRepo;
     private CustomerPackageRepository $customerPackageRepo;
     private LoyaltyService $loyaltyService;
+    private CustomerRepository $customerRepo;
 
     public function __construct(
         InvoiceRepository $invoiceRepo, 
@@ -31,7 +33,8 @@ class InvoiceService extends BaseService
         AppointmentRepository $appointmentRepo,
         PackageRepository $packageRepo,
         CustomerPackageRepository $customerPackageRepo,
-        LoyaltyService $loyaltyService
+        LoyaltyService $loyaltyService,
+        CustomerRepository $customerRepo
     ) {
         $this->invoiceRepo = $invoiceRepo;
         $this->itemRepo = $itemRepo;
@@ -41,6 +44,7 @@ class InvoiceService extends BaseService
         $this->packageRepo = $packageRepo;
         $this->customerPackageRepo = $customerPackageRepo;
         $this->loyaltyService = $loyaltyService;
+        $this->customerRepo = $customerRepo;
     }
 
     public function setTenantId(int $tenantId): self
@@ -54,6 +58,7 @@ class InvoiceService extends BaseService
         $this->packageRepo->setTenantId($tenantId);
         $this->customerPackageRepo->setTenantId($tenantId);
         $this->loyaltyService->setTenantId($tenantId);
+        $this->customerRepo->setTenantId($tenantId);
         return $this;
     }
 
@@ -142,11 +147,28 @@ class InvoiceService extends BaseService
             }
         }
 
+        $creditPaymentAmount = 0.00;
+        if ($paymentMethod === 'Credit') {
+            $creditPaymentAmount = $finalTotalAmount;
+        } elseif ($paymentMethod === 'Split' && !empty($data['split_details'])) {
+            $splits = is_string($data['split_details']) ? json_decode($data['split_details'], true) : $data['split_details'];
+            foreach ($splits as $split) {
+                if (($split['method'] ?? '') === 'Credit') {
+                    $creditPaymentAmount += (float)($split['amount'] ?? 0);
+                }
+            }
+        }
+
+        if ($creditPaymentAmount > 0 && !$customerId) {
+            throw new Exception("Customer must be selected to pay on Credit.");
+        }
+
         // 3. Create Invoice
+        $invoiceStatus = ($paymentMethod === 'Credit') ? 'unpaid' : 'paid';
         $invoice = $this->invoiceRepo->create([
             'customer_id' => $customerId,
             'total_amount' => $totalAmount, 
-            'status' => 'paid',
+            'status' => $invoiceStatus,
             'payment_method' => $paymentMethod,
             'tender_amount' => isset($data['tender_amount']) ? (float)$data['tender_amount'] : null,
             'change_amount' => isset($data['change_amount']) ? (float)$data['change_amount'] : null,
@@ -168,6 +190,12 @@ class InvoiceService extends BaseService
 
         if ($pointsPaymentAmount > 0) {
             $this->loyaltyService->payWithPoints($customerId, $invoice['id'], $pointsPaymentAmount);
+        }
+
+        if ($creditPaymentAmount > 0) {
+            $customer = $this->customerRepo->getById($customerId);
+            $newCredit = ($customer['credit_balance'] ?? 0) + $creditPaymentAmount;
+            $this->customerRepo->updateCreditBalance($customerId, $newCredit);
         }
 
         // 4. Create Items
@@ -279,6 +307,18 @@ class InvoiceService extends BaseService
             }
         }
 
+        $creditPaymentAmount = 0.00;
+        if ($paymentMethod === 'Credit') {
+            $creditPaymentAmount = (float)$invoice['total_amount'];
+        } elseif ($paymentMethod === 'Split' && !empty($data['split_details'])) {
+            $splits = is_string($data['split_details']) ? json_decode($data['split_details'], true) : $data['split_details'];
+            foreach ($splits as $split) {
+                if (($split['method'] ?? '') === 'Credit') {
+                    $creditPaymentAmount += (float)($split['amount'] ?? 0);
+                }
+            }
+        }
+
         $customerId = $invoice['customer_id'] ? (int)$invoice['customer_id'] : null;
 
         if ($pointsPaymentAmount > 0) {
@@ -300,10 +340,24 @@ class InvoiceService extends BaseService
             'split_details' => !empty($data['split_details']) ? (is_string($data['split_details']) ? $data['split_details'] : json_encode($data['split_details'])) : null
         ];
 
+        if ($customerId && $invoice['payment_method'] === 'Credit') {
+            $customer = $this->customerRepo->getById($customerId);
+            if ($customer) {
+                $newCredit = max(0, ($customer['credit_balance'] ?? 0) - (float)$invoice['total_amount']);
+                $this->customerRepo->updateCreditBalance($customerId, $newCredit);
+            }
+        }
+
         $this->invoiceRepo->update($invoiceId, $updateData);
         
         if ($pointsPaymentAmount > 0) {
             $this->loyaltyService->payWithPoints($customerId, $invoiceId, $pointsPaymentAmount);
+        }
+
+        if ($creditPaymentAmount > 0) {
+            $customer = $this->customerRepo->getById($customerId);
+            $newCredit = ($customer['credit_balance'] ?? 0) + $creditPaymentAmount;
+            $this->customerRepo->updateCreditBalance($customerId, $newCredit);
         }
 
         // Award points
@@ -415,9 +469,14 @@ class InvoiceService extends BaseService
     {
         $invoices = $this->invoiceRepo->getByCustomerId($customerId);
         $totalPaid = 0;
+        $creditSettledAmount = 0.00;
         
         foreach ($invoices as $invoice) {
             if ($invoice['status'] === 'unpaid') {
+                if ($invoice['payment_method'] === 'Credit') {
+                    $creditSettledAmount += (float)$invoice['total_amount'];
+                }
+
                 $this->invoiceRepo->update($invoice['id'], [
                     'status' => 'paid',
                     'payment_method' => $paymentData['payment_method'] ?? 'Cash',
@@ -431,6 +490,53 @@ class InvoiceService extends BaseService
                 
                 // Award points
                 $this->loyaltyService->awardPoints($customerId, $invoice['id'], (float)$invoice['total_amount']);
+            }
+        }
+
+        if ($creditSettledAmount > 0) {
+            $customer = $this->customerRepo->getById($customerId);
+            if ($customer) {
+                $newCredit = max(0, ($customer['credit_balance'] ?? 0) - $creditSettledAmount);
+                $this->customerRepo->updateCreditBalance($customerId, $newCredit);
+            }
+        }
+    }
+
+    public function paySelectedInvoices(int $customerId, array $invoiceIds, array $paymentData): void
+    {
+        if (empty($invoiceIds)) {
+            return;
+        }
+
+        $invoices = $this->invoiceRepo->getByCustomerId($customerId);
+        $creditSettledAmount = 0.00;
+        
+        foreach ($invoices as $invoice) {
+            if ($invoice['status'] === 'unpaid' && in_array((string)$invoice['id'], $invoiceIds)) {
+                if ($invoice['payment_method'] === 'Credit') {
+                    $creditSettledAmount += (float)$invoice['total_amount'];
+                }
+
+                $this->invoiceRepo->update($invoice['id'], [
+                    'status' => 'paid',
+                    'payment_method' => $paymentData['payment_method'] ?? 'Cash',
+                    'tender_amount' => $invoice['total_amount'],
+                    'change_amount' => 0
+                ]);
+                
+                if (!empty($invoice['appointment_id'])) {
+                    $this->appointmentRepo->updateStatus($invoice['appointment_id'], 'paid');
+                }
+                
+                $this->loyaltyService->awardPoints($customerId, $invoice['id'], (float)$invoice['total_amount']);
+            }
+        }
+
+        if ($creditSettledAmount > 0) {
+            $customer = $this->customerRepo->getById($customerId);
+            if ($customer) {
+                $newCredit = max(0, ($customer['credit_balance'] ?? 0) - $creditSettledAmount);
+                $this->customerRepo->updateCreditBalance($customerId, $newCredit);
             }
         }
     }

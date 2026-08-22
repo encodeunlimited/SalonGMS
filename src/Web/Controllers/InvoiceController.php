@@ -283,6 +283,84 @@ class InvoiceController
         }
     }
 
+    public function paySelectedInvoices(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $data = $request->getParsedBody();
+
+        if (empty($data['invoice_ids']) || !is_array($data['invoice_ids'])) {
+            $response->getBody()->write('
+                <div id="payment-alerts" hx-swap-oob="true">
+                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
+                        <strong>Error:</strong> No invoices selected.
+                    </div>
+                </div>
+            ');
+            return $response->withStatus(200);
+        }
+        
+        try {
+            $this->invoiceService->setTenantId($tenantId);
+            $this->invoiceService->paySelectedInvoices($customerId, $data['invoice_ids'], $data);
+            
+            $invoiceIdsParam = implode(',', $data['invoice_ids']);
+            $baseUrl = $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '');
+            $receiptUrl = $baseUrl . '/web/receipts/bulk?invoices=' . $invoiceIdsParam;
+
+            $response->getBody()->write('
+                <div id="payment-alerts" hx-swap-oob="true">
+                    <script>
+                        window.open("' . $receiptUrl . '", "_blank");
+                        setTimeout(() => window.location.reload(), 500);
+                    </script>
+                </div>
+            ');
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['message' => 'Bulk payment processed successfully!', 'type' => 'success']
+            ]))->withStatus(200);
+            
+        } catch (Exception $e) {
+            $response->getBody()->write('
+                <div id="payment-alerts" hx-swap-oob="true">
+                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
+                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
+                    </div>
+                </div>
+            ');
+            return $response->withStatus(200);
+        }
+    }
+
+    public function printBulkReceipt(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->invoiceService->setTenantId($tenantId);
+        
+        $params = $request->getQueryParams();
+        if (empty($params['invoices'])) {
+            return $response->withStatus(400);
+        }
+        
+        $invoiceIds = explode(',', $params['invoices']);
+        $invoices = [];
+        foreach ($invoiceIds as $id) {
+            $inv = $this->invoiceService->getInvoicePublic((int)$id);
+            if ($inv) {
+                $invoices[] = $inv;
+            }
+        }
+        
+        if (empty($invoices)) {
+            return $response->withStatus(404);
+        }
+        
+        $baseUrl = $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : '');
+        $pdfUrl = $this->pdfService->generateBulkReceiptPdf($invoices, $baseUrl);
+        
+        return $response->withHeader('Location', $pdfUrl)->withStatus(302);
+    }
+
     public function payAllInvoices(Request $request, Response $response, array $args): Response
     {
         $tenantId = (int)$request->getAttribute('tenant_id');

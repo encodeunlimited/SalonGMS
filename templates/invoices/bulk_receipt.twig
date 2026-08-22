@@ -95,21 +95,15 @@
     
     <div class="border-b mb-2"></div>
     
-    <div class="cf">
-        <div class="col-left font-bold">INVOICE</div>
-        <div class="col-right">#INV-{{ "%05d"|format(invoice.id) }}</div>
-    </div>
+    <div class="text-center font-bold mb-2">CONSOLIDATED PAYMENT RECEIPT</div>
+
     <div class="cf mt-2">
         <div class="col-left">Date:</div>
-        <div class="col-right">{{ invoice.created_at|date('M j, Y H:i') }}</div>
+        <div class="col-right">{{ invoices[0].created_at|date('M j, Y H:i') }}</div>
     </div>
     <div class="cf mt-2">
         <div class="col-left">Customer:</div>
-        <div class="col-right">{{ invoice.customer_name|default('Walk-in') }}</div>
-    </div>
-    <div class="cf mt-2">
-        <div class="col-left">Status:</div>
-        <div class="col-right">{{ invoice.status|upper }}</div>
+        <div class="col-right">{{ invoices[0].customer_name|default('Walk-in') }}</div>
     </div>
     
     <div class="border-b mt-4 mb-2"></div>
@@ -117,28 +111,32 @@
     <table>
         <thead>
             <tr class="border-b">
-                <th class="text-left font-bold">Item</th>
+                <th class="text-left font-bold">Invoice ID</th>
                 <th class="text-right font-bold">Total</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in invoice.items %}
+            {% set grand_total = 0 %}
+            {% for invoice in invoices %}
+            {% set grand_total = grand_total + invoice.total_amount %}
             <tr>
-                <td colspan="2" class="text-left py-2">
-                    {{ item.description }}
+                <td class="text-left py-2 font-bold">
+                    #INV-{{ "%05d"|format(invoice.id) }}
+                </td>
+                <td class="text-right font-bold">
+                    {{ invoice.total_amount|number_format(2) }}
                 </td>
             </tr>
             <tr>
-                <td class="text-left" style="padding-left: 10px;">
-                    {{ item.quantity }} x {{ item.unit_price|number_format(2) }}
-                </td>
-                <td class="text-right">
-                    {{ item.subtotal|number_format(2) }}
+                <td colspan="2" class="text-left" style="padding-left: 10px; font-style: italic;">
+                    {% for item in invoice.items %}
+                        - {{ item.description }} <br>
+                    {% endfor %}
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="2" class="text-center py-2">No items found.</td>
+                <td colspan="2" class="text-center py-2">No invoices found.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -147,44 +145,14 @@
     <div class="border-t mt-2 mb-2"></div>
     
     <div class="cf">
-        <div class="col-left font-bold">Total (QAR):</div>
-        <div class="col-right font-bold" style="font-size: 14px;">{{ invoice.total_amount|number_format(2) }}</div>
+        <div class="col-left font-bold">Total Paid (QAR):</div>
+        <div class="col-right font-bold" style="font-size: 14px;">{{ grand_total|number_format(2) }}</div>
     </div>
     
-    <div class="mt-4">
-        {% if invoice.status == 'paid' %}
-            {% if invoice.payment_method == 'Split' and invoice.split_details %}
-                {% set splits = invoice.split_details|json_decode %}
-                {% for split in splits %}
-                <div class="cf py-2">
-                    <div class="col-left">Paid ({{ split.method }}):</div>
-                    <div class="col-right">{{ split.amount|number_format(2) }}</div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="cf py-2">
-                    <div class="col-left">Paid ({{ invoice.payment_method|default('Cash') }}):</div>
-                    <div class="col-right">{{ invoice.total_amount|number_format(2) }}</div>
-                </div>
-                {% if invoice.tender_amount %}
-                <div class="cf py-2">
-                    <div class="col-left">Tendered:</div>
-                    <div class="col-right">{{ invoice.tender_amount|number_format(2) }}</div>
-                </div>
-                {% endif %}
-            {% endif %}
-            
-            {% if invoice.change_amount %}
-            <div class="cf py-2">
-                <div class="col-left font-bold">Change:</div>
-                <div class="col-right font-bold">{{ invoice.change_amount|number_format(2) }}</div>
-            </div>
-            {% endif %}
-        {% else %}
-            <div class="text-center mt-4 font-bold">
-                BALANCE DUE: {{ invoice.total_amount|number_format(2) }}
-            </div>
-        {% endif %}
+    <div class="mt-4 text-center">
+        <div class="font-bold text-center">
+            ALL INVOICES SETTLED
+        </div>
     </div>
     
     <div class="text-center mt-8" style="font-size: 10px;">

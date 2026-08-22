@@ -115,6 +115,18 @@ class CustomerRepository extends BaseRepository
         return $this->getById($id);
     }
 
+    public function updateCreditBalance(int $id, float $balance): void
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE {$this->table} SET credit_balance = :balance WHERE id = :id AND tenant_id = :tenant_id"
+        );
+        $stmt->execute([
+            'balance' => $balance,
+            'id' => $id,
+            'tenant_id' => $this->getTenantId()
+        ]);
+    }
+
     /**
      * Get customers whose birthday is today (month and day match).
      * Much faster than fetching all customers and filtering in PHP.

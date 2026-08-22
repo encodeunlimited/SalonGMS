@@ -33,7 +33,7 @@ class PdfService
         
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->setPaper(array(0, 0, 226.77, 841.89), 'portrait');
         $dompdf->render();
 
         $pdfOutput = $dompdf->output();
@@ -58,5 +58,45 @@ class PdfService
         }
 
         return rtrim($baseUrl, '/') . '/uploads/invoices/' . $filename;
+    }
+
+    public function generateBulkReceiptPdf(array $invoices, string $baseUrl = ''): string
+    {
+        $html = $this->view->fetch('invoices/bulk_receipt.twig', [
+            'invoices' => $invoices,
+            'title' => 'Bulk Payment Receipt'
+        ]);
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Helvetica');
+        
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper(array(0, 0, 226.77, 841.89), 'portrait');
+        $dompdf->render();
+
+        $pdfOutput = $dompdf->output();
+        if (!$pdfOutput) {
+            throw new Exception("Failed to generate bulk PDF receipt");
+        }
+
+        $publicDir = realpath(__DIR__ . '/../../public');
+        $uploadDir = $publicDir . '/uploads/receipts';
+        
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+                throw new Exception("Failed to create upload directory");
+            }
+        }
+
+        $filename = 'bulk_receipt_' . time() . '.pdf';
+        $filePath = $uploadDir . '/' . $filename;
+        
+        if (file_put_contents($filePath, $pdfOutput) === false) {
+            throw new Exception("Failed to save PDF to disk");
+        }
+
+        return rtrim($baseUrl, '/') . '/uploads/receipts/' . $filename;
     }
 }

@@ -50,6 +50,8 @@ return function (App $app) {
         $group->post('/customers/{id}/invoices', [\App\Web\Controllers\CustomerController::class, 'createInvoice']);
         $group->post('/customers/{id}/bulk-invoice', [\App\Web\Controllers\InvoiceController::class, 'bulkInvoice']);
         $group->post('/customers/{id}/pay-all-invoices', [\App\Web\Controllers\InvoiceController::class, 'payAllInvoices']);
+        $group->post('/customers/{id}/pay-selected-invoices', [\App\Web\Controllers\InvoiceController::class, 'paySelectedInvoices']);
+        $group->get('/receipts/bulk', [\App\Web\Controllers\InvoiceController::class, 'printBulkReceipt']);
         
         // Employees
         $group->get('/employees', \App\Web\Controllers\EmployeeController::class . ':index');

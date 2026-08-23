@@ -316,13 +316,22 @@ class InvoiceController
                 }
                 
                 // Redirect back to the calendar after checking out an appointment
-                return $response->withHeader('HX-Redirect', '/web/appointments')->withStatus(200);
+                return $response->withHeader('HX-Trigger', json_encode([
+                    'open-receipt' => [
+                        'url' => '/web/invoices/download/' . $invoice['id'] . '?print=1',
+                        'redirect' => '/web/appointments'
+                    ]
+                ]))->withStatus(200);
             }
 
             // Return HTMX OOB success message for standard POS checkout
             return $response->withHeader('HX-Trigger', json_encode([
-                'show-toast' => ['type' => 'success', 'message' => 'Invoice #' . $invoice['id'] . ' created for QAR ' . number_format($invoice['total_amount'], 2)]
-            ]))->withHeader('HX-Redirect', '/web/invoices')->withStatus(200);
+                'show-toast' => ['type' => 'success', 'message' => 'Invoice #' . $invoice['id'] . ' created for QAR ' . number_format($invoice['total_amount'], 2)],
+                'open-receipt' => [
+                    'url' => '/web/invoices/download/' . $invoice['id'] . '?print=1',
+                    'redirect' => '/web/invoices'
+                ]
+            ]))->withStatus(200);
             
         } catch (Exception $e) {
             return $response->withHeader('HX-Trigger', json_encode([
@@ -516,9 +525,12 @@ class InvoiceController
             return $response->withStatus(404);
         }
 
+        $autoPrint = $request->getQueryParams()['print'] ?? 0;
+
         return $this->view->render($response, 'invoices/view.twig', [
             'invoice' => $invoice,
-            'title' => 'Invoice #' . sprintf('%05d', $invoice['id'])
+            'title' => 'Invoice #' . sprintf('%05d', $invoice['id']),
+            'auto_print' => $autoPrint
         ]);
     }
 }

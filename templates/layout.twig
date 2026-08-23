@@ -242,6 +242,12 @@
             show = true; 
             setTimeout(() => show = false, 3000);
          "
+         @open-receipt.window="
+            window.open($event.detail.url, 'receipt', 'width=350,height=600');
+            if ($event.detail.redirect) {
+                setTimeout(() => window.location.href = $event.detail.redirect, 500);
+            }
+         "
          class="fixed bottom-6 right-6 z-50">
         <div x-show="show" 
              x-transition:enter="transition ease-out duration-300"

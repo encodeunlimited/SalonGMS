@@ -171,9 +171,22 @@ class InvoiceController
                 }
             }
 
-            // If Credit is selected, create unbilled appointments and do NOT generate an invoice immediately.
-            // This applies to both regular services and packages (which will be provisioned here).
-            if (($data['payment_method'] ?? '') === 'Credit') {
+            $hasPackagePurchase = false;
+            $isZeroTotal = true;
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    if (($item['type'] ?? '') === 'package') {
+                        $hasPackagePurchase = true;
+                    }
+                    if (!empty($item['price']) && (float)$item['price'] > 0) {
+                        $isZeroTotal = false;
+                    }
+                }
+            }
+
+            // If Credit is selected OR it's a zero-total checkout (e.g. only redemptions), 
+            // create unbilled appointments and do NOT generate an invoice immediately.
+            if (($data['payment_method'] ?? '') === 'Credit' || $isZeroTotal) {
                 $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;
                 if (!$customerId) {
                     return $response->withHeader('HX-Trigger', json_encode([

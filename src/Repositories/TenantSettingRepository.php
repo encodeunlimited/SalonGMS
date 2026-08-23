@@ -25,17 +25,27 @@ class TenantSettingRepository extends BaseRepository
 
     public function set(string $key, $value): void
     {
-        $stmt = $this->db->prepare("
-            INSERT INTO tenant_settings (tenant_id, setting_key, setting_value)
-            VALUES (:tenant_id, :key, :value)
-            ON CONFLICT(tenant_id, setting_key) DO UPDATE SET setting_value = :value
-        ");
-        
+        $stmt = $this->db->prepare("SELECT id FROM tenant_settings WHERE tenant_id = :tenant_id AND setting_key = :key");
         $stmt->execute([
             'tenant_id' => $this->tenantId,
-            'key' => $key,
-            'value' => $value
+            'key' => $key
         ]);
+        
+        if ($stmt->fetch()) {
+            $update = $this->db->prepare("UPDATE tenant_settings SET setting_value = :value WHERE tenant_id = :tenant_id AND setting_key = :key");
+            $update->execute([
+                'tenant_id' => $this->tenantId,
+                'key' => $key,
+                'value' => $value
+            ]);
+        } else {
+            $insert = $this->db->prepare("INSERT INTO tenant_settings (tenant_id, setting_key, setting_value) VALUES (:tenant_id, :key, :value)");
+            $insert->execute([
+                'tenant_id' => $this->tenantId,
+                'key' => $key,
+                'value' => $value
+            ]);
+        }
     }
 
     public function getAll(array $options = []): array

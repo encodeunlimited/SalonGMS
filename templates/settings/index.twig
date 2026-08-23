@@ -14,9 +14,9 @@
             <form hx-post="/web/settings" hx-target="#form-messages" hx-swap="outerHTML">
                 <div id="form-messages"></div>
                 
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Business Hours</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">General Settings</h3>
                 
-                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 mb-6">
                     <div class="sm:col-span-3">
                         <label for="open_time" class="block text-sm font-medium text-gray-700">Opening Time</label>
                         <div class="mt-1">
@@ -29,6 +29,24 @@
                         <div class="mt-1">
                             <input type="time" name="close_time" id="close_time" value="{{ settings.close_time|default('17:00') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
                         </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 mb-2">
+                    <div class="sm:col-span-3">
+                        <label for="loyalty_points_per_currency" class="block text-sm font-medium text-gray-700">Loyalty Points Earned Per 1 QAR Spent</label>
+                        <div class="mt-1">
+                            <input type="number" step="1" name="loyalty_points_per_currency" id="loyalty_points_per_currency" value="{{ settings.loyalty_points_per_currency|default('10') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border" placeholder="e.g. 10">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">How many points the customer earns for spending 1 QAR.</p>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label for="loyalty_currency_per_point" class="block text-sm font-medium text-gray-700">Loyalty Discount Value (QAR) Per Point</label>
+                        <div class="mt-1">
+                            <input type="number" step="0.001" name="loyalty_currency_per_point" id="loyalty_currency_per_point" value="{{ settings.loyalty_currency_per_point|default('0.001') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border" placeholder="e.g. 0.001">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">How much discount (in QAR) 1 point gives.</p>
                     </div>
                 </div>
 

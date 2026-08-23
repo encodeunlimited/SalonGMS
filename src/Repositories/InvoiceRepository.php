@@ -90,7 +90,12 @@ class InvoiceRepository extends BaseRepository
     public function getByCustomerId(int $customerId): array
     {
         $stmt = $this->db->prepare("
-            SELECT i.id, i.total_amount, i.status, i.payment_method, i.created_at, a.service, a.apt_date
+            SELECT i.id, i.total_amount, i.status, i.payment_method, i.created_at, 
+                   COALESCE(
+                       (SELECT GROUP_CONCAT(ii.description, ', ') FROM invoice_items ii WHERE ii.invoice_id = i.id),
+                       a.service
+                   ) as service, 
+                   a.apt_date
             FROM {$this->table} i
             LEFT JOIN appointments a ON i.appointment_id = a.id
             WHERE i.tenant_id = :tenant_id AND i.customer_id = :customer_id

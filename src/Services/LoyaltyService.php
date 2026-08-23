@@ -36,7 +36,7 @@ class LoyaltyService
 
     public function getCurrencyPerPoint(): float
     {
-        return (float)$this->settingsRepo->get('loyalty_currency_per_point', 0.1);
+        return (float)$this->settingsRepo->get('loyalty_currency_per_point', 0.001);
     }
 
     public function awardPoints(int $customerId, int $invoiceId, float $invoiceTotal): void

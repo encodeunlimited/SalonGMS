@@ -66,6 +66,13 @@ class SettingsController
         $data = $request->getParsedBody();
         $this->settingsRepo->set('open_time', $data['open_time'] ?? '09:00');
         $this->settingsRepo->set('close_time', $data['close_time'] ?? '17:00');
+        
+        if (isset($data['loyalty_points_per_currency'])) {
+            $this->settingsRepo->set('loyalty_points_per_currency', (int)$data['loyalty_points_per_currency']);
+        }
+        if (isset($data['loyalty_currency_per_point'])) {
+            $this->settingsRepo->set('loyalty_currency_per_point', (float)$data['loyalty_currency_per_point']);
+        }
 
         $response->getBody()->write('
             <div id="form-messages" class="mb-4 p-3 rounded-lg bg-green-50 text-green-800 text-sm border border-green-200">

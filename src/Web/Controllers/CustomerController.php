@@ -318,4 +318,72 @@ class CustomerController
             ]
         ]);
     }
+    public function redeemPackageService(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $data = (array)$request->getParsedBody();
+        
+        $cpsId = (int)($data['customer_package_service_id'] ?? 0);
+        $serviceId = (int)($data['service_id'] ?? 0);
+        $serviceName = $data['service_name'] ?? 'Unknown Service';
+        $packageName = $data['package_name'] ?? 'Unknown Package';
+        
+        if ($cpsId > 0 && $this->customerPackages) {
+            $this->customerPackages->setTenantId($tenantId);
+            $this->appointments->setTenantId($tenantId);
+            $this->customers->setTenantId($tenantId);
+            
+            $customer = $this->customers->getById($customerId);
+            
+            // Decrement remaining by incrementing used_quantity
+            if ($this->customerPackages->incrementUsedQuantity($cpsId)) {
+                // Create a "done" appointment for this redemption
+                $this->appointments->create([
+                    'customer_id' => $customerId,
+                    'customer_name' => $customer['name'] ?? 'Unknown',
+                    'stylist_id' => null,
+                    'stylist_name' => 'Walk-in Stylist',
+                    'service_id' => $serviceId,
+                    'service_name' => 'Package: ' . $packageName . ' (Package Redemption) - ' . $serviceName,
+                    'date' => date('Y-m-d'),
+                    'time' => date('H:i'),
+                    'status' => 'done',
+                    'booking_type' => 'Walk-in',
+                    'customer_package_service_id' => $cpsId
+                ]);
+            }
+        }
+        
+        return $response->withHeader('Location', '/web/customers/' . $customerId . '/profile')->withStatus(302);
+    }
+    public function getAvailableRedemptions(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        
+        $activePackages = [];
+        if ($this->customerPackages) {
+            $this->customerPackages->setTenantId($tenantId);
+            $availableServices = $this->customerPackages->getAvailableServicesForCustomer($customerId);
+            
+            $packagesMap = [];
+            foreach ($availableServices as $srv) {
+                $cpId = $srv['customer_package_id'];
+                if (!isset($packagesMap[$cpId])) {
+                    $packagesMap[$cpId] = [
+                        'id' => $cpId,
+                        'name' => $srv['package_name'],
+                        'expires_at' => $srv['expires_at'],
+                        'services' => []
+                    ];
+                }
+                $packagesMap[$cpId]['services'][] = $srv;
+            }
+            $activePackages = array_values($packagesMap);
+        }
+        
+        $response->getBody()->write(json_encode(['success' => true, 'packages' => $activePackages]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    }
 }

@@ -101,7 +101,9 @@ class InvoiceService extends BaseService
                 'description' => $item['name'] ?? 'Service',
                 'quantity' => $qty,
                 'unit_price' => $price,
-                'subtotal' => $subtotal
+                'subtotal' => $subtotal,
+                'initial_service_id' => !empty($item['initial_service_id']) ? (int)$item['initial_service_id'] : null,
+                'initial_service_name' => $item['initial_service_name'] ?? null
             ];
         }
 
@@ -212,6 +214,38 @@ class InvoiceService extends BaseService
             
             $this->itemRepo->create($pItem);
             
+            // Create a 'done' appointment for standalone services and redemptions (walk-in)
+            if (empty($data['appointment_id']) && ($itemType === 'service' || $itemType === 'redemption')) {
+                $employeeId = !empty($data['employee_id']) ? (int)$data['employee_id'] : null;
+                $stylistName = 'Unknown';
+                if ($employeeId) {
+                    $employee = $this->userRepo->getById($employeeId);
+                    if ($employee) $stylistName = $employee['name'];
+                }
+                
+                $customerName = 'Walk-in Customer';
+                if ($customerId) {
+                    $customer = $this->customerRepo->getById($customerId);
+                    if ($customer) $customerName = $customer['name'];
+                }
+
+                for ($i = 0; $i < $pItem['quantity']; $i++) {
+                    $this->appointmentRepo->create([
+                        'customer_id' => $customerId,
+                        'customer_name' => $customerName,
+                        'stylist_id' => $employeeId,
+                        'stylist_name' => $stylistName,
+                        'service_id' => $itemId, // For redemption, itemId is the customer_package_service_id
+                        'service_name' => $pItem['description'],
+                        'date' => date('Y-m-d'),
+                        'time' => date('H:i'),
+                        'status' => 'done',
+                        'booking_type' => 'Walk-in',
+                        'invoice_id' => $invoice['id']
+                    ]);
+                }
+            }
+            
             // Provision package if purchased by a customer
             if ($customerId && $itemType === 'package' && $itemId) {
                 $package = $this->packageRepo->getById($itemId);
@@ -233,7 +267,37 @@ class InvoiceService extends BaseService
                         
                         foreach ($package['services'] as $pkgService) {
                             // Defaulting quantity to 1 for each service in the package bundle
-                            $this->customerPackageRepo->addService($cp['id'], $pkgService['id'], 1);
+                            $cpsId = $this->customerPackageRepo->addService($cp['id'], $pkgService['id'], 1);
+                            
+                            // If this service was selected for immediate redemption during purchase
+                            if (!empty($pItem['initial_service_id']) && $pItem['initial_service_id'] == $pkgService['id']) {
+                                // Increment used quantity (deduct it)
+                                $this->customerPackageRepo->incrementUsedQuantity($cpsId);
+                                
+                                // Get customer info and employee info
+                                $customer = $this->customerRepo->getById($customerId);
+                                $employeeId = !empty($data['employee_id']) ? (int)$data['employee_id'] : null;
+                                $stylistName = 'Unknown';
+                                if ($employeeId) {
+                                    $employee = $this->userRepo->getById($employeeId);
+                                    if ($employee) $stylistName = $employee['name'];
+                                }
+                                
+                                // Create a 'done' appointment for this initial redemption
+                                $this->appointmentRepo->create([
+                                    'customer_id' => $customerId,
+                                    'customer_name' => $customer['name'] ?? 'Unknown',
+                                    'stylist_id' => $employeeId,
+                                    'stylist_name' => $stylistName,
+                                    'service_id' => $pkgService['id'],
+                                    'service_name' => 'Package: ' . $package['name'] . ' (Package Redemption) - ' . $pkgService['name'],
+                                    'date' => date('Y-m-d'),
+                                    'time' => date('H:i'),
+                                    'status' => 'done',
+                                    'booking_type' => 'Walk-in',
+                                    'invoice_id' => $invoice['id']
+                                ]);
+                            }
                         }
                     }
                 }

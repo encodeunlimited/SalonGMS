@@ -31,6 +31,7 @@ class InvoiceController
     private WhatsAppService $whatsappService;
     private CustomerRepository $customerRepo;
     private PackageRepository $packageRepo;
+    private \App\Repositories\CustomerPackageRepository $customerPackageRepo;
 
     public function __construct(
         Twig $view, 
@@ -43,7 +44,8 @@ class InvoiceController
         PdfService $pdfService,
         WhatsAppService $whatsappService,
         CustomerRepository $customerRepo,
-        PackageRepository $packageRepo
+        PackageRepository $packageRepo,
+        \App\Repositories\CustomerPackageRepository $customerPackageRepo
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -56,6 +58,7 @@ class InvoiceController
         $this->whatsappService = $whatsappService;
         $this->customerRepo = $customerRepo;
         $this->packageRepo = $packageRepo;
+        $this->customerPackageRepo = $customerPackageRepo;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -86,7 +89,7 @@ class InvoiceController
         $customers = $this->customerRepo->getAll();
 
         $this->packageRepo->setTenantId($tenantId);
-        $packages = $this->packageRepo->getAll(['active' => 1]);
+        $packages = $this->packageRepo->getAll();
 
         $appointmentId = (int)($request->getQueryParams()['appointment_id'] ?? 0);
         $appointmentToCheckout = null;
@@ -129,8 +132,8 @@ class InvoiceController
         }
 
         $settings = $this->settingsRepo->getAll();
-        $loyaltyPointsPerCurrency = (float)($settings['loyalty_points_per_currency'] ?? 0.1);
-        $loyaltyCurrencyPerPoint = (float)($settings['loyalty_currency_per_point'] ?? 0.1);
+        $loyaltyPointsPerCurrency = (int)($settings['loyalty_points_per_currency'] ?? 10);
+        $loyaltyCurrencyPerPoint = (float)($settings['loyalty_currency_per_point'] ?? 0.001);
 
         return $this->view->render($response, 'pos/index.twig', [
             'title' => 'Point of Sale',
@@ -155,6 +158,109 @@ class InvoiceController
         $this->invoiceService->setTenantId($tenantId);
         
         try {
+            // Process package redemptions for ALL checkout methods
+            if (!empty($data['items'])) {
+                $this->customerPackageRepo->setTenantId($tenantId);
+                foreach ($data['items'] as $item) {
+                    if (($item['type'] ?? '') === 'redemption') {
+                        $qty = (int)($item['quantity'] ?? 1);
+                        for ($i = 0; $i < $qty; $i++) {
+                            $this->customerPackageRepo->incrementUsedQuantity((int)$item['id']);
+                        }
+                    }
+                }
+            }
+
+            $hasPackagePurchase = false;
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    if (($item['type'] ?? '') === 'package') {
+                        $hasPackagePurchase = true;
+                        break;
+                    }
+                }
+            }
+
+            // If Credit is selected and there are NO packages being purchased, create unbilled appointments.
+            // If they are buying a package on Credit, we MUST create an unpaid invoice so the package is actually added to their profile.
+            if (($data['payment_method'] ?? '') === 'Credit' && !$hasPackagePurchase) {
+                $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;
+                if (!$customerId) {
+                    $response->getBody()->write('
+                        <div id="pos-alerts" hx-swap-oob="true">
+                            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
+                                <strong>Error:</strong> Customer must be selected for Credit payment.
+                            </div>
+                        </div>
+                    ');
+                    return $response->withStatus(200);
+                }
+
+                $this->appointmentRepo->setTenantId($tenantId);
+                $appId = !empty($data['appointment_id']) ? (int)$data['appointment_id'] : null;
+                
+                if ($appId) {
+                    $this->appointmentRepo->updateStatus($appId, 'done');
+                }
+                
+                if (!empty($data['items'])) {
+                    $this->customerRepo->setTenantId($tenantId);
+                    $customer = $this->customerRepo->getById($customerId);
+                    $employeeId = !empty($data['employee_id']) ? (int)$data['employee_id'] : null;
+                    $stylistName = 'Unknown';
+                    
+                    if ($employeeId) {
+                        $this->userRepo->setTenantId($tenantId);
+                        $employee = $this->userRepo->getById($employeeId);
+                        if ($employee) $stylistName = $employee['name'];
+                    }
+
+                    $skipFirst = $appId ? true : false;
+                    
+                    foreach ($data['items'] as $index => $item) {
+                        if ($skipFirst && $index === 0) {
+                            continue;
+                        }
+                        
+                        $itemName = $item['name'] ?? 'Service';
+                        if (($item['type'] ?? '') === 'package') {
+                            $itemName = 'Package: ' . $itemName;
+                        }
+
+                        $qty = (int)($item['quantity'] ?? 1);
+
+                        for ($i = 0; $i < $qty; $i++) {
+                            $this->appointmentRepo->create([
+                                'customer_id' => $customerId,
+                                'customer_name' => $customer['name'] ?? 'Unknown',
+                                'stylist_id' => $employeeId,
+                                'stylist_name' => $stylistName,
+                                'service_id' => !empty($item['service_id']) ? (int)$item['service_id'] : (!empty($item['id']) ? (int)$item['id'] : null),
+                                'service_name' => $itemName,
+                                'date' => date('Y-m-d'),
+                                'time' => date('H:i'),
+                                'status' => 'done',
+                                'booking_type' => 'Walk-in'
+                            ]);
+                        }
+                    }
+                }
+
+                $response->getBody()->write('
+                    <div id="pos-alerts" hx-swap-oob="true">
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-300 shadow-sm" role="alert">
+                            <strong>Success!</strong> Added to Unbilled Completed Appointments.
+                        </div>
+                    </div>
+                ');
+                
+                if ($appId) {
+                    return $response->withHeader('HX-Redirect', '/web/appointments')->withStatus(200);
+                }
+                
+                return $response->withStatus(200);
+            }
+
             $invoice = $this->invoiceService->checkout($data);
             
             if (!empty($data['appointment_id'])) {

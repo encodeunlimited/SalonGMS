@@ -18,13 +18,44 @@
                 <input type="text" placeholder="Search services..." class="w-full focus:ring-salon-accent focus:border-salon-accent block shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
             </div>
             <div class="p-4 flex-1 overflow-y-auto space-y-6">
+                <!-- Available Redemptions (Dynamic based on selected customer) -->
+                <template x-if="available_redemptions && available_redemptions.length > 0">
+                    <div class="mb-6">
+                        <h3 class="font-bold text-salon-accent text-sm mb-3 uppercase tracking-wider flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Available Redemptions
+                        </h3>
+                        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            <template x-for="pkg in available_redemptions" :key="pkg.id">
+                                <template x-for="srv in pkg.services" :key="srv.customer_package_service_id">
+                                    <div x-show="getRemainingRedemptions(srv.customer_package_service_id, srv.total_quantity, srv.used_quantity) > 0"
+                                         @click="addItem(srv.customer_package_service_id, 'redemption', `Package: ${pkg.name} (Package Redemption) - ${srv.service_name}`, 0, srv.service_id)" 
+                                         class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-yellow-400 transition-all group flex flex-col justify-between h-full relative overflow-hidden">
+                                        <div class="absolute top-0 right-0 w-8 h-8 bg-yellow-400/20 rounded-bl-full -mr-2 -mt-2 group-hover:scale-150 transition-transform"></div>
+                                        <div>
+                                            <h4 class="font-bold text-gray-900 text-sm mb-1 leading-tight" x-text="srv.service_name"></h4>
+                                            <p class="text-xs text-yellow-700 line-clamp-1 mb-2" x-text="'From: ' + pkg.name"></p>
+                                        </div>
+                                        <div class="flex justify-between items-end mt-2">
+                                            <span class="text-yellow-800 font-bold text-xs bg-yellow-100 px-2 py-0.5 rounded-full" x-text="getRemainingRedemptions(srv.customer_package_service_id, srv.total_quantity, srv.used_quantity) + ' left'"></span>
+                                            <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center text-yellow-600 shadow-sm group-hover:bg-yellow-400 group-hover:text-white transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
                 <!-- Packages Category -->
                 {% if packages|length > 0 %}
                 <div class="mb-6">
                     <h3 class="font-bold text-gray-800 text-sm mb-3 uppercase tracking-wider">Packages</h3>
                     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         {% for pkg in packages %}
-                        <div @click="addItem({{ pkg.id }}, 'package', '{{ pkg.name|escape('js') }}', {{ pkg.price }})" 
+                        <div @click="selectPackage({{ pkg|json_encode|escape('html_attr') }})" 
                              class="bg-white border border-gray-100 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-salon-accent transition-all group flex flex-col justify-between h-full relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-8 h-8 bg-salon-accent/10 rounded-bl-full -mr-2 -mt-2 group-hover:scale-150 transition-transform"></div>
                             <div>
@@ -95,6 +126,9 @@
                 <div class="flex justify-between items-center mb-2 bg-white p-2 rounded shadow-sm border border-gray-100">
                     <div>
                         <h4 class="font-medium text-sm text-gray-900" x-text="item.name"></h4>
+                        <template x-if="item.initial_service_name">
+                            <span class="text-xs text-salon-accent block bg-yellow-50 px-1 rounded my-0.5" x-text="'Redeeming today: ' + item.initial_service_name"></span>
+                        </template>
                         <p class="text-xs text-gray-500">QAR <span x-text="item.price.toFixed(2)"></span> x <span x-text="item.quantity"></span></p>
                     </div>
                     <div class="flex items-center">
@@ -138,11 +172,11 @@
         
         <div class="p-4">
             <!-- HTMX Form bridging Alpine data -->
-            <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:after-request="if($event.detail.successful){ clearCart(); }">
+            <form hx-post="/web/pos/checkout" hx-swap="none" @htmx:after-request="if($event.detail.successful){ clearCart(); onCustomerChange(); }">
                 <!-- Customer Selection -->
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Select Customer</label>
-                    <select x-model="customer_id" @change="onCustomerChange()" x-init="new TomSelect($el, { placeholder: 'Search for a customer...' })" class="w-full shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border bg-white">
+                    <select x-model="customer_id" x-init="const ts = new TomSelect($el, { placeholder: 'Search for a customer...' }); ts.on('change', (val) => { customer_id = val; onCustomerChange(); })" class="w-full shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border bg-white">
                         <option value="">Walk-in Customer</option>
                         {% for customer in customers %}
                             <option value="{{ customer.id }}" data-points="{{ customer.loyalty_points|default(0) }}" {% if appointment_to_checkout and appointment_to_checkout.customer_id == customer.id %}selected{% endif %}>
@@ -150,20 +184,6 @@
                             </option>
                         {% endfor %}
                     </select>
-                </div>
-
-                <!-- Loyalty Points Redemption -->
-                <div x-show="customer_id && customer_points > 0" class="mb-5 bg-green-50 p-4 rounded-lg border border-green-200" style="display: none;">
-                    <label class="block text-sm font-bold text-green-800 mb-2">Redeem Loyalty Points</label>
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-1">
-                            <p class="text-sm text-green-700 mb-2">Available: <span x-text="customer_points" class="font-bold"></span> points</p>
-                            <div class="flex items-center">
-                                <input type="number" x-model="redeem_points" min="0" :max="customer_points" class="focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 shadow-sm border" placeholder="Points to redeem">
-                            </div>
-                            <p class="text-xs text-green-600 mt-1">1 point = QAR <span x-text="loyalty_currency_per_point"></span> discount. Max discount cannot exceed subtotal.</p>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Stylist Selection (Touch Friendly) -->
@@ -299,6 +319,7 @@
                             <input type="hidden" :name="`items[${index}][name]`" :value="item.name">
                             <input type="hidden" :name="`items[${index}][price]`" :value="item.price">
                             <input type="hidden" :name="`items[${index}][quantity]`" :value="item.quantity">
+                            <input type="hidden" :name="`items[${index}][service_id]`" :value="item.service_id">
                         </div>
                     </template>
                     
@@ -343,6 +364,55 @@
             </form>
         </div>
     </div>
+
+    <!-- Package Initial Service Modal -->
+    <template x-teleport="body">
+        <div x-show="show_package_modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="show_package_modal" x-transition.opacity class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75" @click="closePackageModal()"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div x-show="show_package_modal" x-transition class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-salon-accent/10 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-salon-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    Select a Service for Today
+                                </h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        The customer is purchasing <strong x-text="selected_package?.name"></strong>. Do they want to use one of the included services right now?
+                                    </p>
+                                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                                        <template x-for="service in selected_package?.services || []" :key="service.id">
+                                            <button @click="addPackageWithInitialService(service.id, service.name)" type="button" class="w-full text-left px-4 py-3 border border-gray-200 rounded-md hover:bg-yellow-50 hover:border-salon-accent transition-colors flex justify-between items-center group">
+                                                <span class="font-medium text-gray-900 group-hover:text-salon-accent" x-text="service.name"></span>
+                                                <svg class="w-5 h-5 text-gray-400 group-hover:text-salon-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                        <button @click="addPackageWithoutInitialService()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-600 text-base font-medium text-white hover:bg-gray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            No, just buy package
+                        </button>
+                        <button @click="closePackageModal()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 {% endblock %}
 
@@ -350,7 +420,7 @@
 <script>
 function posSystem() {
     return {
-        loyalty_currency_per_point: {{ loyalty_currency_per_point|default(0.1) }},
+        loyalty_currency_per_point: {{ loyalty_currency_per_point|default(0.001) }},
         items: [],
         customer_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.customer_id }}{% else %}{% endif %}',
         employee_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.user_id }}{% else %}{% endif %}',
@@ -361,6 +431,13 @@ function posSystem() {
         redeem_points: 0,
         discount_type: 'amount',
         discount_value: '',
+        available_redemptions: [],
+        
+        getRemainingRedemptions(cps_id, total, used) {
+            const inCart = this.items.find(i => i.type === 'redemption' && i.id === cps_id);
+            const cartQty = inCart ? inCart.quantity : 0;
+            return (total - used) - cartQty;
+        },
         
         get subtotal() {
             return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -421,22 +498,34 @@ function posSystem() {
         setEmployee(id) {
             this.employee_id = id;
         },
-        onCustomerChange() {
+        async onCustomerChange() {
             this.redeem_points = 0;
             if (this.customer_id) {
-                const select = document.querySelector('select[x-model="customer_id"]');
-                const option = select.options[select.selectedIndex];
-                this.customer_points = parseInt(option.getAttribute('data-points') || 0);
+                const select = this.$el.querySelector('select[x-model="customer_id"]') || document.querySelector('select[x-model="customer_id"]');
+                const option = select ? Array.from(select.options).find(opt => opt.value == this.customer_id) : null;
+                this.customer_points = option ? parseInt(option.dataset.points || 0) : 0;
+                
+                try {
+                    const res = await fetch(`/web/api/customers/${this.customer_id}/available-redemptions`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.success) {
+                            this.available_redemptions = data.packages || [];
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch available redemptions', e);
+                }
             } else {
                 this.customer_points = 0;
             }
         },
-        addItem(id, type, name, price) {
-            const existing = this.items.find(i => i.id === id && i.type === type && i.name === name);
+        addItem(id, type, name, price, service_id = null, initial_service_id = null, initial_service_name = null) {
+            const existing = this.items.find(i => i.id === id && i.type === type && i.name === name && i.initial_service_id === initial_service_id);
             if (existing) {
                 existing.quantity++;
             } else {
-                this.items.push({ id, type, name, price, quantity: 1 });
+                this.items.push({ id, type, name, price, quantity: 1, service_id, initial_service_id, initial_service_name });
             }
         },
         removeItem(index) {
@@ -448,8 +537,45 @@ function posSystem() {
             this.split_details = [{method: 'Cash', amount: ''}];
             this.redeem_points = 0;
             this.discount_value = '';
+        },
+        // Immediate Package Redemption
+        selected_package: null,
+        show_package_modal: false,
+        selectPackage(pkg) {
+            this.selected_package = pkg;
+            if (pkg.services && pkg.services.length > 0) {
+                this.show_package_modal = true;
+            } else {
+                this.addItem(pkg.id, 'package', pkg.name, pkg.price);
+            }
+        },
+        closePackageModal() {
+            this.show_package_modal = false;
+            this.selected_package = null;
+        },
+        addPackageWithInitialService(serviceId, serviceName) {
+            if (this.selected_package) {
+                this.addItem(
+                    this.selected_package.id, 
+                    'package', 
+                    this.selected_package.name, 
+                    this.selected_package.price, 
+                    null, 
+                    serviceId, 
+                    serviceName
+                );
+            }
+            this.closePackageModal();
+        },
+        addPackageWithoutInitialService() {
+            if (this.selected_package) {
+                this.addItem(this.selected_package.id, 'package', this.selected_package.name, this.selected_package.price);
+            }
+            this.closePackageModal();
         }
     }
 }
+</script>
+
 </script>
 {% endblock %}

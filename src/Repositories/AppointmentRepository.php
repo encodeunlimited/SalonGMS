@@ -111,7 +111,7 @@ class AppointmentRepository extends BaseRepository
             'date' => $data['date'] ?? date('Y-m-d'),
             'time' => $data['time'] ?? '12:00',
             'end_time' => $data['end_time'] ?? date('H:i', strtotime(($data['time'] ?? '12:00') . ' +1 hour')),
-            'status' => 'scheduled',
+            'status' => $data['status'] ?? 'scheduled',
             'booking_type' => $data['booking_type'] ?? 'In Salon',
             'cps_id' => !empty($data['customer_package_service_id']) ? (int)$data['customer_package_service_id'] : null
         ];

@@ -215,7 +215,16 @@
                                                     {% if remaining > 0 %}
                                                     <div class="flex items-center justify-between bg-yellow-50 px-3 py-2 rounded-md text-sm border border-yellow-100">
                                                         <span class="font-medium text-gray-800">{{ srv.service_name }}</span>
-                                                        <span class="bg-yellow-100 text-yellow-800 py-0.5 px-2 rounded-full text-xs font-bold">{{ remaining }} left</span>
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="bg-yellow-100 text-yellow-800 py-0.5 px-2 rounded-full text-xs font-bold">{{ remaining }} left</span>
+                                                            <form action="/web/customers/{{ customer.id }}/redeem-package-service" method="POST" class="m-0 p-0">
+                                                                <input type="hidden" name="customer_package_service_id" value="{{ srv.customer_package_service_id }}">
+                                                                <input type="hidden" name="service_id" value="{{ srv.service_id }}">
+                                                                <input type="hidden" name="service_name" value="{{ srv.service_name }}">
+                                                                <input type="hidden" name="package_name" value="{{ pkg.name }}">
+                                                                <button type="submit" class="text-xs bg-salon-dark hover:bg-salon-accent text-white px-3 py-1 rounded transition-colors shadow-sm cursor-pointer" onclick="return confirm('Mark this service as Done/Completed now?')">Redeem</button>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                     {% endif %}
                                                 {% endfor %}

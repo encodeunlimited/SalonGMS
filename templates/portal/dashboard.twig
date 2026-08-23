@@ -62,9 +62,18 @@
                 {% for app in upcoming_appointments %}
                     <div class="card glass mb-4" style="padding: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem;">
-                            <span style="font-weight: 700; font-size: 1.2rem; color: var(--text-main);">
-                                {{ app.service }}
-                            </span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 700; font-size: 1.2rem; color: var(--text-main);">
+                                    {{ app.service }}
+                                </span>
+                                <span style="font-size: 0.9rem; font-weight: 600; color: var(--salon-accent, #ca8a04); margin-top: 0.15rem;">
+                                    {% if '(Package Redemption)' in app.service %}
+                                        QAR 0.00
+                                    {% else %}
+                                        QAR {{ app.invoice_amount|default(app.service_price|default(0))|number_format(2) }}
+                                    {% endif %}
+                                </span>
+                            </div>
                             {% if app.status == 'scheduled' or app.status == 'pending' %}
                                 <span style="background-color: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; white-space: nowrap;">{{ app.status }}</span>
                             {% elseif app.status == 'approved' %}
@@ -102,9 +111,18 @@
                 {% for app in past_appointments %}
                     <div class="card glass mb-4" style="padding: 1.5rem; opacity: 0.8;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.25rem;">
-                            <span style="font-weight: 600; color: var(--text-main);">
-                                {{ app.service }}
-                            </span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; color: var(--text-main);">
+                                    {{ app.service }}
+                                </span>
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--salon-accent, #ca8a04); margin-top: 0.15rem;">
+                                    {% if '(Package Redemption)' in app.service %}
+                                        QAR 0.00
+                                    {% else %}
+                                        QAR {{ app.invoice_amount|default(app.service_price|default(0))|number_format(2) }}
+                                    {% endif %}
+                                </span>
+                            </div>
                             {% if app.status == 'cancelled' %}
                                 <span style="color: #991b1b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Cancelled</span>
                             {% elseif app.invoice_status == 'paid' %}

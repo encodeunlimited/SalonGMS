@@ -122,14 +122,13 @@ class DashboardController
 
     public function submitRating(Request $request, Response $response): Response
     {
-        $session = $request->getAttribute('session');
-        if (!$session || !isset($session['customer_id'])) {
+        $customerId = $request->getAttribute('customer_id');
+        $tenantId = $request->getAttribute('tenant_id', 1);
+
+        if (!$customerId) {
             $response->getBody()->write(json_encode(['success' => false, 'error' => 'Not authenticated']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
         }
-
-        $tenantId = $session['tenant_id'] ?? 1;
-        $customerId = $session['customer_id'];
 
         $data = $request->getParsedBody();
         $rating = (int)($data['rating'] ?? 0);

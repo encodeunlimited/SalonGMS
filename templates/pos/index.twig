@@ -125,10 +125,7 @@
             <template x-for="(item, index) in items" :key="index">
                 <div class="flex justify-between items-center mb-2 bg-white p-2 rounded shadow-sm border border-gray-100">
                     <div>
-                        <h4 class="font-medium text-sm text-gray-900" x-text="item.name"></h4>
-                        <template x-if="item.initial_service_name">
-                            <span class="text-xs text-salon-accent block bg-yellow-50 px-1 rounded my-0.5" x-text="'Redeeming today: ' + item.initial_service_name"></span>
-                        </template>
+                        <h4 class="font-medium text-sm text-gray-900" x-text="item.type === 'package' ? (item.initial_service_name ? `Package: ${item.name} (First Service: ${item.initial_service_name})` : `Package: ${item.name}`) : item.name"></h4>
                         <p class="text-xs text-gray-500">QAR <span x-text="item.price.toFixed(2)"></span> x <span x-text="item.quantity"></span></p>
                     </div>
                     <div class="flex items-center">

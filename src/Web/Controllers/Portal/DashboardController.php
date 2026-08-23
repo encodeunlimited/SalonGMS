@@ -2,6 +2,7 @@
 
 namespace App\Web\Controllers\Portal;
 
+use App\Repositories\RatingRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -19,6 +20,7 @@ class DashboardController
     private LoyaltyService $loyaltyService;
     private PackageRepository $packageRepo;
     private CustomerPackageRepository $customerPackageRepo;
+    private RatingRepository $ratingRepo;
 
     public function __construct(
         Twig $view, 
@@ -26,7 +28,8 @@ class DashboardController
         CustomerRepository $customerRepo,
         LoyaltyService $loyaltyService,
         PackageRepository $packageRepo,
-        CustomerPackageRepository $customerPackageRepo
+        CustomerPackageRepository $customerPackageRepo,
+        RatingRepository $ratingRepo
     ) {
         $this->view = $view;
         $this->appointmentRepo = $appointmentRepo;
@@ -34,6 +37,7 @@ class DashboardController
         $this->loyaltyService = $loyaltyService;
         $this->packageRepo = $packageRepo;
         $this->customerPackageRepo = $customerPackageRepo;
+        $this->ratingRepo = $ratingRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -114,5 +118,32 @@ class DashboardController
             'is_birthday' => $isBirthday,
             'my_packages' => $groupedPackages
         ]);
+    }
+
+    public function submitRating(Request $request, Response $response): Response
+    {
+        $session = $request->getAttribute('session');
+        if (!$session || !isset($session['customer_id'])) {
+            $response->getBody()->write(json_encode(['success' => false, 'error' => 'Not authenticated']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+        }
+
+        $tenantId = $session['tenant_id'] ?? 1;
+        $customerId = $session['customer_id'];
+
+        $data = $request->getParsedBody();
+        $rating = (int)($data['rating'] ?? 0);
+        $comment = trim($data['comment'] ?? '');
+
+        if ($rating < 1 || $rating > 5) {
+            $response->getBody()->write(json_encode(['success' => false, 'error' => 'Invalid rating']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $this->ratingRepo->setTenantId($tenantId);
+        $this->ratingRepo->createRating($customerId, $rating, $comment);
+
+        $response->getBody()->write(json_encode(['success' => true]));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }

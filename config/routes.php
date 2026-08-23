@@ -201,5 +201,6 @@ return function (App $app) {
         $group->get('/dashboard', \App\Web\Controllers\Portal\DashboardController::class . ':index');
         $group->get('/profile', \App\Web\Controllers\Portal\ProfileController::class . ':index');
         $group->post('/profile', \App\Web\Controllers\Portal\ProfileController::class . ':update');
+        $group->post('/rating', \App\Web\Controllers\Portal\DashboardController::class . ':submitRating');
     })->add(\App\Middleware\CustomerSessionAuthMiddleware::class);
 };

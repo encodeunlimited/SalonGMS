@@ -24,7 +24,13 @@
                 </a>
             </div>
         </div>
-        <a href="/portal/book" class="btn-primary" style="width: auto;">Book New Appointment</a>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button x-data @click="$dispatch('open-rating-modal')" class="btn-primary" style="background-color: var(--salon-accent, #ca8a04); color: #fff; width: auto; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                <svg style="width: 1.25rem; height: 1.25rem;" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                Rate Our Salon
+            </button>
+            <a href="/portal/book" class="btn-primary" style="width: auto;">Book New Appointment</a>
+        </div>
     </div>
 
     {% if is_birthday %}
@@ -188,4 +194,78 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Rating Modal -->
+<div x-data="{ show: false, rating: 0, hoverRating: 0, comment: '', submitting: false }"
+     x-on:open-rating-modal.window="show = true"
+     x-show="show" 
+     style="display: none; position: fixed; inset: 0; z-index: 50; overflow-y: auto;" 
+     aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div style="display: flex; align-items: flex-end; justify-content: center; min-height: 100vh; padding: 1rem; text-align: center; sm:block sm:p-0;">
+        <div x-show="show" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="show = false"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div x-show="show" x-transition
+             style="display: inline-block; align-items: bottom; background-color: white; border-radius: 0.5rem; text-align: left; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transform: transition-all; sm:my-8; sm:align-middle; sm:max-w-lg; sm:w-full;">
+            <div style="background-color: white; padding: 1.5rem;">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="margin-left: auto; cursor: pointer; color: #9ca3af;" @click="show = false">
+                        <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <div style="text-align: center; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827;" id="modal-title">Rate Our Salon</h3>
+                        <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">We value your feedback. Let us know how your experience was!</p>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; justify-content: center;">
+                        <template x-for="i in 5">
+                            <svg @click="rating = i" 
+                                 @mouseenter="hoverRating = i"
+                                 @mouseleave="hoverRating = 0"
+                                 :style="{'color': (hoverRating >= i || rating >= i) ? 'var(--salon-accent, #ca8a04)' : '#d1d5db', 'cursor': 'pointer', 'width': '2.5rem', 'height': '2.5rem', 'transition': 'color 0.2s'}" 
+                                 fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                        </template>
+                    </div>
+
+                    <div style="width: 100%; margin-bottom: 1rem;">
+                        <label for="comment" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Comment (Optional)</label>
+                        <textarea x-model="comment" id="comment" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); focus:outline-none; focus:border-var(--salon-accent);"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div style="background-color: #f9fafb; padding: 1rem 1.5rem; display: flex; flex-direction: row-reverse;">
+                <button @click="
+                    submitting = true;
+                    fetch('/portal/rating', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ rating: rating, comment: comment })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        submitting = false;
+                        if(data.success) {
+                            show = false;
+                            rating = 0;
+                            comment = '';
+                            alert('Thank you for your rating!');
+                        } else {
+                            alert(data.error || 'Something went wrong');
+                        }
+                    })
+                    .catch(e => {
+                        submitting = false;
+                        alert('Error submitting rating');
+                    });
+                " :disabled="rating === 0 || submitting" type="button" class="btn-primary" style="width: auto; margin-left: 0.75rem;" :style="{'opacity': (rating === 0 || submitting) ? '0.5' : '1'}">
+                    <span x-show="!submitting">Submit</span>
+                    <span x-show="submitting">Submitting...</span>
+                </button>
+                <button @click="show = false" type="button" style="margin-top: 0; width: auto; background-color: white; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem 1rem; color: #374151; font-weight: 500; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

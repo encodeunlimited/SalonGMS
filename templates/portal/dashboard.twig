@@ -105,12 +105,18 @@
                             <span style="font-weight: 600; color: var(--text-main);">
                                 {{ app.service }}
                             </span>
-                            {% if app.status == 'paid' or app.status == 'completed' %}
-                                <span style="color: #065f46; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Paid</span>
+                            {% if app.status == 'cancelled' %}
+                                <span style="color: #991b1b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Cancelled</span>
+                            {% elseif app.invoice_status == 'paid' %}
+                                <span style="color: #065f46; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">
+                                    Paid {% if app.payment_method %}({{ app.payment_method }}){% endif %}
+                                </span>
+                            {% elseif app.invoice_status == 'unpaid' %}
+                                <span style="color: #9a3412; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Unpaid</span>
+                            {% elseif '(Package Redemption)' in app.service %}
+                                <span style="color: #065f46; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Redeemed</span>
                             {% elseif app.status == 'done' %}
                                 <span style="color: #10b981; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Done</span>
-                            {% elseif app.status == 'cancelled' %}
-                                <span style="color: #991b1b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Cancelled</span>
                             {% else %}
                                 <span class="text-muted" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">{{ app.status }}</span>
                             {% endif %}

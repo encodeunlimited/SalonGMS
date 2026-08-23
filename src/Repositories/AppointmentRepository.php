@@ -132,9 +132,11 @@ class AppointmentRepository extends BaseRepository
     public function getByCustomerId(int $customerId): array
     {
         $stmt = $this->db->prepare("
-            SELECT a.id, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type, u.profile_image as stylist_image
+            SELECT a.id, a.service, a.stylist, a.apt_date, a.apt_time, a.apt_end_time, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type, u.profile_image as stylist_image,
+                   i.status as invoice_status, i.payment_method
             FROM {$this->table} a
             LEFT JOIN users u ON a.user_id = u.id
+            LEFT JOIN invoices i ON a.invoice_id = i.id
             WHERE a.tenant_id = :tenant_id AND a.customer_id = :customer_id
             ORDER BY a.apt_date DESC, a.apt_time DESC
         ");

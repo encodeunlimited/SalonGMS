@@ -51,10 +51,7 @@ class DashboardController
         $loyaltyTransactions = $this->loyaltyService->getCustomerTransactions($customerId);
         
         // Fetch appointments for this customer
-        $appointments = $this->appointmentRepo->getAll(['sort' => 'apt_date', 'dir' => 'DESC']);
-        $customerAppointments = array_filter($appointments, function($app) use ($customerId) {
-            return $app['customer_id'] == $customerId;
-        });
+        $customerAppointments = $this->appointmentRepo->getByCustomerId($customerId);
 
         // Separate into upcoming and past
         $now = new \DateTime();

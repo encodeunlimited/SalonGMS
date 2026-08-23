@@ -273,15 +273,15 @@ class CustomerController
             
             // Fix unbilled appointments price if it's a package
             foreach ($unbilledAppointments as &$apt) {
-                if (strpos($apt['service'], 'Package: ') === 0) {
+                if (strpos($apt['service'], '(Package Redemption)') !== false) {
+                    $apt['service_price'] = 0.00;
+                } elseif (strpos($apt['service'], 'Package: ') === 0) {
                     $packageName = preg_replace('/^Package: (.*?) \(First Service: .*\)$/', '$1', $apt['service']);
                     $packageName = str_replace('Package: ', '', $packageName);
                     
                     if (isset($packagesByName[$packageName])) {
                         $apt['service_price'] = $packagesByName[$packageName]['price'];
                     }
-                } elseif (strpos($apt['service'], '(Package Redemption)') !== false) {
-                    $apt['service_price'] = 0.00;
                 }
             }
             unset($apt);

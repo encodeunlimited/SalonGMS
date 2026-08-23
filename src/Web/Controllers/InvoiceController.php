@@ -171,29 +171,14 @@ class InvoiceController
                 }
             }
 
-            $hasPackagePurchase = false;
-            if (!empty($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    if (($item['type'] ?? '') === 'package') {
-                        $hasPackagePurchase = true;
-                        break;
-                    }
-                }
-            }
-
-            // If Credit is selected and there are NO packages being purchased, create unbilled appointments.
-            // If they are buying a package on Credit, we MUST create an unpaid invoice so the package is actually added to their profile.
-            if (($data['payment_method'] ?? '') === 'Credit' && !$hasPackagePurchase) {
+            // If Credit is selected, create unbilled appointments and do NOT generate an invoice immediately.
+            // This applies to both regular services and packages (which will be provisioned here).
+            if (($data['payment_method'] ?? '') === 'Credit') {
                 $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;
                 if (!$customerId) {
-                    $response->getBody()->write('
-                        <div id="pos-alerts" hx-swap-oob="true">
-                            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
-                                <strong>Error:</strong> Customer must be selected for Credit payment.
-                            </div>
-                        </div>
-                    ');
-                    return $response->withStatus(200);
+                    return $response->withHeader('HX-Trigger', json_encode([
+                        'show-toast' => ['type' => 'error', 'message' => 'Customer must be selected for Credit payment.']
+                    ]))->withStatus(200);
                 }
 
                 $this->appointmentRepo->setTenantId($tenantId);
@@ -222,12 +207,50 @@ class InvoiceController
                             continue;
                         }
                         
-                        $itemName = $item['name'] ?? 'Service';
-                        if (($item['type'] ?? '') === 'package') {
-                            $itemName = 'Package: ' . $itemName;
-                        }
-
                         $qty = (int)($item['quantity'] ?? 1);
+                        $itemName = $item['name'] ?? 'Service';
+                        
+                        if (($item['type'] ?? '') === 'package') {
+                            $pkgId = !empty($item['item_id']) ? (int)$item['item_id'] : (!empty($item['id']) ? (int)$item['id'] : null);
+                            
+                            // Provision the package
+                            if (!$appId && $pkgId) {
+                                $this->packageRepo->setTenantId($tenantId);
+                                $package = $this->packageRepo->getById($pkgId);
+                                
+                                if ($package && !empty($package['services'])) {
+                                    $expiresAt = null;
+                                    if (!empty($package['validity_months'])) {
+                                        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$package['validity_months']} months"));
+                                    }
+                                    
+                                    for ($p = 0; $p < $qty; $p++) {
+                                        $cp = $this->customerPackageRepo->create([
+                                            'customer_id' => $customerId,
+                                            'package_id' => $pkgId,
+                                            'status' => 'active',
+                                            'expires_at' => $expiresAt
+                                        ]);
+                                        
+                                        foreach ($package['services'] as $pkgService) {
+                                            $sQuantity = $pkgService['quantity'] ?? 1;
+                                            $cpsId = $this->customerPackageRepo->addService($cp['id'], $pkgService['id'], $sQuantity);
+                                            
+                                            // Deduct if it's the initial service
+                                            if (!empty($item['initial_service_id']) && $item['initial_service_id'] == $pkgService['id']) {
+                                                $this->customerPackageRepo->incrementUsedQuantity($cpsId);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (!empty($item['initial_service_name'])) {
+                                $itemName = 'Package: ' . $itemName . ' (First Service: ' . $item['initial_service_name'] . ')';
+                            } else {
+                                $itemName = 'Package: ' . $itemName;
+                            }
+                        }
 
                         for ($i = 0; $i < $qty; $i++) {
                             $this->appointmentRepo->create([
@@ -242,17 +265,13 @@ class InvoiceController
                                 'status' => 'done',
                                 'booking_type' => 'Walk-in'
                             ]);
-                        }
                     }
                 }
+            }
 
-                $response->getBody()->write('
-                    <div id="pos-alerts" hx-swap-oob="true">
-                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-300 shadow-sm" role="alert">
-                            <strong>Success!</strong> Added to Unbilled Completed Appointments.
-                        </div>
-                    </div>
-                ');
+            $response = $response->withHeader('HX-Trigger', json_encode([
+                    'show-toast' => ['type' => 'success', 'message' => 'Added to Unbilled Completed Appointments.']
+                ]));
                 
                 if ($appId) {
                     return $response->withHeader('HX-Redirect', '/web/appointments')->withStatus(200);
@@ -288,24 +307,14 @@ class InvoiceController
             }
 
             // Return HTMX OOB success message for standard POS checkout
-            $response->getBody()->write('
-                <div id="pos-alerts" hx-swap-oob="true">
-                    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-300 shadow-sm" role="alert">
-                        <strong>Success!</strong> Invoice #' . $invoice['id'] . ' created for $' . number_format($invoice['total_amount'], 2) . '
-                    </div>
-                </div>
-            ');
-            return $response->withStatus(200);
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'success', 'message' => 'Invoice #' . $invoice['id'] . ' created for QAR ' . number_format($invoice['total_amount'], 2)]
+            ]))->withHeader('HX-Redirect', '/web/invoices')->withStatus(200);
             
         } catch (Exception $e) {
-            $response->getBody()->write('
-                <div id="pos-alerts" hx-swap-oob="true">
-                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
-                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
-                    </div>
-                </div>
-            ');
-            return $response->withStatus(400);
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'error', 'message' => 'Checkout failed. ' . $e->getMessage()]
+            ]))->withStatus(200);
         }
     }
 
@@ -351,14 +360,9 @@ class InvoiceController
             ]))->withStatus(200);
             
         } catch (Exception $e) {
-            $response->getBody()->write('
-                <div id="payment-alerts" hx-swap-oob="true">
-                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
-                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
-                    </div>
-                </div>
-            ');
-            return $response->withStatus(200);
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'error', 'message' => 'Error: ' . $e->getMessage()]
+            ]))->withStatus(200);
         }
     }
     
@@ -396,14 +400,9 @@ class InvoiceController
         $data = $request->getParsedBody();
 
         if (empty($data['invoice_ids']) || !is_array($data['invoice_ids'])) {
-            $response->getBody()->write('
-                <div id="payment-alerts" hx-swap-oob="true">
-                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
-                        <strong>Error:</strong> No invoices selected.
-                    </div>
-                </div>
-            ');
-            return $response->withStatus(200);
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'error', 'message' => 'No invoices selected.']
+            ]))->withStatus(200);
         }
         
         try {
@@ -427,14 +426,9 @@ class InvoiceController
             ]))->withStatus(200);
             
         } catch (Exception $e) {
-            $response->getBody()->write('
-                <div id="payment-alerts" hx-swap-oob="true">
-                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
-                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
-                    </div>
-                </div>
-            ');
-            return $response->withStatus(200);
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'error', 'message' => 'Error: ' . $e->getMessage()]
+            ]))->withStatus(200);
         }
     }
 
@@ -492,14 +486,9 @@ class InvoiceController
                 'refresh-customer-profile' => true
             ]))->withStatus(200);
         } catch (Exception $e) {
-            $response->getBody()->write('
-                <div id="payment-alerts" hx-swap-oob="true">
-                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-300 shadow-sm" role="alert">
-                        <strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '
-                    </div>
-                </div>
-            ');
-            return $response->withStatus(200);
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'error', 'message' => 'Error: ' . $e->getMessage()]
+            ]))->withStatus(200);
         }
     }
 

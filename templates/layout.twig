@@ -236,9 +236,9 @@
     <!-- Global Toast Notification -->
     <div x-data="{ show: false, message: '', type: 'success' }" 
          @show-toast.window="
-            console.log('Toast event received:', $event.detail);
             let val = $event.detail.value || $event.detail;
             message = (typeof val === 'object' && val.message) ? val.message : val;
+            type = (typeof val === 'object' && val.type) ? val.type : 'success';
             show = true; 
             setTimeout(() => show = false, 3000);
          "
@@ -250,9 +250,16 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 transform translate-y-0"
              x-transition:leave-end="opacity-0 transform translate-y-4"
-             class="bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl font-medium flex items-center gap-3"
+             :class="{
+                 'bg-green-600': type === 'success',
+                 'bg-red-600': type === 'error',
+                 'bg-blue-600': type === 'info'
+             }"
+             class="text-white px-6 py-3 rounded-lg shadow-xl font-medium flex items-center gap-3"
              style="display: none;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <svg x-show="type === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <svg x-show="type === 'error'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <svg x-show="type === 'info'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span x-text="message"></span>
         </div>
     </div>

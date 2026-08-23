@@ -246,8 +246,8 @@ class InvoiceService extends BaseService
                 }
             }
             
-            // Provision package if purchased by a customer
-            if ($customerId && $itemType === 'package' && $itemId) {
+            // Provision package if purchased by a customer (skip if this came from an appointment checkout, as it was already provisioned)
+            if ($customerId && $itemType === 'package' && $itemId && empty($data['appointment_id'])) {
                 $package = $this->packageRepo->getById($itemId);
                 if ($package && !empty($package['services'])) {
                     
@@ -266,8 +266,8 @@ class InvoiceService extends BaseService
                         ]);
                         
                         foreach ($package['services'] as $pkgService) {
-                            // Defaulting quantity to 1 for each service in the package bundle
-                            $cpsId = $this->customerPackageRepo->addService($cp['id'], $pkgService['id'], 1);
+                            $quantity = $pkgService['quantity'] ?? 1; // Default to 1 if quantity not specified in package items
+                            $cpsId = $this->customerPackageRepo->addService($cp['id'], $pkgService['id'], $quantity);
                             
                             // If this service was selected for immediate redemption during purchase
                             if (!empty($pItem['initial_service_id']) && $pItem['initial_service_id'] == $pkgService['id']) {
@@ -460,7 +460,9 @@ class InvoiceService extends BaseService
             $price = (float)($appointment['service_price'] ?? 0);
             
             // Fix price for Package Redemption and Package Purchase
-            if (strpos($appointment['service'], 'Package: ') === 0) {
+            if (strpos($appointment['service'], '(Package Redemption)') !== false) {
+                $price = 0.00;
+            } elseif (strpos($appointment['service'], 'Package: ') === 0) {
                 $packageName = preg_replace('/^Package: (.*?) \(First Service: .*\)$/', '$1', $appointment['service']);
                 $packageName = str_replace('Package: ', '', $packageName);
                 
@@ -471,8 +473,6 @@ class InvoiceService extends BaseService
                         break;
                     }
                 }
-            } elseif (strpos($appointment['service'], '(Package Redemption)') !== false) {
-                $price = 0.00;
             }
 
             $totalAmount += $price;

@@ -320,6 +320,12 @@
                             <input type="hidden" :name="`items[${index}][price]`" :value="item.price">
                             <input type="hidden" :name="`items[${index}][quantity]`" :value="item.quantity">
                             <input type="hidden" :name="`items[${index}][service_id]`" :value="item.service_id">
+                            <template x-if="item.initial_service_id">
+                                <input type="hidden" :name="`items[${index}][initial_service_id]`" :value="item.initial_service_id">
+                            </template>
+                            <template x-if="item.initial_service_name">
+                                <input type="hidden" :name="`items[${index}][initial_service_name]`" :value="item.initial_service_name">
+                            </template>
                         </div>
                     </template>
                     

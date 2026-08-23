@@ -329,7 +329,7 @@ class InvoiceController
                 'show-toast' => ['type' => 'success', 'message' => 'Invoice #' . $invoice['id'] . ' created for QAR ' . number_format($invoice['total_amount'], 2)],
                 'open-receipt' => [
                     'url' => '/web/invoices/download/' . $invoice['id'] . '?print=1',
-                    'redirect' => '/web/invoices'
+                    'redirect' => '/web/pos'
                 ]
             ]))->withStatus(200);
             

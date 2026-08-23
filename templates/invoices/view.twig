@@ -154,7 +154,7 @@
     <div class="mt-4">
         {% if invoice.status == 'paid' %}
             {% if invoice.payment_method == 'Split' and invoice.split_details %}
-                {% set splits = invoice.split_details|json_decode %}
+                {% set splits = invoice.split_details %}
                 {% for split in splits %}
                 <div class="cf py-2">
                     <div class="col-left">Paid ({{ split.method }}):</div>

@@ -71,6 +71,10 @@ class InvoiceService extends BaseService
         
         $items = $this->itemRepo->getByInvoiceId($invoiceId);
         $invoice['items'] = $items;
+
+        if (!empty($invoice['split_details']) && is_string($invoice['split_details'])) {
+            $invoice['split_details'] = json_decode($invoice['split_details'], true);
+        }
         
         return $invoice;
     }

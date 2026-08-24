@@ -16,34 +16,44 @@ class AnalyticsRepository extends BaseRepository
         $endOfMonth = date('Y-m-t 23:59:59');
 
         // Revenue today (from invoices paid today)
-        // Since we don't have a paid_date, we just check if created_at is today and status is paid.
-        // For cross-db compatibility (SQLite/MySQL), we'll use LIKE for the date in SQLite or standard >= <=
         $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND created_at >= ? AND created_at <= ?");
         $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
-        $revenueToday = $stmt->fetchColumn() ?: 0.00;
+        $revenueToday = (float)($stmt->fetchColumn() ?: 0.00);
+
+        // Cash today
+        $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND (LOWER(payment_method) = 'cash' OR payment_method IS NULL OR payment_method = '') AND created_at >= ? AND created_at <= ?");
+        $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
+        $cashToday = (float)($stmt->fetchColumn() ?: 0.00);
+
+        // Card today
+        $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND LOWER(payment_method) = 'card' AND created_at >= ? AND created_at <= ?");
+        $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
+        $cardToday = (float)($stmt->fetchColumn() ?: 0.00);
 
         // Appointments today
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM appointments WHERE tenant_id = ? AND apt_date = ?");
         $stmt->execute([$tenantId, $today]);
-        $appointmentsToday = $stmt->fetchColumn() ?: 0;
+        $appointmentsToday = (int)($stmt->fetchColumn() ?: 0);
 
-        // Active Stylists (Users with role stylist)
+        // Active Stylists
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE tenant_id = ? AND role = 'stylist'");
         $stmt->execute([$tenantId]);
-        $activeStylists = $stmt->fetchColumn() ?: 0;
+        $activeStylists = (int)($stmt->fetchColumn() ?: 0);
 
-        // New Customers (Created this month)
+        // New Customers
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM customers WHERE tenant_id = ? AND created_at >= ? AND created_at <= ?");
         $stmt->execute([$tenantId, $startOfMonth, $endOfMonth]);
-        $newCustomers = $stmt->fetchColumn() ?: 0;
+        $newCustomers = (int)($stmt->fetchColumn() ?: 0);
 
         // Expenses today
         $stmt = $this->db->prepare("SELECT SUM(amount) FROM expenses WHERE tenant_id = ? AND expense_date = ?");
         $stmt->execute([$tenantId, $today]);
-        $expensesToday = $stmt->fetchColumn() ?: 0.00;
+        $expensesToday = (float)($stmt->fetchColumn() ?: 0.00);
 
         return [
             'revenue_today' => $revenueToday,
+            'cash_today' => $cashToday,
+            'card_today' => $cardToday,
             'appointments_today' => $appointmentsToday,
             'active_stylists' => $activeStylists,
             'new_customers' => $newCustomers,

@@ -22,6 +22,10 @@
         <div>
             <h3 class="text-sm font-medium text-gray-500">Revenue</h3>
             <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ kpi.revenue_today|number_format(0) }}</p>
+            <div class="mt-2 text-xs flex flex-col space-y-0.5 text-gray-500 font-medium">
+                <span>Cash: <span class="text-green-600">QAR {{ kpi.cash_today|number_format(0) }}</span></span>
+                <span>Card: <span class="text-blue-600">QAR {{ kpi.card_today|number_format(0) }}</span></span>
+            </div>
         </div>
     </div>
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">

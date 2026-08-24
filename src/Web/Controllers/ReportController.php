@@ -145,4 +145,30 @@ class ReportController
 
         return $this->view->render($response, 'reports/daily_eod.twig', $data);
     }
+
+    public function paymentChannels(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->reports->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $startDate = $params['start_date'] ?? date('Y-m-01');
+        $endDate = $params['end_date'] ?? date('Y-m-t');
+
+        $revenueByPaymentMethod = $this->reports->getRevenueByPaymentMethod($startDate, $endDate);
+        
+        $data = [
+            'title' => 'Payment Channel Report',
+            'active_menu' => 'reports',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'revenue_by_payment_method' => $revenueByPaymentMethod,
+        ];
+
+        if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
+            return $this->view->render($response, 'reports/partials/payment_channels_data.twig', $data);
+        }
+
+        return $this->view->render($response, 'reports/payment_channels.twig', $data);
+    }
 }

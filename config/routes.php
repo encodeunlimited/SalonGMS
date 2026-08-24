@@ -106,6 +106,9 @@ return function (App $app) {
 
         // Reports
         $group->get('/reports', \App\Web\Controllers\ReportController::class . ':index');
+        $group->get('/reports/sales', \App\Web\Controllers\ReportController::class . ':salesSummary');
+        $group->get('/reports/stylists', \App\Web\Controllers\ReportController::class . ':stylistPerformance');
+        $group->get('/reports/eod', \App\Web\Controllers\ReportController::class . ':dailyEod');
         
         // Expenses
         $group->get('/expenses', \App\Web\Controllers\ExpenseController::class . ':index');

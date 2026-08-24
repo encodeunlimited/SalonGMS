@@ -74,4 +74,75 @@ class ReportController
             'appointments_summary' => $appointmentsSummary
         ];
     }
+
+    public function salesSummary(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->reports->setTenantId($tenantId);
+        $this->expenseRepo->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $startDate = $params['start_date'] ?? date('Y-m-01');
+        $endDate = $params['end_date'] ?? date('Y-m-t');
+
+        $data = $this->getReportData($startDate, $endDate);
+        $data['total_expenses'] = $this->expenseRepo->getTotalExpensesByDateRange($startDate, $endDate);
+        
+        $data['title'] = 'Sales Summary';
+        $data['active_menu'] = 'reports';
+        $data['start_date'] = $startDate;
+        $data['end_date'] = $endDate;
+
+        if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
+            return $this->view->render($response, 'reports/partials/sales_summary_data.twig', $data);
+        }
+
+        return $this->view->render($response, 'reports/sales_summary.twig', $data);
+    }
+
+    public function stylistPerformance(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->reports->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $startDate = $params['start_date'] ?? date('Y-m-01');
+        $endDate = $params['end_date'] ?? date('Y-m-t');
+
+        $data = $this->getReportData($startDate, $endDate);
+        $data['title'] = 'Stylist Performance';
+        $data['active_menu'] = 'reports';
+        $data['start_date'] = $startDate;
+        $data['end_date'] = $endDate;
+
+        if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
+            return $this->view->render($response, 'reports/partials/stylist_performance_data.twig', $data);
+        }
+
+        return $this->view->render($response, 'reports/stylist_performance.twig', $data);
+    }
+
+    public function dailyEod(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->reports->setTenantId($tenantId);
+        $this->expenseRepo->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $date = $params['date'] ?? date('Y-m-d');
+        
+        // EOD is single day
+        $data = $this->getReportData($date, $date);
+        $data['total_expenses'] = $this->expenseRepo->getTotalExpensesByDateRange($date, $date);
+        
+        $data['title'] = 'End of Day Report';
+        $data['active_menu'] = 'reports';
+        $data['target_date'] = $date;
+
+        if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
+            return $this->view->render($response, 'reports/partials/daily_eod_data.twig', $data);
+        }
+
+        return $this->view->render($response, 'reports/daily_eod.twig', $data);
+    }
 }

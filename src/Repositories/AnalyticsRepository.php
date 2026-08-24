@@ -193,13 +193,10 @@ class AnalyticsRepository extends BaseRepository
         $tenantId = $this->getTenantId();
         
         $stmt = $this->db->prepare("
-            SELECT s.name, COUNT(ii.id) as item_count 
-            FROM invoice_items ii 
-            JOIN services s ON ii.service_id = s.id 
-            JOIN invoices i ON ii.invoice_id = i.id
-            JOIN appointments a ON i.appointment_id = a.id
-            WHERE i.tenant_id = ? AND a.user_id = ? 
-            GROUP BY s.name 
+            SELECT service as name, COUNT(id) as item_count 
+            FROM appointments 
+            WHERE tenant_id = ? AND user_id = ? AND status IN ('done', 'paid', 'completed')
+            GROUP BY service 
             ORDER BY item_count DESC 
             LIMIT 5
         ");

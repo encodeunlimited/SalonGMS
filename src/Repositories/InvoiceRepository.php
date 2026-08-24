@@ -70,7 +70,9 @@ class InvoiceRepository extends BaseRepository
     public function getByIdPublic(int $id): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT i.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+            SELECT i.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                   (SELECT GROUP_CONCAT(DISTINCT a.stylist_name SEPARATOR ', ') FROM appointments a WHERE a.invoice_id = i.id OR a.id = i.appointment_id) as stylist_name,
+                   (SELECT GROUP_CONCAT(ii.description SEPARATOR ', ') FROM invoice_items ii WHERE ii.invoice_id = i.id) as service_names
             FROM {$this->table} i
             LEFT JOIN customers c ON i.customer_id = c.id
             WHERE i.id = :id LIMIT 1

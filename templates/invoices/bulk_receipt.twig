@@ -99,7 +99,11 @@
 
     <div class="cf mt-2">
         <div class="col-left">Date:</div>
-        <div class="col-right">{{ invoices[0].created_at|date('M j, Y H:i') }}</div>
+        <div class="col-right">{{ invoices[0].created_at|date('M j, Y') }}</div>
+    </div>
+    <div class="cf mt-2">
+        <div class="col-left">Time:</div>
+        <div class="col-right">{{ invoices[0].created_at|date('h:i A') }}</div>
     </div>
     <div class="cf mt-2">
         <div class="col-left">Customer:</div>

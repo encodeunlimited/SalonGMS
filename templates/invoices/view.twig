@@ -101,12 +101,22 @@
     </div>
     <div class="cf mt-2">
         <div class="col-left">Date:</div>
-        <div class="col-right">{{ invoice.created_at|date('M j, Y H:i') }}</div>
+        <div class="col-right">{{ invoice.created_at|date('M j, Y') }}</div>
+    </div>
+    <div class="cf mt-2">
+        <div class="col-left">Time:</div>
+        <div class="col-right">{{ invoice.created_at|date('h:i A') }}</div>
     </div>
     <div class="cf mt-2">
         <div class="col-left">Customer:</div>
         <div class="col-right">{{ invoice.customer_name|default('Walk-in') }}</div>
     </div>
+    {% if invoice.stylist_name %}
+    <div class="cf mt-2">
+        <div class="col-left">Stylist:</div>
+        <div class="col-right">{{ invoice.stylist_name }}</div>
+    </div>
+    {% endif %}
     <div class="cf mt-2">
         <div class="col-left">Status:</div>
         <div class="col-right">{{ invoice.status|upper }}</div>

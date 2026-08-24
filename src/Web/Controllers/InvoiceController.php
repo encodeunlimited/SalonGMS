@@ -70,6 +70,35 @@ class InvoiceController
         
         $servicesRaw = $this->serviceRepo->getAll();
         
+        $this->userRepo->setTenantId($tenantId);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $userRole = $_SESSION['role'] ?? '';
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if ($userRole === 'stylist' && $userId) {
+            $employee = $this->userRepo->getById($userId);
+            $employees = $employee ? [$employee] : [];
+            
+            if ($employee && !empty($employee['specialist_areas'])) {
+                $specialistAreas = $employee['specialist_areas'];
+                $filteredServices = [];
+                foreach ($servicesRaw as $service) {
+                    // Check if service ID is in the specialist areas array
+                    if (in_array((string)$service['id'], array_map('strval', $specialistAreas))) {
+                        $filteredServices[] = $service;
+                    }
+                }
+                $servicesRaw = $filteredServices;
+            } else {
+                // If the stylist has no specialized services, show none
+                $servicesRaw = []; 
+            }
+        } else {
+            $employees = $this->userRepo->getAll(['filters' => ['role' => 'stylist']]);
+        }
+        
         $servicesByCategory = [];
         foreach ($servicesRaw as $service) {
             $cat = $service['category'] ?: 'Uncategorized';
@@ -81,9 +110,6 @@ class InvoiceController
         
         $paymentTypesRaw = $this->paymentTypeRepo->getAll();
         $paymentTypes = array_column($paymentTypesRaw, 'name');
-
-        $this->userRepo->setTenantId($tenantId);
-        $employees = $this->userRepo->getAll(['filters' => ['role' => 'stylist']]);
 
         $this->customerRepo->setTenantId($tenantId);
         $customers = $this->customerRepo->getAll();

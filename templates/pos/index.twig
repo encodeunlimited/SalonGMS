@@ -426,7 +426,7 @@ function posSystem() {
         loyalty_currency_per_point: {{ loyalty_currency_per_point|default(0.001) }},
         items: [],
         customer_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.customer_id }}{% else %}{% endif %}',
-        employee_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.user_id }}{% else %}{% endif %}',
+        employee_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.user_id }}{% elseif auth_user.role == "stylist" %}{{ auth_user.user_id }}{% else %}{% endif %}',
         payment_method: 'Cash',
         tender_amount: '',
         split_details: [{method: 'Cash', amount: ''}],

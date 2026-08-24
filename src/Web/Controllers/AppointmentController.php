@@ -86,6 +86,16 @@ class AppointmentController
             $options['filters']['date'] = $params['date'];
         }
 
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $userRole = $_SESSION['role'] ?? '';
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if ($userRole === 'stylist' && $userId) {
+            $options['filters']['user_id'] = $userId;
+        }
+
         $paginated = $this->appointments->getPaginatedAppointments($options);
         $customersList = $this->customers->getAll();
         $servicesList = $this->services->getAll();

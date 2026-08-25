@@ -74,6 +74,13 @@ class SettingsController
             $this->settingsRepo->set('loyalty_currency_per_point', (float)$data['loyalty_currency_per_point']);
         }
 
+        $this->settingsRepo->set('pos_show_cash', isset($data['pos_show_cash']) ? '1' : '0');
+        $this->settingsRepo->set('pos_show_card', isset($data['pos_show_card']) ? '1' : '0');
+        $this->settingsRepo->set('pos_show_bank_transfer', isset($data['pos_show_bank_transfer']) ? '1' : '0');
+        $this->settingsRepo->set('pos_show_points', isset($data['pos_show_points']) ? '1' : '0');
+        $this->settingsRepo->set('pos_show_credit', isset($data['pos_show_credit']) ? '1' : '0');
+        $this->settingsRepo->set('pos_show_split', isset($data['pos_show_split']) ? '1' : '0');
+
         $response->getBody()->write('
             <div id="form-messages" class="mb-4 p-3 rounded-lg bg-green-50 text-green-800 text-sm border border-green-200">
                 Business hours saved successfully!

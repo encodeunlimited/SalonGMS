@@ -172,6 +172,7 @@ class InvoiceController
             'appointment_to_checkout' => $appointmentToCheckout,
             'loyalty_points_per_currency' => $loyaltyPointsPerCurrency,
             'loyalty_currency_per_point' => $loyaltyCurrencyPerPoint,
+            'settings' => $settings,
             'hide_sidebar' => true
         ]);
     }

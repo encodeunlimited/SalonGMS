@@ -224,19 +224,7 @@ class InvoiceController
         // Cash sales = all invoices for this tenant, paid in cash, during the session timeframe
         $openedAt = $activeSession['opened_at'];
         
-        $sql = "SELECT SUM(paid_amount) as cash_total FROM invoices WHERE tenant_id = :tenant_id AND created_at >= :opened_at";
-        // To be safe, we'll fetch cash payments from the invoice system if possible.
-        // Actually, for simplicity right now:
-        // Let's assume all invoices created during this period where payment_method was 'Cash'
-        $stmt = $this->posSessionRepo->getDb()->prepare("
-            SELECT SUM(paid_amount) as total 
-            FROM invoices 
-            WHERE tenant_id = :tenant_id 
-              AND created_at >= :opened_at 
-              AND payment_method = 'Cash'
-        ");
-        $stmt->execute(['tenant_id' => $tenantId, 'opened_at' => $openedAt]);
-        $cashSales = (float)$stmt->fetchColumn();
+        $cashSales = $this->posSessionRepo->getCashSalesSince($tenantId, $openedAt);
 
         $expectedBalance = (float)$activeSession['opening_balance'] + $cashSales;
 

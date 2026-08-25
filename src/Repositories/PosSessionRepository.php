@@ -75,4 +75,17 @@ class PosSessionRepository extends BaseRepository
         
         return $stmt->fetchAll() ?: [];
     }
+    
+    public function getCashSalesSince(int $tenantId, string $openedAt): float
+    {
+        $stmt = $this->db->prepare("
+            SELECT SUM(paid_amount) as total 
+            FROM invoices 
+            WHERE tenant_id = :tenant_id 
+              AND created_at >= :opened_at 
+              AND payment_method = 'Cash'
+        ");
+        $stmt->execute(['tenant_id' => $tenantId, 'opened_at' => $openedAt]);
+        return (float)$stmt->fetchColumn();
+    }
 }

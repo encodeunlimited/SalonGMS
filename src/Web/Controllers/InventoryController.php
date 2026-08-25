@@ -11,11 +11,13 @@ class InventoryController
 {
     private Twig $view;
     private InventoryRepository $inventory;
+    private \App\Repositories\ExpenseRepository $expenseRepo;
 
-    public function __construct(Twig $view, InventoryRepository $inventory)
+    public function __construct(Twig $view, InventoryRepository $inventory, \App\Repositories\ExpenseRepository $expenseRepo)
     {
         $this->view = $view;
         $this->inventory = $inventory;
+        $this->expenseRepo = $expenseRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -62,7 +64,7 @@ class InventoryController
             'name' => $data['name'],
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
-            'quantity' => (int)$data['quantity'],
+            'quantity' => 0, // Initial stock is 0
             'price' => (float)$data['price']
         ]);
 
@@ -107,11 +109,13 @@ class InventoryController
         $itemId = (int) $args['id'];
         $data = $request->getParsedBody();
         
+        $existingItem = $this->inventory->getById($itemId);
+
         $item = $this->inventory->update($itemId, [
             'name' => $data['name'],
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
-            'quantity' => (int)$data['quantity'],
+            'quantity' => $existingItem['quantity'], // Quantity remains unchanged during edit
             'price' => (float)$data['price']
         ]);
 
@@ -214,6 +218,96 @@ class InventoryController
                         ->withHeader('HX-Trigger', json_encode([
                             'close-modal' => true,
                             'show-toast' => ['message' => "Issued {$issueQuantity} of {$item['name']} successfully!"]
+                        ]));
+    public function stockInForm(Request $request, Response $response, array $args): Response
+    {
+        $role = $request->getAttribute('role');
+        if ($role !== 'admin') {
+            return $response->withStatus(403);
+        }
+
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->inventory->setTenantId($tenantId);
+        
+        $itemId = (int) $args['id'];
+        $item = $this->inventory->getById($itemId);
+        
+        if (!$item) {
+            return $response->withStatus(404);
+        }
+
+        $html = $this->view->fetch('inventory/stock_in_modal.twig', [
+            'item' => $item
+        ]);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    public function stockIn(Request $request, Response $response, array $args): Response
+    {
+        $role = $request->getAttribute('role');
+        if ($role !== 'admin') {
+            return $response->withStatus(403);
+        }
+
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->inventory->setTenantId($tenantId);
+        $this->expenseRepo->setTenantId($tenantId);
+        
+        $itemId = (int) $args['id'];
+        $item = $this->inventory->getById($itemId);
+        
+        if (!$item) {
+            return $response->withStatus(404);
+        }
+
+        $data = $request->getParsedBody();
+        $qtyReceived = (int)($data['quantity_received'] ?? 0);
+        $totalCost = (float)($data['total_cost'] ?? 0);
+        $paymentMethod = $data['payment_method'] ?? 'Cash';
+        $reference = $data['reference'] ?? '';
+
+        if ($qtyReceived <= 0 || $totalCost < 0) {
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Invalid quantity or cost!', 'type' => 'error']
+                            ]));
+        }
+
+        // 1. Update Inventory Quantity
+        $newQuantity = $item['quantity'] + $qtyReceived;
+        $updatedItem = $this->inventory->update($itemId, [
+            'name' => $item['name'],
+            'sku' => $item['sku'],
+            'description' => $item['description'],
+            'quantity' => $newQuantity,
+            'price' => $item['price']
+        ]);
+
+        // 2. Record Expense
+        $desc = "GRN: {$qtyReceived}x {$item['name']}";
+        if ($reference) {
+            $desc .= " (Ref: {$reference})";
+        }
+        
+        $this->expenseRepo->create([
+            'expense_date' => date('Y-m-d'),
+            'category' => 'Inventory Purchase',
+            'amount' => $totalCost,
+            'description' => $desc,
+            'payment_method' => $paymentMethod
+        ]);
+
+        // 3. Return updated row
+        $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $updatedItem]);
+        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#inventory-row-' . $itemId . '" id=', $rowHtml);
+        
+        $response->getBody()->write($rowHtmlWithOob);
+        
+        return $response->withHeader('Content-Type', 'text/html')
+                        ->withHeader('HX-Trigger', json_encode([
+                            'close-modal' => true,
+                            'show-toast' => ['message' => "Successfully received {$qtyReceived} of {$item['name']}!"]
                         ]));
     }
 }

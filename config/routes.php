@@ -90,6 +90,8 @@ return function (App $app) {
         $group->delete('/inventory/{id}', \App\Web\Controllers\InventoryController::class . ':delete');
         $group->get('/inventory/{id}/issue', \App\Web\Controllers\InventoryController::class . ':issueForm');
         $group->post('/inventory/{id}/issue', \App\Web\Controllers\InventoryController::class . ':issue');
+        $group->get('/inventory/{id}/stock-in', \App\Web\Controllers\InventoryController::class . ':stockInForm');
+        $group->post('/inventory/{id}/stock-in', \App\Web\Controllers\InventoryController::class . ':stockIn');
         
         // Customers
         $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');

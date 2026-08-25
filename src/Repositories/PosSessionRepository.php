@@ -79,7 +79,7 @@ class PosSessionRepository extends BaseRepository
     public function getCashSalesSince(int $tenantId, string $openedAt): float
     {
         $stmt = $this->db->prepare("
-            SELECT SUM(paid_amount) as total 
+            SELECT SUM(total_amount) as total 
             FROM invoices 
             WHERE tenant_id = :tenant_id 
               AND created_at >= :opened_at 

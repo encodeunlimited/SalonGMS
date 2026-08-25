@@ -220,6 +220,8 @@ class InventoryController
                             'close-modal' => true,
                             'show-toast' => ['message' => "Issued {$issueQuantity} of {$item['name']} successfully!"]
                         ]));
+    }
+
     public function stockInForm(Request $request, Response $response, array $args): Response
     {
         $role = $request->getAttribute('role');

@@ -193,4 +193,31 @@ class ReportRepository extends BaseRepository
         ]);
         return $stmt->fetchAll();
     }
+
+    public function getInventoryIssues(string $startDate, string $endDate): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT 
+                t.created_at as transaction_date,
+                i.name as item_name,
+                i.sku as sku,
+                t.quantity as quantity,
+                u.name as user_name,
+                COALESCE(t.notes, t.reference_no) as reference_no
+            FROM inventory_transactions t
+            JOIN inventory_items i ON t.item_id = i.id
+            LEFT JOIN users u ON t.created_by = u.id
+            WHERE t.tenant_id = :tenant_id 
+              AND t.type = 'issue'
+              AND t.created_at >= :start_date 
+              AND t.created_at <= :end_date
+            ORDER BY t.created_at DESC
+        ");
+        $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'start_date' => $startDate . ' 00:00:00',
+            'end_date' => $endDate . ' 23:59:59'
+        ]);
+        return $stmt->fetchAll();
+    }
 }

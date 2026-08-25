@@ -184,6 +184,7 @@
                 </div>
 
                 <!-- Stylist Selection (Touch Friendly) -->
+                {% if auth_user.role != 'stylist' %}
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Select Stylist (Optional)</label>
                     <div class="flex space-x-3 overflow-x-auto pb-2" style="scroll-snap-type: x mandatory;">
@@ -211,6 +212,7 @@
                         {% endfor %}
                     </div>
                 </div>
+                {% endif %}
 
                 <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-700 mb-2">Payment Method</label>

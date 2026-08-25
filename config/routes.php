@@ -117,7 +117,6 @@ return function (App $app) {
         $group->get('/reports/inventory-issues', \App\Web\Controllers\ReportController::class . ':inventoryIssues');
         $group->get('/reports/sales', \App\Web\Controllers\ReportController::class . ':salesSummary');
         $group->get('/reports/stylists', \App\Web\Controllers\ReportController::class . ':stylistPerformance');
-        $group->get('/reports/payment-channels', \App\Web\Controllers\ReportController::class . ':paymentChannels');
         $group->get('/reports/eod', \App\Web\Controllers\ReportController::class . ':dailyEod');
         $group->get('/reports/shifts', \App\Web\Controllers\ReportController::class . ':registerShifts');
         

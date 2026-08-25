@@ -72,7 +72,7 @@
                                     <template x-for="(item, index) in items" :key="index">
                                         <tr>
                                             <td class="px-4 py-2" style="min-width: 200px;">
-                                                <select :name="'items['+index+'][id]'" x-model="item.id" x-init="new TomSelect($el, {create: false, sortField: 'text'})" required class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                                                <select :name="'items['+index+'][id]'" x-model="item.id" x-init="new TomSelect($el, {create: false, sortField: 'text', dropdownParent: 'body'})" required class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
                                                     <option value="">Select Product...</option>
                                                     {% for product in inventory_items %}
                                                     <option value="{{ product.id }}">{{ product.name }} (Current: {{ product.quantity }})</option>

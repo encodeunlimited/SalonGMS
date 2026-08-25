@@ -31,21 +31,53 @@ class ReportRepository extends BaseRepository
     public function getRevenueByPaymentMethod(string $startDate, string $endDate): array
     {
         $stmt = $this->db->prepare("
-            SELECT payment_method, SUM(total_amount) as revenue
+            SELECT total_amount, payment_method, split_details
             FROM invoices 
             WHERE tenant_id = :tenant_id 
               AND status = 'paid'
               AND created_at >= :start_date 
               AND created_at <= :end_date
               AND payment_method IS NOT NULL
-            GROUP BY payment_method
         ");
         $stmt->execute([
             'tenant_id' => $this->getTenantId(),
             'start_date' => $startDate . ' 00:00:00',
             'end_date' => $endDate . ' 23:59:59'
         ]);
-        return $stmt->fetchAll();
+        
+        $invoices = $stmt->fetchAll();
+        $methods = [];
+        
+        foreach ($invoices as $inv) {
+            $method = ucfirst(strtolower($inv['payment_method']));
+            $amount = (float)$inv['total_amount'];
+            
+            if ($method === 'Split' && !empty($inv['split_details'])) {
+                $splits = is_string($inv['split_details']) ? json_decode($inv['split_details'], true) : $inv['split_details'];
+                if (is_array($splits)) {
+                    foreach ($splits as $split) {
+                        $sMethod = ucfirst(strtolower($split['method'] ?? 'Unknown'));
+                        $sAmt = (float)($split['amount'] ?? 0);
+                        if (!isset($methods[$sMethod])) {
+                            $methods[$sMethod] = 0.0;
+                        }
+                        $methods[$sMethod] += $sAmt;
+                    }
+                }
+            } else {
+                if (!isset($methods[$method])) {
+                    $methods[$method] = 0.0;
+                }
+                $methods[$method] += $amount;
+            }
+        }
+        
+        $result = [];
+        foreach ($methods as $method => $revenue) {
+            $result[] = ['payment_method' => $method, 'revenue' => $revenue];
+        }
+        
+        return $result;
     }
 
     public function getTopServices(string $startDate, string $endDate, int $limit = 5): array

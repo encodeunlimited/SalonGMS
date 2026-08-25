@@ -75,4 +75,26 @@ class CommissionRepository extends BaseRepository
         $result = $stmt->fetch();
         return (float) ($result['total'] ?? 0.00);
     }
+
+    /**
+     * Get total commissions across all users within a date range.
+     */
+    public function getTotalCommissionsByDateRange(string $startDate, string $endDate): float
+    {
+        $sql = "SELECT SUM(amount) as total 
+                FROM {$this->table} 
+                WHERE tenant_id = :tenant_id 
+                  AND created_at >= :start_date 
+                  AND created_at <= :end_date";
+                  
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'start_date' => $startDate . ' 00:00:00',
+            'end_date' => $endDate . ' 23:59:59'
+        ]);
+        
+        $result = $stmt->fetch();
+        return (float) ($result['total'] ?? 0.00);
+    }
 }

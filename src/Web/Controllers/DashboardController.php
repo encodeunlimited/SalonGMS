@@ -9,6 +9,7 @@ use App\Repositories\AnalyticsRepository;
 use App\Repositories\AppointmentRepository;
 use App\Repositories\InvoiceRepository;
 use App\Repositories\CustomerRepository;
+use App\Repositories\InventoryRepository;
 
 class DashboardController
 {
@@ -17,19 +18,22 @@ class DashboardController
     private AppointmentRepository $appointmentRepo;
     private InvoiceRepository $invoiceRepo;
     private CustomerRepository $customerRepo;
+    private InventoryRepository $inventoryRepo;
 
     public function __construct(
         Twig $view, 
         AnalyticsRepository $analytics, 
         AppointmentRepository $appointmentRepo, 
         InvoiceRepository $invoiceRepo,
-        CustomerRepository $customerRepo
+        CustomerRepository $customerRepo,
+        InventoryRepository $inventoryRepo
     ) {
         $this->view = $view;
         $this->analytics = $analytics;
         $this->appointmentRepo = $appointmentRepo;
         $this->invoiceRepo = $invoiceRepo;
         $this->customerRepo = $customerRepo;
+        $this->inventoryRepo = $inventoryRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -40,12 +44,28 @@ class DashboardController
         $this->appointmentRepo->setTenantId($tenantId);
         $this->invoiceRepo->setTenantId($tenantId);
         $this->customerRepo->setTenantId($tenantId);
+        $this->inventoryRepo->setTenantId($tenantId);
         
         $role = $request->getAttribute('role') ?? 'stylist';
         $userId = (int)$request->getAttribute('user_id');
 
         $today = date('Y-m-d');
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
+
+        // Inventory Alerts
+        $inventoryItems = $this->inventoryRepo->getAll();
+        $lowStockAlerts = [];
+        $expiryAlerts = [];
+        $thirtyDaysFromNow = date('Y-m-d', strtotime('+30 days'));
+        
+        foreach ($inventoryItems as $item) {
+            if ($item['quantity'] <= 5) {
+                $lowStockAlerts[] = $item;
+            }
+            if (!empty($item['expiry_date']) && $item['expiry_date'] <= $thirtyDaysFromNow) {
+                $expiryAlerts[] = $item;
+            }
+        }
 
         if ($role === 'admin') {
             $kpi = $this->analytics->getDashboardKPIs();
@@ -73,6 +93,8 @@ class DashboardController
                 'tomorrow_appointments' => $tomorrowAppointments,
                 'pending_payments' => $pendingPayments,
                 'todays_birthdays' => $todaysBirthdays,
+                'low_stock_alerts' => $lowStockAlerts,
+                'expiry_alerts' => $expiryAlerts,
                 'charts' => [
                     'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
                     'weekly_revenue' => json_encode($weeklyRevenue['series']),
@@ -103,6 +125,8 @@ class DashboardController
                 'tomorrow_appointments' => $tomorrowAppointments,
                 'pending_payments' => $pendingPayments,
                 'todays_birthdays' => $todaysBirthdays,
+                'low_stock_alerts' => $lowStockAlerts,
+                'expiry_alerts' => $expiryAlerts,
                 'charts' => [
                     'apt_status_labels' => json_encode($appointmentsStatus['labels']),
                     'apt_status_series' => json_encode($appointmentsStatus['series'])

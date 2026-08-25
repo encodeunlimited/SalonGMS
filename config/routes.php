@@ -110,6 +110,11 @@ return function (App $app) {
 
         // Reports
         $group->get('/reports', \App\Web\Controllers\ReportController::class . ':index');
+        $group->get('/reports/stylist-performance', \App\Web\Controllers\ReportController::class . ':stylistPerformance');
+        $group->get('/reports/daily-eod', \App\Web\Controllers\ReportController::class . ':dailyEod');
+        $group->get('/reports/register-shifts', \App\Web\Controllers\ReportController::class . ':registerShifts');
+        $group->get('/reports/payment-channels', \App\Web\Controllers\ReportController::class . ':paymentChannels');
+        $group->get('/reports/inventory-issues', \App\Web\Controllers\ReportController::class . ':inventoryIssues');
         $group->get('/reports/sales', \App\Web\Controllers\ReportController::class . ':salesSummary');
         $group->get('/reports/stylists', \App\Web\Controllers\ReportController::class . ':stylistPerformance');
         $group->get('/reports/payment-channels', \App\Web\Controllers\ReportController::class . ':paymentChannels');

@@ -16,19 +16,35 @@ class AnalyticsRepository extends BaseRepository
         $endOfMonth = date('Y-m-t 23:59:59');
 
         // Revenue today (from invoices paid today)
-        $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND created_at >= ? AND created_at <= ?");
+        $stmt = $this->db->prepare("SELECT total_amount, payment_method, split_details FROM invoices WHERE tenant_id = ? AND status = 'paid' AND created_at >= ? AND created_at <= ?");
         $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
-        $revenueToday = (float)($stmt->fetchColumn() ?: 0.00);
+        $invoices = $stmt->fetchAll();
 
-        // Cash today
-        $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND (LOWER(payment_method) = 'cash' OR payment_method IS NULL OR payment_method = '') AND created_at >= ? AND created_at <= ?");
-        $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
-        $cashToday = (float)($stmt->fetchColumn() ?: 0.00);
+        $revenueToday = 0.00;
+        $cashToday = 0.00;
+        $cardToday = 0.00;
 
-        // Card today
-        $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status = 'paid' AND LOWER(payment_method) = 'card' AND created_at >= ? AND created_at <= ?");
-        $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
-        $cardToday = (float)($stmt->fetchColumn() ?: 0.00);
+        foreach ($invoices as $inv) {
+            $amt = (float)$inv['total_amount'];
+            $revenueToday += $amt;
+            
+            $method = strtolower($inv['payment_method'] ?? 'cash');
+            if ($method === 'cash' || $method === '') {
+                $cashToday += $amt;
+            } elseif ($method === 'card') {
+                $cardToday += $amt;
+            } elseif ($method === 'split' && !empty($inv['split_details'])) {
+                $splits = is_string($inv['split_details']) ? json_decode($inv['split_details'], true) : $inv['split_details'];
+                if (is_array($splits)) {
+                    foreach ($splits as $split) {
+                        $sMethod = strtolower($split['method'] ?? '');
+                        $sAmt = (float)($split['amount'] ?? 0);
+                        if ($sMethod === 'cash') $cashToday += $sAmt;
+                        elseif ($sMethod === 'card') $cardToday += $sAmt;
+                    }
+                }
+            }
+        }
 
         // Appointments today
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM appointments WHERE tenant_id = ? AND apt_date = ?");
@@ -49,6 +65,11 @@ class AnalyticsRepository extends BaseRepository
         $stmt = $this->db->prepare("SELECT SUM(amount) FROM expenses WHERE tenant_id = ? AND expense_date = ?");
         $stmt->execute([$tenantId, $today]);
         $expensesToday = (float)($stmt->fetchColumn() ?: 0.00);
+        
+        // Commissions today
+        $stmt = $this->db->prepare("SELECT SUM(amount) FROM commissions WHERE tenant_id = ? AND created_at >= ? AND created_at <= ?");
+        $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
+        $commissionsToday = (float)($stmt->fetchColumn() ?: 0.00);
 
         return [
             'revenue_today' => $revenueToday,
@@ -57,7 +78,8 @@ class AnalyticsRepository extends BaseRepository
             'appointments_today' => $appointmentsToday,
             'active_stylists' => $activeStylists,
             'new_customers' => $newCustomers,
-            'expenses_today' => $expensesToday
+            'expenses_today' => $expensesToday,
+            'commissions_today' => $commissionsToday
         ];
     }
     

@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use App\Repositories\ReportRepository;
 use App\Repositories\ExpenseRepository;
+use App\Repositories\CommissionRepository;
 
 class ReportController
 {
@@ -14,17 +15,20 @@ class ReportController
     private ReportRepository $reports;
     private ExpenseRepository $expenseRepo;
     private \App\Repositories\PosSessionRepository $posSessionRepo;
+    private CommissionRepository $commissionRepo;
 
     public function __construct(
         Twig $view, 
         ReportRepository $reports, 
         ExpenseRepository $expenseRepo,
-        \App\Repositories\PosSessionRepository $posSessionRepo
+        \App\Repositories\PosSessionRepository $posSessionRepo,
+        CommissionRepository $commissionRepo
     ) {
         $this->view = $view;
         $this->reports = $reports;
         $this->expenseRepo = $expenseRepo;
         $this->posSessionRepo = $posSessionRepo;
+        $this->commissionRepo = $commissionRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -39,10 +43,13 @@ class ReportController
         $endDate = $params['end_date'] ?? date('Y-m-t');
 
         $this->expenseRepo->setTenantId($tenantId);
+        $this->commissionRepo->setTenantId($tenantId);
         $totalExpenses = $this->expenseRepo->getTotalExpensesByDateRange($startDate, $endDate);
+        $totalCommissions = $this->commissionRepo->getTotalCommissionsByDateRange($startDate, $endDate);
 
         $data = $this->getReportData($startDate, $endDate);
         $data['total_expenses'] = $totalExpenses;
+        $data['total_commissions'] = $totalCommissions;
 
         // If it's an HTMX request, we might just want to render the partials
         if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
@@ -86,6 +93,7 @@ class ReportController
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
         $this->expenseRepo->setTenantId($tenantId);
+        $this->commissionRepo->setTenantId($tenantId);
 
         $params = $request->getQueryParams();
         $startDate = $params['start_date'] ?? date('Y-m-01');
@@ -93,6 +101,7 @@ class ReportController
 
         $data = $this->getReportData($startDate, $endDate);
         $data['total_expenses'] = $this->expenseRepo->getTotalExpensesByDateRange($startDate, $endDate);
+        $data['total_commissions'] = $this->commissionRepo->getTotalCommissionsByDateRange($startDate, $endDate);
         
         $data['title'] = 'Sales Summary';
         $data['active_menu'] = 'reports';
@@ -133,6 +142,7 @@ class ReportController
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
         $this->expenseRepo->setTenantId($tenantId);
+        $this->commissionRepo->setTenantId($tenantId);
 
         $params = $request->getQueryParams();
         $date = $params['date'] ?? date('Y-m-d');
@@ -140,6 +150,7 @@ class ReportController
         // EOD is single day
         $data = $this->getReportData($date, $date);
         $data['total_expenses'] = $this->expenseRepo->getTotalExpensesByDateRange($date, $date);
+        $data['total_commissions'] = $this->commissionRepo->getTotalCommissionsByDateRange($date, $date);
         
         $data['title'] = 'End of Day Report';
         $data['active_menu'] = 'reports';
@@ -202,5 +213,31 @@ class ReportController
         }
 
         return $this->view->render($response, 'reports/payment_channels.twig', $data);
+    }
+
+    public function inventoryIssues(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->reports->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $startDate = $params['start_date'] ?? date('Y-m-01');
+        $endDate = $params['end_date'] ?? date('Y-m-t');
+
+        $issues = $this->reports->getInventoryIssues($startDate, $endDate);
+
+        $data = [
+            'title' => 'Inventory Issues Report',
+            'active_menu' => 'reports',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'issues' => $issues
+        ];
+
+        if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
+            return $this->view->render($response, 'reports/partials/inventory_issues_data.twig', $data);
+        }
+
+        return $this->view->render($response, 'reports/inventory_issues.twig', $data);
     }
 }

@@ -1,3 +1,34 @@
+<script>
+window.grnForm = function() {
+    return {
+        open: true,
+        items: [
+            { id: '', quantity: 1, unit_cost: 0, expiry_date: '' }
+        ],
+        addItem() {
+            this.items.push({ id: '', quantity: 1, unit_cost: 0, expiry_date: '' });
+        },
+        removeItem(index) {
+            this.items.splice(index, 1);
+            if (this.items.length === 0) {
+                this.addItem(); // always keep at least one row
+            }
+        },
+        calculateTotal() {
+            return this.items.reduce((sum, item) => {
+                return sum + (parseFloat(item.quantity) * parseFloat(item.unit_cost) || 0);
+            }, 0);
+        },
+        closeModal() {
+            this.open = false; 
+            setTimeout(() => {
+                const container = document.getElementById('modal-container');
+                if(container) container.innerHTML = '';
+            }, 300);
+        }
+    }
+}
+</script>
 <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-data="grnForm()" x-show="open">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         
@@ -111,34 +142,4 @@
     </div>
 </div>
 
-<script>
-function grnForm() {
-    return {
-        open: true,
-        items: [
-            { id: '', quantity: 1, unit_cost: 0, expiry_date: '' }
-        ],
-        addItem() {
-            this.items.push({ id: '', quantity: 1, unit_cost: 0, expiry_date: '' });
-        },
-        removeItem(index) {
-            this.items.splice(index, 1);
-            if (this.items.length === 0) {
-                this.addItem(); // always keep at least one row
-            }
-        },
-        calculateTotal() {
-            return this.items.reduce((sum, item) => {
-                return sum + (parseFloat(item.quantity) * parseFloat(item.unit_cost) || 0);
-            }, 0);
-        },
-        closeModal() {
-            this.open = false; 
-            setTimeout(() => {
-                const container = document.getElementById('modal-container');
-                if(container) container.innerHTML = '';
-            }, 300);
-        }
-    }
-}
-</script>
+

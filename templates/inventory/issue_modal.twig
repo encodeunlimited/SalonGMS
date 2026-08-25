@@ -1,3 +1,29 @@
+<script>
+window.issueForm = function() {
+    return {
+        open: true,
+        items: [
+            { id: '', quantity: 1 }
+        ],
+        addItem() {
+            this.items.push({ id: '', quantity: 1 });
+        },
+        removeItem(index) {
+            this.items.splice(index, 1);
+            if (this.items.length === 0) {
+                this.addItem(); // always keep at least one row
+            }
+        },
+        closeModal() {
+            this.open = false; 
+            setTimeout(() => {
+                const container = document.getElementById('modal-container');
+                if(container) container.innerHTML = '';
+            }, 300);
+        }
+    }
+}
+</script>
 <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-data="issueForm()" x-show="open">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         
@@ -87,29 +113,4 @@
     </div>
 </div>
 
-<script>
-function issueForm() {
-    return {
-        open: true,
-        items: [
-            { id: '', quantity: 1 }
-        ],
-        addItem() {
-            this.items.push({ id: '', quantity: 1 });
-        },
-        removeItem(index) {
-            this.items.splice(index, 1);
-            if (this.items.length === 0) {
-                this.addItem(); // always keep at least one row
-            }
-        },
-        closeModal() {
-            this.open = false; 
-            setTimeout(() => {
-                const container = document.getElementById('modal-container');
-                if(container) container.innerHTML = '';
-            }, 300);
-        }
-    }
-}
-</script>
+

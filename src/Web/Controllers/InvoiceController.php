@@ -32,6 +32,7 @@ class InvoiceController
     private CustomerRepository $customerRepo;
     private PackageRepository $packageRepo;
     private \App\Repositories\CustomerPackageRepository $customerPackageRepo;
+    private \App\Repositories\PosSessionRepository $posSessionRepo;
 
     public function __construct(
         Twig $view, 
@@ -45,7 +46,8 @@ class InvoiceController
         WhatsAppService $whatsappService,
         CustomerRepository $customerRepo,
         PackageRepository $packageRepo,
-        \App\Repositories\CustomerPackageRepository $customerPackageRepo
+        \App\Repositories\CustomerPackageRepository $customerPackageRepo,
+        \App\Repositories\PosSessionRepository $posSessionRepo
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -59,11 +61,23 @@ class InvoiceController
         $this->customerRepo = $customerRepo;
         $this->packageRepo = $packageRepo;
         $this->customerPackageRepo = $customerPackageRepo;
+        $this->posSessionRepo = $posSessionRepo;
     }
 
     public function pos(Request $request, Response $response): Response
     {
         $tenantId = (int)$request->getAttribute('tenant_id');
+        
+        $this->posSessionRepo->setTenantId($tenantId);
+        $activeSession = $this->posSessionRepo->getActiveSession($tenantId);
+        
+        if (!$activeSession) {
+            return $this->view->render($response, 'pos/open_register.twig', [
+                'title' => 'Open Register',
+                'active_menu' => 'pos'
+            ]);
+        }
+
         $this->serviceRepo->setTenantId($tenantId);
         $this->settingsRepo->setTenantId($tenantId);
         $this->paymentTypeRepo->setTenantId($tenantId);
@@ -173,8 +187,62 @@ class InvoiceController
             'loyalty_points_per_currency' => $loyaltyPointsPerCurrency,
             'loyalty_currency_per_point' => $loyaltyCurrencyPerPoint,
             'settings' => $settings,
+            'active_session' => $activeSession,
             'hide_sidebar' => true
         ]);
+    }
+
+    public function openRegister(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $userId = (int)$request->getAttribute('user_id');
+        $data = $request->getParsedBody();
+        $openingBalance = (float)($data['opening_balance'] ?? 0);
+
+        $this->posSessionRepo->setTenantId($tenantId);
+        $this->posSessionRepo->openSession($tenantId, $userId, $openingBalance);
+
+        // HX-Redirect to reload the full page with the POS terminal
+        return $response->withHeader('HX-Redirect', '/web/pos')->withStatus(200);
+    }
+
+    public function closeRegister(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $userId = (int)$request->getAttribute('user_id');
+        $data = $request->getParsedBody();
+        $closingBalance = (float)($data['closing_balance'] ?? 0);
+
+        $this->posSessionRepo->setTenantId($tenantId);
+        $activeSession = $this->posSessionRepo->getActiveSession($tenantId);
+
+        if (!$activeSession) {
+            return $response->withHeader('Location', '/web/pos')->withStatus(302);
+        }
+
+        // Calculate expected balance: opening balance + cash sales
+        // Cash sales = all invoices for this tenant, paid in cash, during the session timeframe
+        $openedAt = $activeSession['opened_at'];
+        
+        $sql = "SELECT SUM(paid_amount) as cash_total FROM invoices WHERE tenant_id = :tenant_id AND created_at >= :opened_at";
+        // To be safe, we'll fetch cash payments from the invoice system if possible.
+        // Actually, for simplicity right now:
+        // Let's assume all invoices created during this period where payment_method was 'Cash'
+        $stmt = $this->posSessionRepo->getDb()->prepare("
+            SELECT SUM(paid_amount) as total 
+            FROM invoices 
+            WHERE tenant_id = :tenant_id 
+              AND created_at >= :opened_at 
+              AND payment_method = 'Cash'
+        ");
+        $stmt->execute(['tenant_id' => $tenantId, 'opened_at' => $openedAt]);
+        $cashSales = (float)$stmt->fetchColumn();
+
+        $expectedBalance = (float)$activeSession['opening_balance'] + $cashSales;
+
+        $this->posSessionRepo->closeSession($activeSession['id'], $tenantId, $userId, $closingBalance, $expectedBalance);
+
+        return $response->withHeader('HX-Redirect', '/web/pos')->withStatus(200);
     }
 
     public function checkout(Request $request, Response $response): Response

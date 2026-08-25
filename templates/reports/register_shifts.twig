@@ -1,0 +1,36 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Register Shifts</h2>
+        <p class="text-sm text-gray-500 mt-1">View historical POS register sessions and cash balances.</p>
+    </div>
+    
+    <!-- Date Filter -->
+    <div class="flex items-center space-x-2 bg-white p-2 rounded-lg shadow-sm border border-gray-100">
+        <input type="date" id="start_date" value="{{ start_date }}" class="text-sm border-gray-300 rounded-md focus:ring-salon-accent focus:border-salon-accent">
+        <span class="text-gray-400 text-sm">to</span>
+        <input type="date" id="end_date" value="{{ end_date }}" class="text-sm border-gray-300 rounded-md focus:ring-salon-accent focus:border-salon-accent">
+        <button type="button" onclick="loadReport()" class="bg-salon-dark text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-salon-navy transition-colors">
+            Filter
+        </button>
+    </div>
+</div>
+
+<div id="report-content">
+    {% include 'reports/partials/register_shifts_data.twig' %}
+</div>
+
+<script>
+function loadReport() {
+    const start = document.getElementById('start_date').value;
+    const end = document.getElementById('end_date').value;
+    
+    htmx.ajax('GET', `/web/reports/shifts?start_date=${start}&end_date=${end}&partial=true`, {
+        target: '#report-content',
+        swap: 'innerHTML'
+    });
+}
+</script>
+{% endblock %}

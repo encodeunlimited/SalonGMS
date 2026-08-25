@@ -13,12 +13,18 @@ class ReportController
     private Twig $view;
     private ReportRepository $reports;
     private ExpenseRepository $expenseRepo;
+    private \App\Repositories\PosSessionRepository $posSessionRepo;
 
-    public function __construct(Twig $view, ReportRepository $reports, ExpenseRepository $expenseRepo)
-    {
+    public function __construct(
+        Twig $view, 
+        ReportRepository $reports, 
+        ExpenseRepository $expenseRepo,
+        \App\Repositories\PosSessionRepository $posSessionRepo
+    ) {
         $this->view = $view;
         $this->reports = $reports;
         $this->expenseRepo = $expenseRepo;
+        $this->posSessionRepo = $posSessionRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -144,6 +150,32 @@ class ReportController
         }
 
         return $this->view->render($response, 'reports/daily_eod.twig', $data);
+    }
+
+    public function registerShifts(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->posSessionRepo->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $startDate = $params['start_date'] ?? date('Y-m-01');
+        $endDate = $params['end_date'] ?? date('Y-m-t');
+
+        $shifts = $this->posSessionRepo->getSessions($tenantId, $startDate, $endDate);
+
+        $data = [
+            'title' => 'Register Shifts',
+            'active_menu' => 'reports',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'shifts' => $shifts
+        ];
+
+        if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
+            return $this->view->render($response, 'reports/partials/register_shifts_data.twig', $data);
+        }
+
+        return $this->view->render($response, 'reports/register_shifts.twig', $data);
     }
 
     public function paymentChannels(Request $request, Response $response): Response

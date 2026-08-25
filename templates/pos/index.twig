@@ -6,6 +6,14 @@
         <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Point of Sale</h2>
         <p class="text-sm text-gray-500 mt-1">Quick checkout for walk-ins and appointments.</p>
     </div>
+    {% if active_session %}
+    <div>
+        <button type="button" @click="$refs.closeRegisterModal.showModal()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 transition-colors shadow-sm flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Close Register
+        </button>
+    </div>
+    {% endif %}
 </div>
 
 <div id="pos-alerts"></div>
@@ -598,6 +606,38 @@ function posSystem() {
     }
 }
 </script>
+
+<!-- Close Register Modal -->
+<dialog x-ref="closeRegisterModal" class="bg-white rounded-xl shadow-xl p-0 backdrop:bg-gray-900/50 w-full max-w-md m-auto">
+    <div class="p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Close Register
+        </h3>
+        <p class="text-sm text-gray-500 mb-6">Count the cash in the drawer and enter the final amount. This will close the current shift.</p>
+        
+        <form hx-post="/web/pos/close">
+            <div class="mb-5">
+                <label for="closing_balance" class="block text-sm font-medium text-gray-700">Actual Closing Balance (QAR)</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">QAR</span>
+                    </div>
+                    <input type="number" step="0.01" name="closing_balance" id="closing_balance" required class="focus:ring-salon-accent focus:border-salon-accent block w-full pl-12 sm:text-sm border-gray-300 rounded-md py-2" placeholder="0.00">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" @click="$refs.closeRegisterModal.close()" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-salon-accent">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-red-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Confirm Close
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
 
 </script>
 {% endblock %}

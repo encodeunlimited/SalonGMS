@@ -45,6 +45,8 @@ return function (App $app) {
         
         // POS & Billing
         $group->get('/pos', \App\Web\Controllers\InvoiceController::class . ':pos');
+        $group->post('/pos/open', \App\Web\Controllers\InvoiceController::class . ':openRegister');
+        $group->post('/pos/close', \App\Web\Controllers\InvoiceController::class . ':closeRegister');
         $group->post('/pos/checkout', \App\Web\Controllers\InvoiceController::class . ':checkout');
         $group->post('/invoices/{id}/pay', \App\Web\Controllers\InvoiceController::class . ':payRemaining');
         $group->post('/customers/{id}/invoices', [\App\Web\Controllers\CustomerController::class, 'createInvoice']);
@@ -110,6 +112,7 @@ return function (App $app) {
         $group->get('/reports/stylists', \App\Web\Controllers\ReportController::class . ':stylistPerformance');
         $group->get('/reports/payment-channels', \App\Web\Controllers\ReportController::class . ':paymentChannels');
         $group->get('/reports/eod', \App\Web\Controllers\ReportController::class . ':dailyEod');
+        $group->get('/reports/shifts', \App\Web\Controllers\ReportController::class . ':registerShifts');
         
         // Expenses
         $group->get('/expenses', \App\Web\Controllers\ExpenseController::class . ':index');

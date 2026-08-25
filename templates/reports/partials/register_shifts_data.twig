@@ -1,0 +1,83 @@
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-4 font-medium">Shift Details</th>
+                    <th class="px-6 py-4 font-medium">Staff</th>
+                    <th class="px-6 py-4 font-medium text-right">Opening Cash</th>
+                    <th class="px-6 py-4 font-medium text-right">Expected Closing</th>
+                    <th class="px-6 py-4 font-medium text-right">Actual Closing</th>
+                    <th class="px-6 py-4 font-medium text-right">Variance</th>
+                    <th class="px-6 py-4 font-medium text-center">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-sm">
+                {% for shift in shifts %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">
+                                Opened: {{ shift.opened_at|date("M j, Y h:i A") }}
+                            </div>
+                            <div class="text-gray-500 text-xs mt-1">
+                                {% if shift.closed_at %}
+                                    Closed: {{ shift.closed_at|date("M j, Y h:i A") }}
+                                {% else %}
+                                    Closed: -
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-gray-900">Opened by: {{ shift.opened_by_name|default('Unknown') }}</div>
+                            <div class="text-gray-500 text-xs">Closed by: {{ shift.closed_by_name|default('-') }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium text-gray-900">
+                            QAR {{ shift.opening_balance|number_format(2) }}
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium text-gray-600">
+                            {% if shift.expected_balance is not null %}
+                                QAR {{ shift.expected_balance|number_format(2) }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium text-gray-900">
+                            {% if shift.closing_balance is not null %}
+                                QAR {{ shift.closing_balance|number_format(2) }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium">
+                            {% if shift.expected_balance is not null and shift.closing_balance is not null %}
+                                {% set variance = shift.closing_balance - shift.expected_balance %}
+                                <span class="{% if variance > 0 %}text-green-600{% elseif variance < 0 %}text-red-600{% else %}text-gray-500{% endif %}">
+                                    {% if variance > 0 %}+{% endif %}{{ variance|number_format(2) }}
+                                </span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            {% if shift.status == 'open' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Open
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    Closed
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                            No register shifts found for this period.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -4,6 +4,12 @@
         {% if item.description %}
             <div class="text-xs text-gray-500 truncate max-w-[200px]">{{ item.description }}</div>
         {% endif %}
+        {% if item.expiry_date %}
+            <div class="text-xs text-red-500 mt-1 flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Exp: {{ item.expiry_date|date('M d, Y') }}
+            </div>
+        {% endif %}
     </td>
     <td class="px-6 py-5 text-gray-600">{{ item.sku }}</td>
     <td class="px-6 py-5">

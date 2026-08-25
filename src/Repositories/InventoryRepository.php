@@ -20,8 +20,8 @@ class InventoryRepository extends BaseRepository
     {
         $tenantId = $this->getTenantId();
         
-        $sql = "INSERT INTO {$this->table} (tenant_id, name, sku, description, quantity, price) 
-                VALUES (:tenant_id, :name, :sku, :description, :quantity, :price)";
+        $sql = "INSERT INTO {$this->table} (tenant_id, name, sku, description, quantity, price, expiry_date) 
+                VALUES (:tenant_id, :name, :sku, :description, :quantity, :price, :expiry_date)";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -30,7 +30,8 @@ class InventoryRepository extends BaseRepository
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
             'quantity' => (int)($data['quantity'] ?? 0),
-            'price' => (float)($data['price'] ?? 0.0)
+            'price' => (float)($data['price'] ?? 0.0),
+            'expiry_date' => $data['expiry_date'] ?? null
         ]);
 
         $id = (int) $this->db->lastInsertId();
@@ -47,6 +48,7 @@ class InventoryRepository extends BaseRepository
                 description = :description,
                 quantity = :quantity,
                 price = :price,
+                expiry_date = :expiry_date,
                 updated_at = CURRENT_TIMESTAMP
                 WHERE id = :id AND tenant_id = :tenant_id";
                 
@@ -58,7 +60,8 @@ class InventoryRepository extends BaseRepository
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
             'quantity' => (int)($data['quantity'] ?? 0),
-            'price' => (float)($data['price'] ?? 0.0)
+            'price' => (float)($data['price'] ?? 0.0),
+            'expiry_date' => array_key_exists('expiry_date', $data) ? $data['expiry_date'] : null
         ]);
 
         return $this->getById($id);

@@ -116,7 +116,8 @@ class InventoryController
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
             'quantity' => $existingItem['quantity'], // Quantity remains unchanged during edit
-            'price' => (float)$data['price']
+            'price' => (float)$data['price'],
+            'expiry_date' => $existingItem['expiry_date']
         ]);
 
         $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $item]);
@@ -266,6 +267,7 @@ class InventoryController
         $totalCost = (float)($data['total_cost'] ?? 0);
         $paymentMethod = $data['payment_method'] ?? 'Cash';
         $reference = $data['reference'] ?? '';
+        $expiryDate = !empty($data['expiry_date']) ? $data['expiry_date'] : ($item['expiry_date'] ?? null);
 
         if ($qtyReceived <= 0 || $totalCost < 0) {
             return $response->withHeader('Content-Type', 'text/html')
@@ -274,14 +276,15 @@ class InventoryController
                             ]));
         }
 
-        // 1. Update Inventory Quantity
+        // 1. Update Inventory Quantity and Expiry
         $newQuantity = $item['quantity'] + $qtyReceived;
         $updatedItem = $this->inventory->update($itemId, [
             'name' => $item['name'],
             'sku' => $item['sku'],
             'description' => $item['description'],
             'quantity' => $newQuantity,
-            'price' => $item['price']
+            'price' => $item['price'],
+            'expiry_date' => $expiryDate
         ]);
 
         // 2. Record Expense

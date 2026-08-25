@@ -30,9 +30,15 @@
                       @htmx:after-request="if($event.detail.successful) { open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300); }">
                     
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Quantity Received</label>
-                            <input type="number" name="quantity_received" required min="1" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Quantity Received</label>
+                                <input type="number" name="quantity_received" required min="1" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Expiry Date (Optional)</label>
+                                <input type="date" name="expiry_date" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                            </div>
                         </div>
 
                         <div>

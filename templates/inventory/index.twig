@@ -6,8 +6,16 @@
         <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Inventory</h2>
         <p class="text-sm text-gray-500 mt-1">Manage your product stock.</p>
     </div>
-    <div>
+    <div class="flex items-center space-x-2">
+        <button hx-get="/web/inventory/batch-issue" hx-target="#modal-container" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Issue Stock
+        </button>
         {% if auth_user.role == 'admin' %}
+        <button hx-get="/web/inventory/batch-grn" hx-target="#modal-container" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors shadow-sm flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Create GRN
+        </button>
         <button hx-get="/web/inventory/create" hx-target="#modal-container" class="bg-salon-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Create Product

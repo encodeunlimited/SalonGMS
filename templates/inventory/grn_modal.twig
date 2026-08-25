@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-data="issueForm()" x-show="open">
+<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-data="grnForm()" x-show="open">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" x-show="open" x-transition.opacity @click="closeModal()"></div>
@@ -9,8 +9,8 @@
             
             <div class="bg-gray-50 px-4 py-3 sm:px-6 border-b border-gray-100 flex justify-between items-center">
                 <h3 class="text-lg leading-6 font-bold text-gray-900 flex items-center" id="modal-title">
-                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Issue Stock (Batch)
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Create GRN (Batch Stock In)
                 </h3>
                 <button type="button" @click="closeModal()" class="text-gray-400 hover:text-gray-500 p-2 -mr-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors">
                     <span class="sr-only">Close</span>
@@ -21,17 +21,27 @@
             </div>
 
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <form hx-post="/web/inventory/batch-issue"
+                <form hx-post="/web/inventory/batch-grn"
                       @htmx:after-request="if($event.detail.successful) { closeModal(); setTimeout(() => window.location.reload(), 500); }">
                     
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700">Notes / Reason (Optional)</label>
-                        <input type="text" name="notes" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm" placeholder="e.g. For morning appointments">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">GRN Reference No</label>
+                            <input type="text" name="reference_no" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm" placeholder="e.g. INV-2023-001">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Payment Method</label>
+                            <select name="payment_method" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                <option value="Cash">Cash</option>
+                                <option value="Card">Card</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-md font-semibold text-gray-900">Items to Issue</h4>
+                            <h4 class="text-md font-semibold text-gray-900">Items Received</h4>
                             <button type="button" @click="addItem()" class="text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded border border-gray-300 transition-colors flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 Add Row
@@ -43,7 +53,9 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Qty to Issue</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Qty</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Unit Cost</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Expiry (Opt)</th>
                                         <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Action</th>
                                     </tr>
                                 </thead>
@@ -61,6 +73,12 @@
                                             <td class="px-4 py-2">
                                                 <input type="number" :name="'items['+index+'][quantity]'" x-model="item.quantity" required min="1" class="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm sm:text-sm">
                                             </td>
+                                            <td class="px-4 py-2">
+                                                <input type="number" step="0.01" :name="'items['+index+'][unit_cost]'" x-model="item.unit_cost" required min="0" class="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <input type="date" :name="'items['+index+'][expiry_date]'" x-model="item.expiry_date" class="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                            </td>
                                             <td class="px-4 py-2 text-right">
                                                 <button type="button" @click="removeItem(index)" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -71,11 +89,17 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="flex justify-end mt-4">
+                            <div class="text-lg font-bold text-gray-900">
+                                Total Cost: <span x-text="'QAR ' + calculateTotal().toFixed(2)"></span>
+                                <input type="hidden" name="total_cost" :value="calculateTotal()">
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mt-6 sm:flex sm:flex-row-reverse border-t border-gray-100 pt-4">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-5 py-3 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition-colors" :disabled="items.length === 0">
-                            Issue Stock
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-5 py-3 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition-colors" :disabled="items.length === 0">
+                            Submit GRN
                         </button>
                         <button type="button" @click="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-5 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
                             Cancel
@@ -88,20 +112,25 @@
 </div>
 
 <script>
-function issueForm() {
+function grnForm() {
     return {
         open: true,
         items: [
-            { id: '', quantity: 1 }
+            { id: '', quantity: 1, unit_cost: 0, expiry_date: '' }
         ],
         addItem() {
-            this.items.push({ id: '', quantity: 1 });
+            this.items.push({ id: '', quantity: 1, unit_cost: 0, expiry_date: '' });
         },
         removeItem(index) {
             this.items.splice(index, 1);
             if (this.items.length === 0) {
                 this.addItem(); // always keep at least one row
             }
+        },
+        calculateTotal() {
+            return this.items.reduce((sum, item) => {
+                return sum + (parseFloat(item.quantity) * parseFloat(item.unit_cost) || 0);
+            }, 0);
         },
         closeModal() {
             this.open = false; 

@@ -12,12 +12,14 @@ class InventoryController
     private Twig $view;
     private InventoryRepository $inventory;
     private \App\Repositories\ExpenseRepository $expenseRepo;
+    private \PDO $db;
 
-    public function __construct(Twig $view, InventoryRepository $inventory, \App\Repositories\ExpenseRepository $expenseRepo)
+    public function __construct(Twig $view, InventoryRepository $inventory, \App\Repositories\ExpenseRepository $expenseRepo, \PDO $db)
     {
         $this->view = $view;
         $this->inventory = $inventory;
         $this->expenseRepo = $expenseRepo;
+        $this->db = $db;
     }
 
     public function index(Request $request, Response $response): Response
@@ -65,7 +67,7 @@ class InventoryController
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
             'quantity' => 0, // Initial stock is 0
-            'price' => (float)$data['price']
+            'price' => 0.00
         ]);
 
         $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $item]);
@@ -116,7 +118,7 @@ class InventoryController
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
             'quantity' => $existingItem['quantity'], // Quantity remains unchanged during edit
-            'price' => (float)$data['price'],
+            'price' => $existingItem['price'],
             'expiry_date' => $existingItem['expiry_date']
         ]);
 
@@ -158,71 +160,7 @@ class InventoryController
         }
     }
 
-    public function issueForm(Request $request, Response $response, array $args): Response
-    {
-        $tenantId = $request->getAttribute('tenant_id');
-        $this->inventory->setTenantId($tenantId);
-        
-        $itemId = (int) $args['id'];
-        $item = $this->inventory->getById($itemId);
-        
-        if (!$item) {
-            return $response->withStatus(404);
-        }
-
-        $html = $this->view->fetch('inventory/issue_modal.twig', [
-            'item' => $item
-        ]);
-        $response->getBody()->write($html);
-        return $response->withHeader('Content-Type', 'text/html');
-    }
-
-    public function issue(Request $request, Response $response, array $args): Response
-    {
-        $tenantId = $request->getAttribute('tenant_id');
-        $this->inventory->setTenantId($tenantId);
-        
-        $itemId = (int) $args['id'];
-        $item = $this->inventory->getById($itemId);
-        
-        if (!$item) {
-            return $response->withStatus(404);
-        }
-
-        $data = $request->getParsedBody();
-        $issueQuantity = (int)($data['issue_quantity'] ?? 0);
-
-        if ($issueQuantity <= 0 || $issueQuantity > $item['quantity']) {
-            return $response->withHeader('Content-Type', 'text/html')
-                            ->withHeader('HX-Trigger', json_encode([
-                                'show-toast' => ['message' => 'Invalid issue quantity!', 'type' => 'error']
-                            ]));
-        }
-
-        // Deduct quantity
-        $newQuantity = $item['quantity'] - $issueQuantity;
-        
-        $updatedItem = $this->inventory->update($itemId, [
-            'name' => $item['name'],
-            'sku' => $item['sku'],
-            'description' => $item['description'],
-            'quantity' => $newQuantity,
-            'price' => $item['price']
-        ]);
-
-        $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $updatedItem]);
-        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#inventory-row-' . $itemId . '" id=', $rowHtml);
-        
-        $response->getBody()->write($rowHtmlWithOob);
-        
-        return $response->withHeader('Content-Type', 'text/html')
-                        ->withHeader('HX-Trigger', json_encode([
-                            'close-modal' => true,
-                            'show-toast' => ['message' => "Issued {$issueQuantity} of {$item['name']} successfully!"]
-                        ]));
-    }
-
-    public function stockInForm(Request $request, Response $response, array $args): Response
+    public function batchGrnForm(Request $request, Response $response): Response
     {
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
@@ -232,21 +170,16 @@ class InventoryController
         $tenantId = $request->getAttribute('tenant_id');
         $this->inventory->setTenantId($tenantId);
         
-        $itemId = (int) $args['id'];
-        $item = $this->inventory->getById($itemId);
+        $items = $this->inventory->getAll();
         
-        if (!$item) {
-            return $response->withStatus(404);
-        }
-
-        $html = $this->view->fetch('inventory/stock_in_modal.twig', [
-            'item' => $item
+        $html = $this->view->fetch('inventory/grn_modal.twig', [
+            'inventory_items' => $items
         ]);
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html');
     }
 
-    public function stockIn(Request $request, Response $response, array $args): Response
+    public function processBatchGrn(Request $request, Response $response): Response
     {
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
@@ -256,63 +189,154 @@ class InventoryController
         $tenantId = $request->getAttribute('tenant_id');
         $this->inventory->setTenantId($tenantId);
         $this->expenseRepo->setTenantId($tenantId);
+        $userId = $request->getAttribute('user_id');
         
-        $itemId = (int) $args['id'];
-        $item = $this->inventory->getById($itemId);
-        
-        if (!$item) {
-            return $response->withStatus(404);
-        }
-
         $data = $request->getParsedBody();
-        $qtyReceived = (int)($data['quantity_received'] ?? 0);
-        $totalCost = (float)($data['total_cost'] ?? 0);
+        $referenceNo = $data['reference_no'] ?? '';
         $paymentMethod = $data['payment_method'] ?? 'Cash';
-        $reference = $data['reference'] ?? '';
-        $expiryDate = !empty($data['expiry_date']) ? $data['expiry_date'] : ($item['expiry_date'] ?? null);
+        $items = $data['items'] ?? [];
+        $totalCost = (float)($data['total_cost'] ?? 0);
 
-        if ($qtyReceived <= 0 || $totalCost < 0) {
+        if (empty($items)) {
             return $response->withHeader('Content-Type', 'text/html')
                             ->withHeader('HX-Trigger', json_encode([
-                                'show-toast' => ['message' => 'Invalid quantity or cost!', 'type' => 'error']
+                                'show-toast' => ['message' => 'No items added!', 'type' => 'error']
                             ]));
         }
 
-        // 1. Update Inventory Quantity and Expiry
-        $newQuantity = $item['quantity'] + $qtyReceived;
-        $updatedItem = $this->inventory->update($itemId, [
-            'name' => $item['name'],
-            'sku' => $item['sku'],
-            'description' => $item['description'],
-            'quantity' => $newQuantity,
-            'price' => $item['price'],
-            'expiry_date' => $expiryDate
-        ]);
+        $this->db->beginTransaction();
+        try {
+            // 1. Log Expense
+            $desc = "Batch GRN: " . count($items) . " items. Ref: {$referenceNo}";
+            $this->expenseRepo->create([
+                'expense_date' => date('Y-m-d'),
+                'category' => 'Inventory Purchase',
+                'amount' => $totalCost,
+                'description' => $desc,
+                'payment_method' => $paymentMethod
+            ]);
 
-        // 2. Record Expense
-        $desc = "GRN: {$qtyReceived}x {$item['name']}";
-        if ($reference) {
-            $desc .= " (Ref: {$reference})";
+            $stmtTx = $this->db->prepare("INSERT INTO inventory_transactions (tenant_id, type, reference_no, item_id, quantity, unit_cost, total_cost, expiry_date, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+            // 2. Process each item
+            foreach ($items as $itemData) {
+                $itemId = (int)$itemData['id'];
+                $qty = (int)$itemData['quantity'];
+                $unitCost = (float)$itemData['unit_cost'];
+                $expiry = !empty($itemData['expiry_date']) ? $itemData['expiry_date'] : null;
+
+                $existingItem = $this->inventory->getById($itemId);
+                if ($existingItem) {
+                    // Update Stock & Price & Expiry
+                    $newQty = $existingItem['quantity'] + $qty;
+                    $this->inventory->update($itemId, [
+                        'name' => $existingItem['name'],
+                        'sku' => $existingItem['sku'],
+                        'description' => $existingItem['description'],
+                        'quantity' => $newQty,
+                        'price' => $unitCost, // Using unit cost as the new price
+                        'expiry_date' => $expiry
+                    ]);
+
+                    // Log Transaction
+                    $stmtTx->execute([
+                        $tenantId, 'GRN', $referenceNo, $itemId, $qty, $unitCost, ($qty * $unitCost), $expiry, $userId
+                    ]);
+                }
+            }
+
+            $this->db->commit();
+
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Batch GRN processed successfully!']
+                            ]));
+
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Error: ' . $e->getMessage(), 'type' => 'error']
+                            ]));
         }
-        
-        $this->expenseRepo->create([
-            'expense_date' => date('Y-m-d'),
-            'category' => 'Inventory Purchase',
-            'amount' => $totalCost,
-            'description' => $desc,
-            'payment_method' => $paymentMethod
-        ]);
+    }
 
-        // 3. Return updated row
-        $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $updatedItem]);
-        $rowHtmlWithOob = str_replace('<tr id=', '<tr hx-swap-oob="outerHTML:#inventory-row-' . $itemId . '" id=', $rowHtml);
+    public function batchIssueForm(Request $request, Response $response): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->inventory->setTenantId($tenantId);
         
-        $response->getBody()->write($rowHtmlWithOob);
+        $items = $this->inventory->getAll();
         
-        return $response->withHeader('Content-Type', 'text/html')
-                        ->withHeader('HX-Trigger', json_encode([
-                            'close-modal' => true,
-                            'show-toast' => ['message' => "Successfully received {$qtyReceived} of {$item['name']}!"]
-                        ]));
+        $html = $this->view->fetch('inventory/issue_modal.twig', [
+            'inventory_items' => $items
+        ]);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    public function processBatchIssue(Request $request, Response $response): Response
+    {
+        $tenantId = $request->getAttribute('tenant_id');
+        $this->inventory->setTenantId($tenantId);
+        $userId = $request->getAttribute('user_id');
+        
+        $data = $request->getParsedBody();
+        $notes = $data['notes'] ?? '';
+        $items = $data['items'] ?? [];
+
+        if (empty($items)) {
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'No items added!', 'type' => 'error']
+                            ]));
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $stmtTx = $this->db->prepare("INSERT INTO inventory_transactions (tenant_id, type, reference_no, item_id, quantity, notes, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $refNo = 'ISS-' . date('Ymd-His');
+
+            // Process each item
+            foreach ($items as $itemData) {
+                $itemId = (int)$itemData['id'];
+                $qty = (int)$itemData['quantity'];
+
+                $existingItem = $this->inventory->getById($itemId);
+                if ($existingItem && $existingItem['quantity'] >= $qty) {
+                    // Deduct Stock
+                    $newQty = $existingItem['quantity'] - $qty;
+                    $this->inventory->update($itemId, [
+                        'name' => $existingItem['name'],
+                        'sku' => $existingItem['sku'],
+                        'description' => $existingItem['description'],
+                        'quantity' => $newQty,
+                        'price' => $existingItem['price'],
+                        'expiry_date' => $existingItem['expiry_date']
+                    ]);
+
+                    // Log Transaction
+                    $stmtTx->execute([
+                        $tenantId, 'ISSUE', $refNo, $itemId, $qty, $notes, $userId
+                    ]);
+                } else {
+                    throw new \Exception("Insufficient stock for item ID {$itemId}.");
+                }
+            }
+
+            $this->db->commit();
+
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Stock issued successfully!']
+                            ]));
+
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            return $response->withHeader('Content-Type', 'text/html')
+                            ->withHeader('HX-Trigger', json_encode([
+                                'show-toast' => ['message' => 'Error: ' . $e->getMessage(), 'type' => 'error']
+                            ]));
+        }
     }
 }

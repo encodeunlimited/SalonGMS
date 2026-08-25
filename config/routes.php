@@ -88,10 +88,10 @@ return function (App $app) {
         $group->get('/inventory/{id}/edit', \App\Web\Controllers\InventoryController::class . ':edit');
         $group->post('/inventory/{id}/edit', \App\Web\Controllers\InventoryController::class . ':update');
         $group->delete('/inventory/{id}', \App\Web\Controllers\InventoryController::class . ':delete');
-        $group->get('/inventory/{id}/issue', \App\Web\Controllers\InventoryController::class . ':issueForm');
-        $group->post('/inventory/{id}/issue', \App\Web\Controllers\InventoryController::class . ':issue');
-        $group->get('/inventory/{id}/stock-in', \App\Web\Controllers\InventoryController::class . ':stockInForm');
-        $group->post('/inventory/{id}/stock-in', \App\Web\Controllers\InventoryController::class . ':stockIn');
+        $group->get('/inventory/batch-issue', \App\Web\Controllers\InventoryController::class . ':batchIssueForm');
+        $group->post('/inventory/batch-issue', \App\Web\Controllers\InventoryController::class . ':processBatchIssue');
+        $group->get('/inventory/batch-grn', \App\Web\Controllers\InventoryController::class . ':batchGrnForm');
+        $group->post('/inventory/batch-grn', \App\Web\Controllers\InventoryController::class . ':processBatchGrn');
         
         // Customers
         $group->get('/customers', \App\Web\Controllers\CustomerController::class . ':index');

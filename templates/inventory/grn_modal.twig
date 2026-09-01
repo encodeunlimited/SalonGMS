@@ -12,6 +12,14 @@
             }
         },
         calculateTotal() {
+            return this.items.reduce((total, item) => {
+                return total + (item.quantity * item.unit_cost);
+            }, 0);
+        },
+        closeModal() {
+            this.open = false;
+            setTimeout(() => {
+                document.getElementById('modal-container').innerHTML = '';
             return this.items.reduce((sum, item) => {
                 return sum + (parseFloat(item.quantity) * parseFloat(item.unit_cost) || 0);
             }, 0);
@@ -25,6 +33,9 @@
         }
     }" 
     x-show="open">
+    <style>
+        .ts-dropdown { z-index: 9999 !important; }
+    </style>
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" x-show="open" x-transition.opacity @click="closeModal()"></div>
@@ -89,7 +100,7 @@
                                     <template x-for="(item, index) in items" :key="index">
                                         <tr>
                                             <td class="px-4 py-2" style="min-width: 200px;">
-                                                <select :name="'items['+index+'][id]'" x-model="item.id" required class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                                                <select :name="'items['+index+'][id]'" x-model="item.id" x-init="$nextTick(() => { let ts = new TomSelect($el, { create: false, sortField: 'text', dropdownParent: 'body' }); ts.on('change', function(val) { item.id = val; }); })" required class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
                                                     <option value="">Select Product...</option>
                                                     {% for product in inventory_items %}
                                                     <option value="{{ product.id }}">{{ product.name }} (Current: {{ product.quantity }})</option>

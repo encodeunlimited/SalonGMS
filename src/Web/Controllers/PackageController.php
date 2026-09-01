@@ -37,6 +37,7 @@ class PackageController
 
     public function create(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->serviceRepo->setTenantId($tenantId);
 
@@ -51,6 +52,7 @@ class PackageController
 
     public function store(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->packageRepo->setTenantId($tenantId);
 
@@ -70,6 +72,7 @@ class PackageController
 
     public function edit(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->packageRepo->setTenantId($tenantId);
         $this->serviceRepo->setTenantId($tenantId);
@@ -94,6 +97,7 @@ class PackageController
 
     public function update(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->packageRepo->setTenantId($tenantId);
 
@@ -113,6 +117,7 @@ class PackageController
 
     public function delete(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->packageRepo->setTenantId($tenantId);
 

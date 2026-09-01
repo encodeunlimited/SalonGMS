@@ -7,10 +7,12 @@
         <p class="text-sm text-gray-500 mt-1">Manage salon services and pricing.</p>
     </div>
     <div>
+        {% if auth_user.role != 'cashier' %}
         <button hx-get="/web/services/create" hx-target="#modal-container" class="bg-salon-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Add Service
         </button>
+        {% endif %}
     </div>
 </div>
 

@@ -132,6 +132,18 @@ class DashboardController
                     'apt_status_series' => json_encode($appointmentsStatus['series'])
                 ]
             ]);
+        } elseif ($role === 'cashier') {
+            $kpi = $this->analytics->getDashboardKPIs();
+            $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today], 'limit' => 50])['data'];
+            $tomorrowAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $tomorrow], 'limit' => 50])['data'];
+
+            return $this->view->render($response, 'dashboard_cashier.twig', [
+                'title' => 'Cashier Dashboard',
+                'active_menu' => 'dashboard',
+                'kpi' => $kpi,
+                'today_appointments' => $todayAppointments,
+                'tomorrow_appointments' => $tomorrowAppointments
+            ]);
         } else {
             // Stylist dashboard
             $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today, 'user_id' => $userId], 'limit' => 50])['data'];

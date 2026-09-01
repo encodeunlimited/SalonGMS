@@ -37,6 +37,7 @@
     </td>
     <td class="px-6 py-5 whitespace-nowrap text-right">
         <div class="flex items-center gap-1 justify-end">
+            {% if auth_user.role != 'cashier' %}
             {% if appointment.status == 'scheduled' or appointment.status == 'pending' %}
                 <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "approved"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-colors" title="Approve"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg></button>
                 <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
@@ -58,7 +59,11 @@
             {% else %}
                 <span class="inline-flex items-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ appointment.status|capitalize }}</span>
             {% endif %}
+            {% else %}
+                <span class="inline-flex items-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ appointment.status|capitalize }}</span>
+            {% endif %}
             
+
             {% set waMessage = "Hello " ~ appointment.customer ~ ",\n\nYour appointment for " ~ appointment.service ~ " on " ~ appointment.date ~ " at " ~ appointment.time ~ " is currently: " ~ appointment.status|upper ~ ".\n\nStylist: " ~ appointment.stylist %}
             {% if appointment.status == 'paid' and appointment.invoice_id %}
                 {% set waMessage = waMessage ~ "\n\nView your invoice here: " ~ base_url ~ "/web/invoices/download/" ~ appointment.invoice_id %}

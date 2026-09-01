@@ -33,6 +33,7 @@ class ReportController
 
     public function index(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
 
@@ -90,6 +91,7 @@ class ReportController
 
     public function salesSummary(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
         $this->expenseRepo->setTenantId($tenantId);
@@ -117,6 +119,7 @@ class ReportController
 
     public function stylistPerformance(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
 
@@ -165,6 +168,7 @@ class ReportController
 
     public function registerShifts(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->posSessionRepo->setTenantId($tenantId);
 
@@ -191,6 +195,7 @@ class ReportController
 
     public function paymentChannels(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
 
@@ -217,6 +222,7 @@ class ReportController
 
     public function inventoryIssues(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->reports->setTenantId($tenantId);
 

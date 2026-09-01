@@ -126,6 +126,7 @@ class AppointmentController
 
     public function store(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $data = $request->getParsedBody();
         $tenantId = (int)$request->getAttribute('tenant_id');
         
@@ -407,6 +408,7 @@ class AppointmentController
 
     public function updateStatus(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $appointmentId = (int)$args['id'];
         

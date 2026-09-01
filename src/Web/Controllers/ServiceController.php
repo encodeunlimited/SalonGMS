@@ -61,6 +61,7 @@ class ServiceController
 
     public function store(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->services->setTenantId($tenantId);
         
@@ -136,6 +137,7 @@ class ServiceController
 
     public function update(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = $request->getAttribute('tenant_id');
         $this->services->setTenantId($tenantId);
         
@@ -212,6 +214,7 @@ class ServiceController
     }
     public function delete(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
             return $response->withStatus(403);

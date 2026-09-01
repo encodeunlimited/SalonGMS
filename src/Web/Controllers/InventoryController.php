@@ -52,11 +52,13 @@ class InventoryController
 
     public function create(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         return $this->view->render($response, 'inventory/modal.twig');
     }
 
     public function store(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->inventory->setTenantId($tenantId);
         
@@ -87,6 +89,7 @@ class InventoryController
 
     public function edit(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = $request->getAttribute('tenant_id');
         $this->inventory->setTenantId($tenantId);
         
@@ -106,6 +109,7 @@ class InventoryController
 
     public function update(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = $request->getAttribute('tenant_id');
         $this->inventory->setTenantId($tenantId);
         
@@ -138,6 +142,7 @@ class InventoryController
 
     public function delete(Request $request, Response $response, array $args): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
             return $response->withStatus(403);
@@ -164,6 +169,7 @@ class InventoryController
 
     public function batchGrnForm(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
             return $response->withStatus(403);
@@ -183,6 +189,7 @@ class InventoryController
 
     public function processBatchGrn(Request $request, Response $response): Response
     {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $role = $request->getAttribute('role');
         if ($role !== 'admin') {
             return $response->withStatus(403);

@@ -6,10 +6,12 @@
         <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Appointments</h2>
         <p class="text-sm text-gray-500 mt-1">Manage your schedule and bookings.</p>
     </div>
+    {% if auth_user.role != 'cashier' %}
     <button @click="modalOpen = true" class="bg-salon-accent text-white px-5 py-3 rounded-lg text-sm font-medium hover:bg-yellow-600 shadow-sm transition-colors flex items-center">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
         New Appointment
     </button>
+    {% endif %}
 
     <!-- Alpine Modal -->
     <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -272,6 +274,7 @@
                 var stylistImg = props.stylist_image ? `<img src="${props.stylist_image}" class="w-6 h-6 rounded-full object-cover border border-gray-200">` : `<div class="w-6 h-6 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-xs">${props.stylist.charAt(0).toUpperCase()}</div>`;
 
                 var buttonsHtml = '';
+                {% if auth_user.role != 'cashier' %}
                 if (props.status === 'scheduled' || props.status === 'pending') {
                     buttonsHtml = `<button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "approved"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-colors" title="Approve"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg></button>
                                    <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
@@ -293,6 +296,9 @@
                 } else {
                     buttonsHtml = `<span class="inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">${props.status}</span>`;
                 }
+                {% else %}
+                    buttonsHtml = `<span class="inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">${props.status.charAt(0).toUpperCase() + props.status.slice(1)}</span>`;
+                {% endif %}
 
                 var waMessage = `Hello ${props.customer},\n\nYour appointment for ${props.service} on ${info.event.start ? info.event.start.toLocaleString() : 'the scheduled time'} is currently: ${props.status.toUpperCase()}.\n\nStylist: ${props.stylist}`;
                 

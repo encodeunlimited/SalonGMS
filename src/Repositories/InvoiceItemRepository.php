@@ -30,7 +30,12 @@ class InvoiceItemRepository extends BaseRepository
 
     public function getByInvoiceId(int $invoiceId): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE invoice_id = :invoice_id");
+        $stmt = $this->db->prepare("
+            SELECT ii.*, s.arabic_name as arabic_description 
+            FROM {$this->table} ii
+            LEFT JOIN services s ON ii.service_id = s.id
+            WHERE ii.invoice_id = :invoice_id
+        ");
         $stmt->execute(['invoice_id' => $invoiceId]);
         return $stmt->fetchAll();
     }

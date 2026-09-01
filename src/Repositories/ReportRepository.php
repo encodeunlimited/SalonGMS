@@ -208,7 +208,7 @@ class ReportRepository extends BaseRepository
             JOIN inventory_items i ON t.item_id = i.id
             LEFT JOIN users u ON t.created_by = u.id
             WHERE t.tenant_id = :tenant_id 
-              AND t.type = 'issue'
+              AND LOWER(t.type) = 'issue'
               AND t.created_at >= :start_date 
               AND t.created_at <= :end_date
             ORDER BY t.created_at DESC

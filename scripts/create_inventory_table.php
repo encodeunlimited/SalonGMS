@@ -24,6 +24,7 @@ try {
             description TEXT,
             quantity INTEGER NOT NULL DEFAULT 0,
             price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            low_stock_limit INTEGER NOT NULL DEFAULT 5,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
@@ -55,6 +56,7 @@ try {
             description TEXT,
             quantity INT NOT NULL DEFAULT 0,
             price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            low_stock_limit INT NOT NULL DEFAULT 5,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX tenant_idx (tenant_id)

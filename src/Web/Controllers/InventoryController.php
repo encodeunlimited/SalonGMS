@@ -67,7 +67,8 @@ class InventoryController
             'sku' => $data['sku'] ?? null,
             'description' => $data['description'] ?? null,
             'quantity' => 0, // Initial stock is 0
-            'price' => 0.00
+            'price' => 0.00,
+            'low_stock_limit' => (int)($data['low_stock_limit'] ?? 5)
         ]);
 
         $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $item]);
@@ -119,7 +120,8 @@ class InventoryController
             'description' => $data['description'] ?? null,
             'quantity' => $existingItem['quantity'], // Quantity remains unchanged during edit
             'price' => $existingItem['price'],
-            'expiry_date' => $existingItem['expiry_date']
+            'expiry_date' => $existingItem['expiry_date'],
+            'low_stock_limit' => (int)($data['low_stock_limit'] ?? 5)
         ]);
 
         $rowHtml = $this->view->fetch('inventory/row.twig', ['item' => $item]);

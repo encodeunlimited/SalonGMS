@@ -20,8 +20,8 @@ class InventoryRepository extends BaseRepository
     {
         $tenantId = $this->getTenantId();
         
-        $sql = "INSERT INTO {$this->table} (tenant_id, name, sku, description, quantity, price, expiry_date) 
-                VALUES (:tenant_id, :name, :sku, :description, :quantity, :price, :expiry_date)";
+        $sql = "INSERT INTO {$this->table} (tenant_id, name, sku, description, quantity, price, expiry_date, low_stock_limit) 
+                VALUES (:tenant_id, :name, :sku, :description, :quantity, :price, :expiry_date, :low_stock_limit)";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -31,7 +31,8 @@ class InventoryRepository extends BaseRepository
             'description' => $data['description'] ?? null,
             'quantity' => (int)($data['quantity'] ?? 0),
             'price' => (float)($data['price'] ?? 0.0),
-            'expiry_date' => $data['expiry_date'] ?? null
+            'expiry_date' => $data['expiry_date'] ?? null,
+            'low_stock_limit' => (int)($data['low_stock_limit'] ?? 5)
         ]);
 
         $id = (int) $this->db->lastInsertId();
@@ -49,6 +50,7 @@ class InventoryRepository extends BaseRepository
                 quantity = :quantity,
                 price = :price,
                 expiry_date = :expiry_date,
+                low_stock_limit = :low_stock_limit,
                 updated_at = CURRENT_TIMESTAMP
                 WHERE id = :id AND tenant_id = :tenant_id";
                 
@@ -61,7 +63,8 @@ class InventoryRepository extends BaseRepository
             'description' => $data['description'] ?? null,
             'quantity' => (int)($data['quantity'] ?? 0),
             'price' => (float)($data['price'] ?? 0.0),
-            'expiry_date' => array_key_exists('expiry_date', $data) ? $data['expiry_date'] : null
+            'expiry_date' => array_key_exists('expiry_date', $data) ? $data['expiry_date'] : null,
+            'low_stock_limit' => (int)($data['low_stock_limit'] ?? 5)
         ]);
 
         return $this->getById($id);

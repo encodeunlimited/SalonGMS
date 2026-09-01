@@ -44,6 +44,10 @@
                         </div>
                         
                         <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Low Stock Limit</label>
+                                <input type="number" name="low_stock_limit" value="{{ item.low_stock_limit ?? 5 }}" min="0" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                            </div>
                             {% if item %}
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Current Stock</label>

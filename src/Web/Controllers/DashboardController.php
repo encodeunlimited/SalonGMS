@@ -134,15 +134,39 @@ class DashboardController
             ]);
         } elseif ($role === 'cashier') {
             $kpi = $this->analytics->getDashboardKPIs();
+            $weeklyRevenue = $this->analytics->getWeeklyRevenueData();
+            $servicesBreakdown = $this->analytics->getServicesBreakdown();
+            $appointmentsStatus = $this->analytics->getAppointmentsByStatus();
+
             $todayAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $today], 'limit' => 50])['data'];
             $tomorrowAppointments = $this->appointmentRepo->getPaginatedAppointments(['filters' => ['date' => $tomorrow], 'limit' => 50])['data'];
+
+            $pendingPayments = $this->invoiceRepo->getUnpaidInvoicesWithCustomer();
+
+            $customers = $this->customerRepo->getAll();
+            $todaysBirthdays = array_filter($customers, function($c) use ($today) {
+                if (empty($c['date_of_birth'])) return false;
+                return date('m-d', strtotime($c['date_of_birth'])) === date('m-d', strtotime($today));
+            });
 
             return $this->view->render($response, 'dashboard_cashier.twig', [
                 'title' => 'Cashier Dashboard',
                 'active_menu' => 'dashboard',
                 'kpi' => $kpi,
                 'today_appointments' => $todayAppointments,
-                'tomorrow_appointments' => $tomorrowAppointments
+                'tomorrow_appointments' => $tomorrowAppointments,
+                'pending_payments' => $pendingPayments,
+                'todays_birthdays' => $todaysBirthdays,
+                'low_stock_alerts' => $lowStockAlerts,
+                'expiry_alerts' => $expiryAlerts,
+                'charts' => [
+                    'weekly_revenue_labels' => json_encode($weeklyRevenue['labels']),
+                    'weekly_revenue' => json_encode($weeklyRevenue['series']),
+                    'services_labels' => json_encode($servicesBreakdown['labels']),
+                    'services_series' => json_encode($servicesBreakdown['series']),
+                    'apt_status_labels' => json_encode($appointmentsStatus['labels']),
+                    'apt_status_series' => json_encode($appointmentsStatus['series'])
+                ]
             ]);
         } else {
             // Stylist dashboard

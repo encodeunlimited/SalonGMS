@@ -75,7 +75,6 @@ class CustomerController
 
     public function store(Request $request, Response $response): Response
     {
-        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->customers->setTenantId($tenantId);
         
@@ -139,7 +138,6 @@ class CustomerController
 
     public function update(Request $request, Response $response, array $args): Response
     {
-        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = $request->getAttribute('tenant_id');
         $this->customers->setTenantId($tenantId);
         
@@ -186,7 +184,6 @@ class CustomerController
 
     public function apiStore(Request $request, Response $response): Response
     {
-        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->customers->setTenantId($tenantId);
         

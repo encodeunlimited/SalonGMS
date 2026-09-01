@@ -24,11 +24,13 @@
     </div>
     
     <div class="flex items-center space-x-3">
-        <!-- Manage Categories Button -->
+        <!-- Manage Categories Button - admin only -->
+        {% if auth_user.role == 'admin' %}
         <a href="/web/expenses/categories" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 shadow-sm transition-colors flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
             Categories
         </a>
+        {% endif %}
         <!-- Add New Button -->
         <button onclick="document.getElementById('addExpenseModal').classList.remove('hidden')" class="bg-salon-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-salon-navy shadow-sm transition-colors flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -57,6 +59,11 @@
                 {% endfor %}
             </select>
         </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+            <input type="search" id="expense-search" name="search" value="{{ search }}" placeholder="Description, category..."
+                   class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-salon-accent focus:border-salon-accent text-gray-900">
+        </div>
         <div class="pt-5">
             <button type="submit" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                 Filter
@@ -76,11 +83,31 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
-                    <th class="px-6 py-4 font-semibold">Date</th>
-                    <th class="px-6 py-4 font-semibold">Category</th>
-                    <th class="px-6 py-4 font-semibold">Description</th>
-                    <th class="px-6 py-4 font-semibold">Payment Method</th>
-                    <th class="px-6 py-4 font-semibold text-right">Amount</th>
+                    <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/expenses?sort=expense_date&dir={{ sort == 'expense_date' and dir == 'asc' ? 'desc' : 'asc' }}&start_date={{ start_date }}&end_date={{ end_date }}&category={{ selected_category }}&search={{ search }}"
+                        hx-target="body" hx-push-url="true">
+                        Date {% if sort == 'expense_date' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/expenses?sort=category&dir={{ sort == 'category' and dir == 'asc' ? 'desc' : 'asc' }}&start_date={{ start_date }}&end_date={{ end_date }}&category={{ selected_category }}&search={{ search }}"
+                        hx-target="body" hx-push-url="true">
+                        Category {% if sort == 'category' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/expenses?sort=description&dir={{ sort == 'description' and dir == 'asc' ? 'desc' : 'asc' }}&start_date={{ start_date }}&end_date={{ end_date }}&category={{ selected_category }}&search={{ search }}"
+                        hx-target="body" hx-push-url="true">
+                        Description {% if sort == 'description' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/expenses?sort=payment_method&dir={{ sort == 'payment_method' and dir == 'asc' ? 'desc' : 'asc' }}&start_date={{ start_date }}&end_date={{ end_date }}&category={{ selected_category }}&search={{ search }}"
+                        hx-target="body" hx-push-url="true">
+                        Payment Method {% if sort == 'payment_method' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
+                    <th class="px-6 py-4 font-semibold text-right cursor-pointer hover:bg-gray-200 transition-colors"
+                        hx-get="/web/expenses?sort=amount&dir={{ sort == 'amount' and dir == 'asc' ? 'desc' : 'asc' }}&start_date={{ start_date }}&end_date={{ end_date }}&category={{ selected_category }}&search={{ search }}"
+                        hx-target="body" hx-push-url="true">
+                        Amount {% if sort == 'amount' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                    </th>
                     <th class="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
             </thead>

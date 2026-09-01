@@ -24,7 +24,7 @@ class ExpenseController
     public function index(Request $request, Response $response): Response
     {
         $role = $request->getAttribute('role');
-        if ($role !== 'admin') {
+        if (!in_array($role, ['admin', 'cashier'])) {
             return $response->withHeader('Location', '/web/dashboard')->withStatus(302);
         }
 
@@ -32,24 +32,28 @@ class ExpenseController
         $this->expenseRepo->setTenantId($tenantId);
 
         $queryParams = $request->getQueryParams();
-        $page = isset($queryParams['page']) ? (int)$queryParams['page'] : 1;
-        $limit = 20;
+        $page      = isset($queryParams['page']) ? (int)$queryParams['page'] : 1;
+        $limit     = 20;
+        $search    = $queryParams['search'] ?? '';
+        $sort      = $queryParams['sort'] ?? 'expense_date';
+        $dir       = $queryParams['dir'] ?? 'desc';
 
         $startDate = $queryParams['start_date'] ?? date('Y-m-01');
-        $endDate = $queryParams['end_date'] ?? date('Y-m-t');
-        $category = $queryParams['category'] ?? '';
+        $endDate   = $queryParams['end_date']   ?? date('Y-m-t');
+        $category  = $queryParams['category']   ?? '';
 
         $filters = [
             'start_date' => $startDate,
-            'end_date' => $endDate
+            'end_date'   => $endDate
         ];
-        if (!empty($category)) {
-            $filters['category'] = $category;
-        }
+        if (!empty($category)) $filters['category'] = $category;
+        if (!empty($search))   $filters['search']   = $search;
 
         $result = $this->expenseRepo->getPaginatedExpenses([
-            'page' => $page,
-            'limit' => $limit,
+            'page'    => $page,
+            'limit'   => $limit,
+            'sort'    => $sort,
+            'dir'     => $dir,
             'filters' => $filters
         ]);
 
@@ -59,26 +63,29 @@ class ExpenseController
         $categories = $this->expenseCategoryRepo->getAll();
 
         return $this->view->render($response, 'expenses/index.twig', [
-            'title' => 'Expenses Management',
-            'active_menu' => 'expenses',
-            'expenses' => $result['data'],
-            'pagination' => [
-                'page' => $result['page'],
+            'title'             => 'Expenses Management',
+            'active_menu'       => 'expenses',
+            'expenses'          => $result['data'],
+            'pagination'        => [
+                'page'        => $result['page'],
                 'total_pages' => $result['total_pages'],
-                'total' => $result['total']
+                'total'       => $result['total']
             ],
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'start_date'        => $startDate,
+            'end_date'          => $endDate,
             'selected_category' => $category,
-            'categories' => $categories,
-            'total_expenses' => $totalExpenses
+            'search'            => $search,
+            'sort'              => $sort,
+            'dir'               => $dir,
+            'categories'        => $categories,
+            'total_expenses'    => $totalExpenses
         ]);
     }
 
     public function store(Request $request, Response $response): Response
     {
         $role = $request->getAttribute('role');
-        if ($role !== 'admin') {
+        if (!in_array($role, ['admin', 'cashier'])) {
             return $response->withHeader('Location', '/web/dashboard')->withStatus(302);
         }
 

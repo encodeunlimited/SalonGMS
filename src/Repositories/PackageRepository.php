@@ -98,6 +98,48 @@ class PackageRepository extends BaseRepository
         return $packages;
     }
 
+    public function getPaginated(array $options = []): array
+    {
+        $search = $options['search'] ?? '';
+        $sort   = in_array($options['sort'] ?? '', ['name', 'price', 'active', 'created_at']) ? $options['sort'] : 'id';
+        $dir    = strtolower($options['dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
+        $page   = max(1, (int)($options['page'] ?? 1));
+        $limit  = (int)($options['limit'] ?? 10);
+        $offset = ($page - 1) * $limit;
+
+        $baseSql = "FROM {$this->table} WHERE tenant_id = :tenant_id";
+        $params  = ['tenant_id' => $this->getTenantId()];
+
+        if ($search !== '') {
+            $baseSql .= " AND (name LIKE :search OR description LIKE :search)";
+            $params['search'] = "%{$search}%";
+        }
+
+        $countStmt = $this->db->prepare("SELECT COUNT(*) " . $baseSql);
+        $countStmt->execute($params);
+        $total = (int)$countStmt->fetchColumn();
+
+        $dataSql = "SELECT * " . $baseSql . " ORDER BY {$sort} {$dir} LIMIT :limit OFFSET :offset";
+        $stmt = $this->db->prepare($dataSql);
+        foreach ($params as $k => $v) $stmt->bindValue(":$k", $v);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        $packages = $stmt->fetchAll();
+
+        foreach ($packages as &$package) {
+            $package['services'] = $this->getPackageServices($package['id']);
+        }
+
+        return [
+            'data'        => $packages,
+            'total'       => $total,
+            'page'        => $page,
+            'limit'       => $limit,
+            'total_pages' => (int)ceil($total / $limit)
+        ];
+    }
+
     private function getPackageServices(int $packageId): array
     {
         $stmt = $this->db->prepare("

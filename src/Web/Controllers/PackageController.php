@@ -26,12 +26,28 @@ class PackageController
         $tenantId = (int)$request->getAttribute('tenant_id');
         $this->packageRepo->setTenantId($tenantId);
 
-        $packages = $this->packageRepo->getAll();
+        $params = $request->getQueryParams();
+        $search = $params['search'] ?? '';
+        $sort   = $params['sort'] ?? 'id';
+        $dir    = $params['dir'] ?? 'desc';
+        $page   = (int)($params['page'] ?? 1);
+
+        $paginated = $this->packageRepo->getPaginated([
+            'search' => $search,
+            'sort'   => $sort,
+            'dir'    => $dir,
+            'page'   => $page,
+            'limit'  => 10
+        ]);
 
         return $this->view->render($response, 'packages/index.twig', [
-            'title' => 'Packages',
-            'active_menu' => 'packages',
-            'packages' => $packages
+            'title'      => 'Packages',
+            'active_menu'=> 'packages',
+            'packages'   => $paginated['data'],
+            'pagination' => $paginated,
+            'search'     => $search,
+            'sort'       => $sort,
+            'dir'        => $dir
         ]);
     }
 

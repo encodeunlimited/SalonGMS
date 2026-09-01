@@ -26,6 +26,11 @@ class ExpenseRepository extends BaseRepository
             $params['category'] = $options['filters']['category'];
         }
 
+        if (!empty($options['filters']['search'])) {
+            $baseSql .= " AND (description LIKE :search OR category LIKE :search OR payment_method LIKE :search)";
+            $params['search'] = '%' . $options['filters']['search'] . '%';
+        }
+
         $countSql = "SELECT COUNT(*) " . $baseSql;
         $countStmt = $this->db->prepare($countSql);
         $countStmt->execute($params);
@@ -39,7 +44,11 @@ class ExpenseRepository extends BaseRepository
         $offset = ($page - 1) * $limit;
         $totalPages = ceil($total / $limit);
 
-        $dataSql = "SELECT * " . $baseSql . " ORDER BY expense_date DESC, id DESC LIMIT :limit OFFSET :offset";
+        $allowedSort = ['expense_date', 'category', 'amount', 'payment_method', 'description'];
+        $sort = in_array($options['sort'] ?? '', $allowedSort) ? $options['sort'] : 'expense_date';
+        $dir  = strtolower($options['dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
+
+        $dataSql = "SELECT * " . $baseSql . " ORDER BY {$sort} {$dir}, id DESC LIMIT :limit OFFSET :offset";
         
         $stmt = $this->db->prepare($dataSql);
         foreach ($params as $key => $val) {

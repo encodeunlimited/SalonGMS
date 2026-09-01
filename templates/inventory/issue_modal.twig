@@ -27,7 +27,22 @@
         .ts-dropdown { z-index: 9999 !important; }
     </style>
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0" x-show="open">
-        
+        <style>
+            /* Normalize TomSelect height to match standard Tailwind inputs */
+            .ts-wrapper.compact-ts .ts-control {
+                min-height: 38px !important;
+                height: 38px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                display: flex;
+                align-items: center;
+            }
+            .ts-wrapper.compact-ts .ts-control .item, .ts-wrapper.compact-ts .ts-control input {
+                line-height: normal !important;
+                margin-bottom: 0 !important;
+                margin-top: 0 !important;
+            }
+        </style>
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" x-show="open" x-transition.opacity @click="closeModal()"></div>
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -51,9 +66,20 @@
                 <form hx-post="/web/inventory/batch-issue"
                       @htmx:after-request="if($event.detail.successful) { closeModal(); setTimeout(() => window.location.reload(), 500); }">
                     
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700">Notes / Reason (Optional)</label>
-                        <input type="text" name="notes" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm" placeholder="e.g. For morning appointments">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Issued To (Employee) <span class="text-red-500">*</span></label>
+                            <select name="employee_id" required x-data x-init="new TomSelect($el, { placeholder: 'Select Employee...', wrapperClass: 'ts-wrapper compact-ts' })" class="mt-1 block w-full border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                <option value="">Select Employee...</option>
+                                {% for emp in employees %}
+                                    <option value="{{ emp.id }}">{{ emp.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Notes / Reason (Optional)</label>
+                            <input type="text" name="notes" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm" placeholder="e.g. For morning appointments">
+                        </div>
                     </div>
 
                     <div class="mb-4">

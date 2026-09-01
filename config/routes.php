@@ -127,6 +127,14 @@ return function (App $app) {
         $group->post('/expenses/{id}/edit', \App\Web\Controllers\ExpenseController::class . ':update');
         $group->post('/expenses/{id}/delete', \App\Web\Controllers\ExpenseController::class . ':delete');
         
+        // Expense Categories
+        $group->get('/expenses/categories', \App\Web\Controllers\ExpenseController::class . ':categories');
+        $group->get('/expenses/categories/create', \App\Web\Controllers\ExpenseController::class . ':createCategory');
+        $group->post('/expenses/categories', \App\Web\Controllers\ExpenseController::class . ':storeCategory');
+        $group->get('/expenses/categories/{id}/edit', \App\Web\Controllers\ExpenseController::class . ':editCategory');
+        $group->post('/expenses/categories/{id}/edit', \App\Web\Controllers\ExpenseController::class . ':updateCategory');
+        $group->post('/expenses/categories/{id}/delete', \App\Web\Controllers\ExpenseController::class . ':deleteCategory');
+        
         // Notifications
         $group->get('/notifications/dropdown', \App\Web\Controllers\NotificationController::class . ':getDropdown');
         $group->get('/notifications/badge', \App\Web\Controllers\NotificationController::class . ':getBadge');

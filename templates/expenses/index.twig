@@ -1,6 +1,22 @@
 {% extends "layout.twig" %}
 
 {% block content %}
+<style>
+    /* Normalize TomSelect height to match standard Tailwind inputs */
+    .ts-wrapper.compact-ts .ts-control {
+        min-height: 38px !important;
+        height: 38px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        display: flex;
+        align-items: center;
+    }
+    .ts-wrapper.compact-ts .ts-control .item, .ts-wrapper.compact-ts .ts-control input {
+        line-height: normal !important;
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
+    }
+</style>
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Expenses</h2>
@@ -8,6 +24,11 @@
     </div>
     
     <div class="flex items-center space-x-3">
+        <!-- Manage Categories Button -->
+        <a href="/web/expenses/categories" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 shadow-sm transition-colors flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            Categories
+        </a>
         <!-- Add New Button -->
         <button onclick="document.getElementById('addExpenseModal').classList.remove('hidden')" class="bg-salon-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-salon-navy shadow-sm transition-colors flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -29,10 +50,10 @@
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
-            <select name="category" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-salon-accent focus:border-salon-accent text-gray-900">
+            <select name="category" x-data x-init="new TomSelect($el, { placeholder: 'All Categories', wrapperClass: 'ts-wrapper compact-ts' })" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-salon-accent focus:border-salon-accent text-gray-900 min-w-[200px]">
                 <option value="">All Categories</option>
                 {% for cat in categories %}
-                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -125,10 +146,10 @@
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
-                <select name="category" required class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                <select name="category" required x-data x-init="new TomSelect($el, { placeholder: 'Select Category', wrapperClass: 'ts-wrapper compact-ts' })" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-salon-accent focus:border-salon-accent text-gray-900">
                     <option value="">Select Category</option>
                     {% for cat in categories %}
-                        <option value="{{ cat }}">{{ cat }}</option>
+                        <option value="{{ cat.name }}">{{ cat.name }}</option>
                     {% endfor %}
                 </select>
             </div>

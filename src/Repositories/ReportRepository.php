@@ -203,10 +203,12 @@ class ReportRepository extends BaseRepository
                 i.sku as sku,
                 t.quantity as quantity,
                 u.name as user_name,
+                e.name as employee_name,
                 COALESCE(t.notes, t.reference_no) as reference_no
             FROM inventory_transactions t
             JOIN inventory_items i ON t.item_id = i.id
             LEFT JOIN users u ON t.created_by = u.id
+            LEFT JOIN users e ON t.employee_id = e.id
             WHERE t.tenant_id = :tenant_id 
               AND LOWER(t.type) = 'issue'
               AND t.created_at >= :start_date 

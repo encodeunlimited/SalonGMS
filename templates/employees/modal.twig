@@ -57,6 +57,7 @@
                                         <label class="block text-sm font-medium text-gray-700">Role</label>
                                         <select name="role" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm bg-white">
                                             <option value="stylist" {% if employee.role == 'stylist' %}selected{% endif %}>Stylist</option>
+                                            <option value="cashier" {% if employee.role == 'cashier' %}selected{% endif %}>Cashier</option>
                                             <option value="manager" {% if employee.role == 'manager' %}selected{% endif %}>Manager</option>
                                             <option value="admin" {% if employee.role == 'admin' %}selected{% endif %}>Admin</option>
                                         </select>

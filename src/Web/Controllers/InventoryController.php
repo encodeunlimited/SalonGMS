@@ -39,6 +39,10 @@ class InventoryController
         
         $paginated = $this->inventory->getPaginated($options);
 
+        $stmt = $this->db->prepare("SELECT id, name FROM users WHERE tenant_id = ? AND role IN ('stylist', 'manager', 'cashier') ORDER BY name ASC");
+        $stmt->execute([$tenantId]);
+        $employees = $stmt->fetchAll();
+
         return $this->view->render($response, 'inventory/index.twig', [
             'title' => 'Inventory',
             'active_menu' => 'inventory',
@@ -46,7 +50,8 @@ class InventoryController
             'pagination' => $paginated,
             'search' => $options['search'],
             'sort' => $options['sort'],
-            'dir' => $options['dir']
+            'dir' => $options['dir'],
+            'employees' => $employees
         ]);
     }
 
@@ -276,9 +281,14 @@ class InventoryController
         $this->inventory->setTenantId($tenantId);
         
         $items = $this->inventory->getAll();
+
+        $stmt = $this->db->prepare("SELECT id, name FROM users WHERE tenant_id = ? AND role IN ('stylist', 'manager', 'cashier') ORDER BY name ASC");
+        $stmt->execute([$tenantId]);
+        $employees = $stmt->fetchAll();
         
         $html = $this->view->fetch('inventory/issue_modal.twig', [
-            'inventory_items' => $items
+            'inventory_items' => $items,
+            'employees' => $employees
         ]);
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html');
@@ -293,6 +303,7 @@ class InventoryController
         $data = $request->getParsedBody();
         $notes = $data['notes'] ?? '';
         $items = $data['items'] ?? [];
+        $employeeId = !empty($data['employee_id']) ? (int)$data['employee_id'] : null;
 
         if (empty($items)) {
             return $response->withHeader('Content-Type', 'text/html')
@@ -303,7 +314,7 @@ class InventoryController
 
         $this->db->beginTransaction();
         try {
-            $stmtTx = $this->db->prepare("INSERT INTO inventory_transactions (tenant_id, type, reference_no, item_id, quantity, notes, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmtTx = $this->db->prepare("INSERT INTO inventory_transactions (tenant_id, type, reference_no, item_id, quantity, notes, created_by, employee_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $refNo = 'ISS-' . date('Ymd-His');
 
             // Process each item
@@ -321,12 +332,13 @@ class InventoryController
                         'description' => $existingItem['description'],
                         'quantity' => $newQty,
                         'price' => $existingItem['price'],
-                        'expiry_date' => $existingItem['expiry_date']
+                        'expiry_date' => $existingItem['expiry_date'],
+                        'low_stock_limit' => $existingItem['low_stock_limit'] ?? 5
                     ]);
 
                     // Log Transaction
                     $stmtTx->execute([
-                        $tenantId, 'ISSUE', $refNo, $itemId, $qty, $notes, $userId
+                        $tenantId, 'ISSUE', $refNo, $itemId, $qty, $notes, $userId, $employeeId
                     ]);
                 } else {
                     throw new \Exception("Insufficient stock for item ID {$itemId}.");

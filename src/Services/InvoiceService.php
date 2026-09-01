@@ -107,7 +107,9 @@ class InvoiceService extends BaseService
                 'unit_price' => $price,
                 'subtotal' => $subtotal,
                 'initial_service_id' => !empty($item['initial_service_id']) ? (int)$item['initial_service_id'] : null,
-                'initial_service_name' => $item['initial_service_name'] ?? null
+                'initial_service_name' => $item['initial_service_name'] ?? null,
+                'stylist_id' => !empty($item['stylist_id']) ? (int)$item['stylist_id'] : null,
+                'stylist_name' => $item['stylist_name'] ?? null
             ];
         }
 
@@ -208,8 +210,10 @@ class InvoiceService extends BaseService
         foreach ($processedItems as $pItem) {
             $itemType = $pItem['type'];
             $itemId = $pItem['item_id'];
+            $itemStylistId = $pItem['stylist_id'] ?? null;
+            $itemStylistName = $pItem['stylist_name'] ?? null;
             
-            unset($pItem['type'], $pItem['item_id']);
+            unset($pItem['type'], $pItem['item_id'], $pItem['stylist_id'], $pItem['stylist_name']);
             $pItem['invoice_id'] = $invoice['id'];
             
             if ($itemType === 'service' && $itemId) {
@@ -220,9 +224,9 @@ class InvoiceService extends BaseService
             
             // Create a 'done' appointment for standalone services and redemptions (walk-in)
             if (empty($data['appointment_id']) && ($itemType === 'service' || $itemType === 'redemption')) {
-                $employeeId = !empty($data['employee_id']) ? (int)$data['employee_id'] : null;
-                $stylistName = 'Unknown';
-                if ($employeeId) {
+                $employeeId = !empty($itemStylistId) ? (int)$itemStylistId : (!empty($data['employee_id']) ? (int)$data['employee_id'] : null);
+                $stylistName = !empty($itemStylistName) ? $itemStylistName : 'Unknown';
+                if (!$itemStylistName && $employeeId) {
                     $employee = $this->userRepo->getById($employeeId);
                     if ($employee) $stylistName = $employee['name'];
                 }

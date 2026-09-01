@@ -253,6 +253,15 @@ class InvoiceController
                     }
                 }
             }
+            
+            // Append stylist name to item name if present for all flows
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $idx => $item) {
+                    if (!empty($item['stylist_name']) && strpos($item['name'] ?? '', '(Stylist:') === false) {
+                        $data['items'][$idx]['name'] = ($item['name'] ?? 'Service') . ' (Stylist: ' . $item['stylist_name'] . ')';
+                    }
+                }
+            }
 
             $hasPackagePurchase = false;
             $isZeroTotal = true;
@@ -306,6 +315,9 @@ class InvoiceController
                         $qty = (int)($item['quantity'] ?? 1);
                         $itemName = $item['name'] ?? 'Service';
                         
+                        $itemStylistId = !empty($item['stylist_id']) ? (int)$item['stylist_id'] : $employeeId;
+                        $itemStylistName = !empty($item['stylist_name']) ? $item['stylist_name'] : $stylistName;
+                        
                         if (($item['type'] ?? '') === 'package') {
                             $pkgId = !empty($item['item_id']) ? (int)$item['item_id'] : (!empty($item['id']) ? (int)$item['id'] : null);
                             
@@ -352,8 +364,8 @@ class InvoiceController
                             $this->appointmentRepo->create([
                                 'customer_id' => $customerId,
                                 'customer_name' => $customer['name'] ?? 'Unknown',
-                                'stylist_id' => $employeeId,
-                                'stylist_name' => $stylistName,
+                                'stylist_id' => $itemStylistId,
+                                'stylist_name' => $itemStylistName,
                                 'service_id' => !empty($item['service_id']) ? (int)$item['service_id'] : (!empty($item['id']) ? (int)$item['id'] : null),
                                 'service_name' => $itemName,
                                 'date' => date('Y-m-d'),

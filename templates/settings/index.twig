@@ -130,9 +130,10 @@
             
             <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Service Categories</h3>
             <div class="mb-8">
-                <form hx-post="/web/settings/service-categories" hx-target="#service-categories-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newServiceCategoryInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                <form hx-post="/web/settings/service-categories" hx-target="#service-categories-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) { $refs.newServiceCategoryInput.value = ''; $refs.newServiceCategoryArabicInput.value = ''; }" class="flex flex-col sm:flex-row items-center gap-2 mb-4" x-data>
+                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="w-full sm:flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                    <input type="text" name="arabic_name" x-ref="newServiceCategoryArabicInput" placeholder="Arabic Name (Optional)" class="w-full sm:flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
                 </form>
                 
                 <ul id="service-categories-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">

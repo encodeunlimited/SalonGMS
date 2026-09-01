@@ -37,6 +37,7 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         tenant_id INT NOT NULL,
         name VARCHAR(100) NOT NULL,
+        arabic_name VARCHAR(100) NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY tenant_name (tenant_id, name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
@@ -77,11 +78,13 @@ try {
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         tenant_id BIGINT NOT NULL,
         name VARCHAR(255) NOT NULL,
+        arabic_name VARCHAR(255) NULL,
         category VARCHAR(255) NULL,
         description TEXT,
         images JSON NULL,
         duration_minutes INT NOT NULL,
         price DECIMAL(10,2) NOT NULL,
+        arabic_price DECIMAL(10,2) NULL,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
     );
 

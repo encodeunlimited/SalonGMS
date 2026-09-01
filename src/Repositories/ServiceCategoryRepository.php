@@ -35,8 +35,8 @@ class ServiceCategoryRepository
 
     public function create(array $data): array
     {
-        $stmt = $this->db->prepare("INSERT INTO service_categories (tenant_id, name) VALUES (?, ?)");
-        $stmt->execute([$this->tenantId, $data['name']]);
+        $stmt = $this->db->prepare("INSERT INTO service_categories (tenant_id, name, arabic_name) VALUES (?, ?, ?)");
+        $stmt->execute([$this->tenantId, $data['name'], $data['arabic_name'] ?? null]);
         
         $id = $this->db->lastInsertId();
         return $this->getById((int)$id);
@@ -44,8 +44,8 @@ class ServiceCategoryRepository
 
     public function update(int $id, array $data): bool
     {
-        $stmt = $this->db->prepare("UPDATE service_categories SET name = ? WHERE id = ? AND tenant_id = ?");
-        return $stmt->execute([$data['name'], $id, $this->tenantId]);
+        $stmt = $this->db->prepare("UPDATE service_categories SET name = ?, arabic_name = ? WHERE id = ? AND tenant_id = ?");
+        return $stmt->execute([$data['name'], $data['arabic_name'] ?? null, $id, $this->tenantId]);
     }
 
     public function delete(int $id): bool

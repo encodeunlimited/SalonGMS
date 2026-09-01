@@ -47,6 +47,10 @@
                                         <label class="block text-sm font-medium text-gray-700">Service Name</label>
                                         <input type="text" name="name" value="{{ service.name }}" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                     </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Arabic Name (Optional)</label>
+                                        <input type="text" name="arabic_name" value="{{ service.arabic_name }}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                    </div>
                                     <div x-data="{ 
                                         open: false, 
                                         search: '{{ service.category|escape('js') }}', 
@@ -94,6 +98,10 @@
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Price (QAR)</label>
                                         <input type="number" step="0.01" name="price" value="{{ service.price }}" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Arabic Price (Optional)</label>
+                                        <input type="number" step="0.01" name="arabic_price" value="{{ service.arabic_price }}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
                                     </div>
                                 </div>
 

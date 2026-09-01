@@ -32,8 +32,8 @@ class ServiceRepository extends BaseRepository
     public function create(array $data): array
     {
         $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} (tenant_id, name, category, description, images, duration_minutes, price)
-            VALUES (:tenant_id, :name, :category, :description, :images, :duration_minutes, :price)
+            INSERT INTO {$this->table} (tenant_id, name, arabic_name, category, description, images, duration_minutes, price, arabic_price)
+            VALUES (:tenant_id, :name, :arabic_name, :category, :description, :images, :duration_minutes, :price, :arabic_price)
         ");
         
         $imagesJson = null;
@@ -44,11 +44,13 @@ class ServiceRepository extends BaseRepository
         $insertData = [
             'tenant_id' => $this->getTenantId(),
             'name' => $data['name'],
+            'arabic_name' => $data['arabic_name'] ?? null,
             'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'images' => $imagesJson,
             'duration_minutes' => $data['duration_minutes'] ?? 30,
-            'price' => $data['price'] ?? 0.00
+            'price' => $data['price'] ?? 0.00,
+            'arabic_price' => isset($data['arabic_price']) && $data['arabic_price'] !== '' ? (float)$data['arabic_price'] : null
         ];
         
         $stmt->execute($insertData);
@@ -58,15 +60,17 @@ class ServiceRepository extends BaseRepository
 
     public function update(int $id, array $data): array
     {
-        $sql = "UPDATE {$this->table} SET name = :name, description = :description, duration_minutes = :duration_minutes, price = :price";
+        $sql = "UPDATE {$this->table} SET name = :name, arabic_name = :arabic_name, description = :description, duration_minutes = :duration_minutes, price = :price, arabic_price = :arabic_price";
         
         $updateData = [
             'id' => $id,
             'tenant_id' => $this->getTenantId(),
             'name' => $data['name'],
+            'arabic_name' => $data['arabic_name'] ?? null,
             'description' => $data['description'] ?? null,
             'duration_minutes' => $data['duration_minutes'] ?? 30,
-            'price' => $data['price'] ?? 0.00
+            'price' => $data['price'] ?? 0.00,
+            'arabic_price' => isset($data['arabic_price']) && $data['arabic_price'] !== '' ? (float)$data['arabic_price'] : null
         ];
         
         if (array_key_exists('images', $data)) {

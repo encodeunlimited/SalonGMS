@@ -198,7 +198,10 @@ class SettingsController
         $data = $request->getParsedBody();
         if (!empty($data['name'])) {
             try {
-                $item = $this->serviceCategoryRepo->create(['name' => trim($data['name'])]);
+                $item = $this->serviceCategoryRepo->create([
+                    'name' => trim($data['name']),
+                    'arabic_name' => isset($data['arabic_name']) ? trim($data['arabic_name']) : null
+                ]);
                 return $this->view->render($response, 'settings/type_item.twig', ['item' => $item, 'type' => 'service-categories', 'path' => 'service-categories']);
             } catch (\PDOException $e) {
                 if ($e->getCode() == 23000) {
@@ -218,7 +221,10 @@ class SettingsController
         $id = (int)$args['id'];
         if (!empty($data['name'])) {
             try {
-                $this->serviceCategoryRepo->update($id, ['name' => trim($data['name'])]);
+                $this->serviceCategoryRepo->update($id, [
+                    'name' => trim($data['name']),
+                    'arabic_name' => isset($data['arabic_name']) ? trim($data['arabic_name']) : null
+                ]);
                 $item = $this->serviceCategoryRepo->getById($id);
                 return $this->view->render($response, 'settings/type_item.twig', ['item' => $item, 'type' => 'service-categories', 'path' => 'service-categories']);
             } catch (\PDOException $e) {

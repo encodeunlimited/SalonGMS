@@ -71,11 +71,13 @@ class ServiceController
 
         $service = $this->services->create([
             'name' => $data['name'],
+            'arabic_name' => $data['arabic_name'] ?? null,
             'category' => $data['category'] ?? null,
             'description' => $data['description'],
             'images' => $imagePaths,
             'duration_minutes' => (int)$data['duration_minutes'],
-            'price' => (float)$data['price']
+            'price' => (float)$data['price'],
+            'arabic_price' => $data['arabic_price'] ?? null
         ]);
 
         $rowHtml = $this->view->fetch('services/row.twig', ['service' => $service]);
@@ -143,10 +145,12 @@ class ServiceController
         
         $updateData = [
             'name' => $data['name'],
+            'arabic_name' => $data['arabic_name'] ?? null,
             'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'duration_minutes' => (int)$data['duration_minutes'],
-            'price' => (float)$data['price']
+            'price' => (float)$data['price'],
+            'arabic_price' => $data['arabic_price'] ?? null
         ];
 
         $newImagePaths = $this->handleImageUploads($uploadedFiles);

@@ -51,11 +51,13 @@ try {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tenant_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
+        arabic_name TEXT,
         category VARCHAR(255) NULL,
         description TEXT,
         images TEXT,
         duration_minutes INTEGER NOT NULL,
         price DECIMAL(10,2) NOT NULL,
+        arabic_price DECIMAL(10,2),
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
     );
 
@@ -82,6 +84,7 @@ try {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tenant_id INTEGER NOT NULL,
         name TEXT NOT NULL,
+        arabic_name TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (tenant_id, name)
     );

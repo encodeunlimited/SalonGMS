@@ -1,0 +1,86 @@
+<div id="customer-loyalty-container">
+    <div class="mb-4">
+        <div class="relative w-full max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="search" name="search" value="{{ search }}" placeholder="Search transactions..." 
+                   hx-get="/web/customers/{{ customer_id }}/loyalty?sort={{ sort }}&dir={{ dir }}" 
+                   hx-target="#customer-loyalty-container" hx-select="#customer-loyalty-container" hx-swap="outerHTML" 
+                   hx-trigger="keyup changed delay:500ms, search"
+                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
+        </div>
+    </div>
+
+    {% if loyalty_transactions|length > 0 %}
+        <div class="overflow-x-auto rounded-xl border border-gray-100">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                        <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/loyalty?sort=created_at&dir={{ sort == 'created_at' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-loyalty-container" hx-select="#customer-loyalty-container" hx-swap="outerHTML">
+                            Date {% if sort == 'created_at' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                        <th class="px-6 py-4 font-medium text-gray-500">Description</th>
+                        <th class="px-6 py-4 font-medium text-right cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/loyalty?sort=points_earned&dir={{ sort == 'points_earned' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-loyalty-container" hx-select="#customer-loyalty-container" hx-swap="outerHTML">
+                            Earned {% if sort == 'points_earned' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                        <th class="px-6 py-4 font-medium text-right cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/loyalty?sort=points_spent&dir={{ sort == 'points_spent' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-loyalty-container" hx-select="#customer-loyalty-container" hx-swap="outerHTML">
+                            Redeemed {% if sort == 'points_spent' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for tx in loyalty_transactions %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ tx.created_at|date("M j, Y h:i A") }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-medium text-gray-800">{{ tx.description }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold text-green-600">
+                                {% if tx.points_earned > 0 %}+{{ tx.points_earned }}{% else %}-{% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold text-red-600">
+                                {% if tx.points_spent > 0 %}-{{ tx.points_spent }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            {% if pagination.total_pages > 1 %}
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+                    <span class="font-medium">{{ min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+                    <span class="font-medium">{{ pagination.total }}</span> results
+                </p>
+                <div class="flex gap-1">
+                    {% for p in 1..pagination.total_pages %}
+                        <button hx-get="/web/customers/{{ customer_id }}/loyalty?page={{ p }}&sort={{ sort }}&dir={{ dir }}&search={{ search }}"
+                                hx-target="#customer-loyalty-container" hx-select="#customer-loyalty-container" hx-swap="outerHTML"
+                                class="px-3 py-1 text-sm border rounded-md transition-colors {% if pagination.page == p %}bg-salon-accent text-white border-salon-accent{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+                            {{ p }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="p-12 text-center border border-gray-100 rounded-xl bg-white">
+            <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-2xl">⭐</span>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No loyalty history</h3>
+            <p class="text-gray-500">This customer hasn't earned or redeemed any points yet.</p>
+        </div>
+    {% endif %}
+</div>

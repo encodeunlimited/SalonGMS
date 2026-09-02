@@ -275,21 +275,86 @@ class EmployeeController
         $commissionsList = $this->commissions->getByUserId($employeeId);
         $totalCommission = $this->commissions->getTotalByUserId($employeeId);
         
-        $options = [
-            'page' => 1,
-            'limit' => 50,
-            'filters' => ['user_id' => $employeeId]
+        $appointments = $this->appointments->getByUserId($employeeId);
+        
+        $paginatedCommissions = array_slice($commissionsList, 0, 10);
+        $commissionsPagination = [
+            'page' => 1, 'limit' => 10, 'total' => count($commissionsList), 'total_pages' => ceil(count($commissionsList) / 10)
         ];
-        $appointmentsPaginated = $this->appointments->getPaginatedAppointments($options);
-        $appointmentsList = $appointmentsPaginated['data'] ?? [];
+
+        $paginatedAppointments = array_slice($appointments, 0, 10);
+        $appointmentsPagination = [
+            'page' => 1, 'limit' => 10, 'total' => count($appointments), 'total_pages' => ceil(count($appointments) / 10)
+        ];
 
         return $this->view->render($response, 'employees/profile.twig', [
-            'title' => 'Employee Profile - ' . $employee['name'],
+            'title' => 'Employee Profile',
             'active_menu' => 'employees',
             'employee' => $employee,
-            'commissions' => $commissionsList,
-            'total_commission' => $totalCommission,
-            'appointments' => $appointmentsList
+            'commissions' => $paginatedCommissions,
+            'commissions_pagination' => $commissionsPagination,
+            'appointments' => $paginatedAppointments,
+            'appointments_pagination' => $appointmentsPagination,
+            'stats' => [
+                'total_commission' => $totalCommission,
+                'total_appointments' => count($appointments)
+            ]
+        ]);
+    }
+
+    public function commissionsTable(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $employeeId = (int)$args['id'];
+        $this->commissions->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $options = [
+            'search' => $params['search'] ?? '',
+            'sort' => $params['sort'] ?? 'created_at',
+            'dir' => $params['dir'] ?? 'desc',
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
+            'filters' => ['user_id' => $employeeId]
+        ];
+
+        $paginated = $this->commissions->getPaginatedCommissions($options);
+
+        return $this->view->render($response, 'employees/partials/commissions_table.twig', [
+            'commissions' => $paginated['data'],
+            'pagination' => $paginated,
+            'search' => $options['search'],
+            'sort' => $options['sort'],
+            'dir' => $options['dir'],
+            'employee_id' => $employeeId
+        ]);
+    }
+
+    public function appointmentsTable(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $employeeId = (int)$args['id'];
+        $this->appointments->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $options = [
+            'search' => $params['search'] ?? '',
+            'sort' => $params['sort'] ?? 'date',
+            'dir' => $params['dir'] ?? 'desc',
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
+            'filters' => ['user_id' => $employeeId]
+        ];
+
+        $paginated = $this->appointments->getPaginatedAppointments($options);
+
+        return $this->view->render($response, 'employees/partials/appointments_table.twig', [
+            'appointments' => $paginated['data'],
+            'pagination' => $paginated,
+            'search' => $options['search'],
+            'sort' => $options['sort'],
+            'dir' => $options['dir'],
+            'employee_id' => $employeeId
         ]);
     }
 }

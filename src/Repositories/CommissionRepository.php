@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use PDO;
+
 class CommissionRepository extends BaseRepository
 {
     protected string $table = 'commissions';
@@ -96,5 +98,70 @@ class CommissionRepository extends BaseRepository
         
         $result = $stmt->fetch();
         return (float) ($result['total'] ?? 0.00);
+    }
+
+    public function getPaginatedCommissions(array $options = []): array
+    {
+        $baseSql = "FROM {$this->table} c
+                JOIN invoices i ON c.invoice_id = i.id
+                WHERE c.tenant_id = :tenant_id";
+        
+        $params = ['tenant_id' => $this->getTenantId()];
+
+        if (!empty($options['filters']['user_id'])) {
+            $baseSql .= " AND c.user_id = :user_id";
+            $params['user_id'] = $options['filters']['user_id'];
+        }
+
+        if (!empty($options['search'])) {
+            $baseSql .= " AND (c.invoice_id LIKE :search OR c.amount LIKE :search)";
+            $params['search'] = "%{$options['search']}%";
+        }
+
+        $countSql = "SELECT COUNT(*) " . $baseSql;
+        $countStmt = $this->db->prepare($countSql);
+        $countStmt->execute($params);
+        $total = (int)$countStmt->fetchColumn();
+
+        $page = (int)($options['page'] ?? 1);
+        if ($page < 1) $page = 1;
+        $limit = (int)($options['limit'] ?? 10);
+        if ($limit < 1) $limit = 10;
+        
+        $offset = ($page - 1) * $limit;
+        $totalPages = ceil($total / $limit);
+        
+        $allowedSorts = [
+            'id' => 'c.id', 
+            'invoice_id' => 'c.invoice_id',
+            'amount' => 'c.amount',
+            'invoice_date' => 'i.created_at',
+            'created_at' => 'c.created_at'
+        ];
+        $sort = $options['sort'] ?? 'created_at';
+        $sortColumn = $allowedSorts[$sort] ?? 'c.created_at';
+        
+        $dir = strtoupper($options['dir'] ?? 'DESC');
+        if (!in_array($dir, ['ASC', 'DESC'])) $dir = 'DESC';
+        
+        $orderSql = "ORDER BY {$sortColumn} {$dir}";
+
+        $dataSql = "SELECT c.*, i.created_at as invoice_date " . $baseSql . " " . $orderSql . " LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($dataSql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue(":$key", $val);
+        }
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return [
+            'data' => $stmt->fetchAll(),
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => (int)$totalPages
+        ];
     }
 }

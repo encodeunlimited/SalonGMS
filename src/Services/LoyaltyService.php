@@ -138,6 +138,67 @@ class LoyaltyService
         ]);
         return $stmt->fetchAll();
     }
+
+    public function getCustomerTransactionsPaginated(int $customerId, string $search = '', string $sort = 'created_at', string $dir = 'desc', int $limit = 10, int $offset = 0): array
+    {
+        if (!$this->tenantId) {
+            return [];
+        }
+
+        $allowedSorts = ['id' => 'id', 'created_at' => 'created_at', 'points_earned' => 'points_earned', 'points_spent' => 'points_spent'];
+        $sortColumn = $allowedSorts[$sort] ?? 'created_at';
+        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
+
+        $where = "tenant_id = :tenant_id AND customer_id = :customer_id";
+        $params = [':tenant_id' => $this->tenantId, ':customer_id' => $customerId, ':limit' => $limit, ':offset' => $offset];
+
+        if ($search) {
+            $where .= " AND description LIKE :search";
+            $params[':search'] = "%{$search}%";
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT * FROM loyalty_transactions 
+            WHERE {$where}
+            ORDER BY {$sortColumn} {$direction}
+            LIMIT :limit OFFSET :offset
+        ");
+        
+        foreach ($params as $key => $value) {
+            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue($key, $value, $type);
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll() ?: [];
+    }
+
+    public function getCustomerTransactionsCount(int $customerId, string $search = ''): int
+    {
+        if (!$this->tenantId) {
+            return 0;
+        }
+
+        $where = "tenant_id = :tenant_id AND customer_id = :customer_id";
+        $params = [':tenant_id' => $this->tenantId, ':customer_id' => $customerId];
+
+        if ($search) {
+            $where .= " AND description LIKE :search";
+            $params[':search'] = "%{$search}%";
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT COUNT(id) FROM loyalty_transactions 
+            WHERE {$where}
+        ");
+        
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
     public function payWithPoints(int $customerId, int $invoiceId, float $amountToPay): void
     {
         if (!$this->tenantId) {

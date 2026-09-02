@@ -45,6 +45,18 @@ class AppointmentRepository extends BaseRepository
             $baseSql .= " AND a.user_id = :user_id";
             $params['user_id'] = $options['filters']['user_id'];
         }
+        
+        // Filter by customer_id if needed
+        if (!empty($options['filters']['customer_id'])) {
+            $baseSql .= " AND a.customer_id = :customer_id";
+            $params['customer_id'] = $options['filters']['customer_id'];
+        }
+
+        // Search logic
+        if (!empty($options['search'])) {
+            $baseSql .= " AND (a.customer_name LIKE :search OR a.service LIKE :search OR a.stylist LIKE :search OR a.status LIKE :search)";
+            $params['search'] = "%{$options['search']}%";
+        }
 
         $countSql = "SELECT COUNT(*) " . $baseSql;
         $countStmt = $this->db->prepare($countSql);
@@ -58,12 +70,36 @@ class AppointmentRepository extends BaseRepository
         
         $offset = ($page - 1) * $limit;
         $totalPages = ceil($total / $limit);
+        
+        $allowedSorts = [
+            'date' => 'a.apt_date, a.apt_time', 
+            'created_at' => 'a.created_at',
+            'customer' => 'a.customer_name',
+            'service' => 'a.service',
+            'stylist' => 'a.stylist',
+            'status' => 'a.status'
+        ];
+        $sort = $options['sort'] ?? 'date';
+        $sortColumn = $allowedSorts[$sort] ?? 'a.apt_date DESC, a.apt_time DESC';
+        if ($sort === 'date' && !isset($options['sort'])) {
+             // Default sort
+             $orderSql = "ORDER BY a.apt_date DESC, a.apt_time DESC";
+        } else {
+             $dir = strtoupper($options['dir'] ?? 'DESC');
+             if (!in_array($dir, ['ASC', 'DESC'])) $dir = 'DESC';
+             
+             if ($sort === 'date') {
+                 $orderSql = "ORDER BY a.apt_date {$dir}, a.apt_time {$dir}";
+             } else {
+                 $orderSql = "ORDER BY {$sortColumn} {$dir}";
+             }
+        }
 
         $dataSql = "SELECT a.id, a.user_id, a.customer_name as customer, a.service, a.stylist, a.apt_date as date, a.apt_time as time, a.apt_end_time as end_time, a.status, a.booking_type,
                    c.profile_image as customer_image, c.phone as customer_phone,
                    u.profile_image as stylist_image " 
-                   . $baseSql . 
-                   " ORDER BY a.apt_date DESC, a.apt_time DESC LIMIT :limit OFFSET :offset";
+                   . $baseSql . " " . $orderSql . 
+                   " LIMIT :limit OFFSET :offset";
         
         $stmt = $this->db->prepare($dataSql);
         foreach ($params as $key => $val) {

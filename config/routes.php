@@ -65,6 +65,8 @@ return function (App $app) {
         $group->post('/employees/{id}/edit', \App\Web\Controllers\EmployeeController::class . ':update');
         $group->delete('/employees/{id}', \App\Web\Controllers\EmployeeController::class . ':delete');
         $group->get('/employees/{id}/profile', \App\Web\Controllers\EmployeeController::class . ':profile');
+        $group->get('/employees/{id}/commissions', \App\Web\Controllers\EmployeeController::class . ':commissionsTable');
+        $group->get('/employees/{id}/appointments', \App\Web\Controllers\EmployeeController::class . ':appointmentsTable');
         
         // Services
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
@@ -104,6 +106,9 @@ return function (App $app) {
         $group->post('/customers/{id}/edit', \App\Web\Controllers\CustomerController::class . ':update');
         $group->delete('/customers/{id}', \App\Web\Controllers\CustomerController::class . ':delete');
         $group->get('/customers/{id}/profile', \App\Web\Controllers\CustomerController::class . ':profile');
+        $group->get('/customers/{id}/appointments', \App\Web\Controllers\CustomerController::class . ':appointmentsTable');
+        $group->get('/customers/{id}/invoices', \App\Web\Controllers\CustomerController::class . ':invoicesTable');
+        $group->get('/customers/{id}/loyalty', \App\Web\Controllers\CustomerController::class . ':loyaltyTable');
         $group->post('/customers/{id}/redeem-package-service', \App\Web\Controllers\CustomerController::class . ':redeemPackageService');
         $group->get('/api/customers/{id}/available-redemptions', \App\Web\Controllers\CustomerController::class . ':getAvailableRedemptions');
         

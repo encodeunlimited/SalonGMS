@@ -302,15 +302,33 @@ class CustomerController
             }
         }
         
+        $paginatedInvoices = array_slice($invoices, 0, 10);
+        $invoicesPagination = [
+            'page' => 1, 'limit' => 10, 'total' => count($invoices), 'total_pages' => ceil(count($invoices) / 10)
+        ];
+
+        $paginatedAppointments = array_slice($appointments, 0, 10);
+        $appointmentsPagination = [
+            'page' => 1, 'limit' => 10, 'total' => count($appointments), 'total_pages' => ceil(count($appointments) / 10)
+        ];
+
+        $paginatedLoyalty = array_slice($loyaltyTransactions, 0, 10);
+        $loyaltyPagination = [
+            'page' => 1, 'limit' => 10, 'total' => count($loyaltyTransactions), 'total_pages' => ceil(count($loyaltyTransactions) / 10)
+        ];
+
         return $this->view->render($response, 'customers/profile.twig', [
             'title' => 'Customer Profile',
             'active_menu' => 'customers',
             'customer' => $customer,
-            'appointments' => $appointments,
+            'appointments' => $paginatedAppointments,
+            'appointments_pagination' => $appointmentsPagination,
             'unbilled_appointments' => $unbilledAppointments,
             'active_packages' => $activePackages,
-            'invoices' => $invoices,
-            'loyalty_transactions' => $loyaltyTransactions,
+            'invoices' => $paginatedInvoices,
+            'invoices_pagination' => $invoicesPagination,
+            'loyalty_transactions' => $paginatedLoyalty,
+            'loyalty_pagination' => $loyaltyPagination,
             'base_url' => $request->getUri()->getScheme() . '://' . $request->getUri()->getHost() . ($request->getUri()->getPort() ? ':' . $request->getUri()->getPort() : ''),
             'stats' => [
                 'total_appointments' => count($appointments),
@@ -386,5 +404,103 @@ class CustomerController
         
         $response->getBody()->write(json_encode(['success' => true, 'packages' => $activePackages]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    }
+
+    public function appointmentsTable(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $this->appointments->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $options = [
+            'search' => $params['search'] ?? '',
+            'sort' => $params['sort'] ?? 'date',
+            'dir' => $params['dir'] ?? 'desc',
+            'page' => (int)($params['page'] ?? 1),
+            'limit' => 10,
+            'filters' => ['customer_id' => $customerId]
+        ];
+
+        $paginated = $this->appointments->getPaginatedAppointments($options);
+
+        return $this->view->render($response, 'customers/partials/appointments_table.twig', [
+            'appointments' => $paginated['data'],
+            'pagination' => $paginated,
+            'search' => $options['search'],
+            'sort' => $options['sort'],
+            'dir' => $options['dir'],
+            'customer_id' => $customerId
+        ]);
+    }
+
+    public function invoicesTable(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $this->invoices->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $search = $params['search'] ?? '';
+        $sort = $params['sort'] ?? 'created_at';
+        $dir = $params['dir'] ?? 'desc';
+        $page = (int)($params['page'] ?? 1);
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $invoices = $this->invoices->getHistoryPaginated($search, $sort, $dir, $limit, $offset, $customerId);
+        $total = $this->invoices->getHistoryCount($search, $customerId);
+        $totalPages = ceil($total / $limit);
+
+        $pagination = [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'total_pages' => $totalPages
+        ];
+
+        return $this->view->render($response, 'customers/partials/invoices_table.twig', [
+            'invoices' => $invoices,
+            'pagination' => $pagination,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
+            'customer_id' => $customerId
+        ]);
+    }
+
+    public function loyaltyTable(Request $request, Response $response, array $args): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $customerId = (int)$args['id'];
+        $this->loyaltyService->setTenantId($tenantId);
+
+        $params = $request->getQueryParams();
+        $search = $params['search'] ?? '';
+        $sort = $params['sort'] ?? 'created_at';
+        $dir = $params['dir'] ?? 'desc';
+        $page = (int)($params['page'] ?? 1);
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $transactions = $this->loyaltyService->getCustomerTransactionsPaginated($customerId, $search, $sort, $dir, $limit, $offset);
+        $total = $this->loyaltyService->getCustomerTransactionsCount($customerId, $search);
+        $totalPages = ceil($total / $limit);
+
+        $pagination = [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'total_pages' => $totalPages
+        ];
+
+        return $this->view->render($response, 'customers/partials/loyalty_table.twig', [
+            'loyalty_transactions' => $transactions,
+            'pagination' => $pagination,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
+            'customer_id' => $customerId
+        ]);
     }
 }

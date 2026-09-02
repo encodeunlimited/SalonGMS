@@ -124,7 +124,7 @@ class InvoiceRepository extends BaseRepository
         return $stmt->fetchAll();
     }
 
-    public function getHistoryPaginated(string $search = '', string $sort = 'created_at', string $dir = 'desc', int $limit = 10, int $offset = 0): array
+    public function getHistoryPaginated(string $search = '', string $sort = 'created_at', string $dir = 'desc', int $limit = 10, int $offset = 0, ?int $customerId = null): array
     {
         $allowedSorts = ['id' => 'i.id', 'created_at' => 'i.created_at', 'customer_name' => 'c.name', 'total_amount' => 'i.total_amount', 'status' => 'i.status', 'payment_method' => 'i.payment_method'];
         $sortColumn = $allowedSorts[$sort] ?? 'i.created_at';
@@ -132,6 +132,11 @@ class InvoiceRepository extends BaseRepository
 
         $where = "i.tenant_id = :tenant_id";
         $params = [':tenant_id' => $this->getTenantId(), ':limit' => $limit, ':offset' => $offset];
+        
+        if ($customerId !== null) {
+            $where .= " AND i.customer_id = :customer_id";
+            $params[':customer_id'] = $customerId;
+        }
 
         if ($search) {
             $where .= " AND (i.id LIKE :search OR c.name LIKE :search OR i.status LIKE :search OR i.payment_method LIKE :search)";
@@ -162,10 +167,15 @@ class InvoiceRepository extends BaseRepository
         return $stmt->fetchAll() ?: [];
     }
 
-    public function getHistoryCount(string $search = ''): int
+    public function getHistoryCount(string $search = '', ?int $customerId = null): int
     {
         $where = "i.tenant_id = :tenant_id";
         $params = [':tenant_id' => $this->getTenantId()];
+        
+        if ($customerId !== null) {
+            $where .= " AND i.customer_id = :customer_id";
+            $params[':customer_id'] = $customerId;
+        }
 
         if ($search) {
             $where .= " AND (i.id LIKE :search OR c.name LIKE :search OR i.status LIKE :search OR i.payment_method LIKE :search)";

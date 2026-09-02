@@ -1,0 +1,107 @@
+<div id="customer-appointments-container">
+    <div class="mb-4">
+        <div class="relative w-full max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="search" name="search" value="{{ search }}" placeholder="Search appointments..." 
+                   hx-get="/web/customers/{{ customer_id }}/appointments?sort={{ sort }}&dir={{ dir }}" 
+                   hx-target="#customer-appointments-container" hx-select="#customer-appointments-container" hx-swap="outerHTML" 
+                   hx-trigger="keyup changed delay:500ms, search"
+                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
+        </div>
+    </div>
+
+    {% if appointments|length > 0 %}
+        <div class="overflow-x-auto rounded-xl border border-gray-100">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                        <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/appointments?sort=date&dir={{ sort == 'date' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-appointments-container" hx-select="#customer-appointments-container" hx-swap="outerHTML">
+                            Date & Time {% if sort == 'date' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                        <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/appointments?sort=service&dir={{ sort == 'service' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-appointments-container" hx-select="#customer-appointments-container" hx-swap="outerHTML">
+                            Service {% if sort == 'service' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                        <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/appointments?sort=stylist&dir={{ sort == 'stylist' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-appointments-container" hx-select="#customer-appointments-container" hx-swap="outerHTML">
+                            Stylist {% if sort == 'stylist' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                        <th class="px-6 py-4 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+                            hx-get="/web/customers/{{ customer_id }}/appointments?sort=status&dir={{ sort == 'status' and dir == 'asc' ? 'desc' : 'asc' }}&search={{ search }}"
+                            hx-target="#customer-appointments-container" hx-select="#customer-appointments-container" hx-swap="outerHTML">
+                            Status {% if sort == 'status' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for apt in appointments %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-900">{{ apt.date|date("M j, Y") }}</div>
+                                <div class="text-xs text-gray-500">{{ apt.time|date("g:i A") }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-medium text-gray-800">{{ apt.service }}</span>
+                                <div class="text-xs text-gray-500">{{ apt.booking_type }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    {% if apt.stylist_image %}
+                                        <img src="{{ apt.stylist_image }}" alt="{{ apt.stylist }}" class="w-6 h-6 rounded-full object-cover mr-2">
+                                    {% endif %}
+                                    <span class="text-gray-600">{{ apt.stylist }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if apt.status == 'paid' or apt.status == 'completed' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
+                                {% elseif apt.status == 'done' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Done</span>
+                                {% elseif apt.status == 'approved' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Approved</span>
+                                {% elseif apt.status == 'cancelled' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            {% if pagination.total_pages > 1 %}
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+                    <span class="font-medium">{{ min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+                    <span class="font-medium">{{ pagination.total }}</span> results
+                </p>
+                <div class="flex gap-1">
+                    {% for p in 1..pagination.total_pages %}
+                        <button hx-get="/web/customers/{{ customer_id }}/appointments?page={{ p }}&sort={{ sort }}&dir={{ dir }}&search={{ search }}"
+                                hx-target="#customer-appointments-container" hx-select="#customer-appointments-container" hx-swap="outerHTML"
+                                class="px-3 py-1 text-sm border rounded-md transition-colors {% if pagination.page == p %}bg-salon-accent text-white border-salon-accent{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+                            {{ p }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="p-12 text-center border border-gray-100 rounded-xl bg-white">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No appointments found</h3>
+            <p class="text-gray-500">No appointments match your criteria.</p>
+        </div>
+    {% endif %}
+</div>

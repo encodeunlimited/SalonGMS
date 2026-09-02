@@ -276,9 +276,10 @@ class InvoiceController
                 }
             }
 
-            // If Credit is selected OR it's a zero-total checkout (e.g. only redemptions), 
+
+            // If it's a zero-total checkout (e.g. only redemptions), 
             // create unbilled appointments and do NOT generate an invoice immediately.
-            if (($data['payment_method'] ?? '') === 'Credit' || $isZeroTotal) {
+            if ($isZeroTotal) {
                 $customerId = !empty($data['customer_id']) ? (int)$data['customer_id'] : null;
                 if (!$customerId) {
                     return $response->withHeader('HX-Trigger', json_encode([
@@ -627,5 +628,57 @@ class InvoiceController
             'title' => 'Invoice #' . sprintf('%05d', $invoice['id']),
             'auto_print' => $autoPrint
         ]);
+    }
+
+    public function history(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->invoiceService->setTenantId($tenantId);
+        
+        $params = $request->getQueryParams();
+        $search = $params['search'] ?? '';
+        $sort = $params['sort'] ?? 'created_at';
+        $dir = $params['dir'] ?? 'desc';
+        $page = max(1, (int)($params['page'] ?? 1));
+        $limit = 15;
+        $offset = ($page - 1) * $limit;
+
+        $transactions = $this->invoiceService->getHistoryPaginated($search, $sort, $dir, $limit, $offset);
+        $total = $this->invoiceService->getHistoryCount($search);
+        $totalPages = ceil($total / $limit);
+        
+        return $this->view->render($response, 'pos/history.twig', [
+            'title' => 'POS Transaction History',
+            'active_menu' => 'pos',
+            'transactions' => $transactions,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
+            'page' => $page,
+            'total_pages' => $totalPages,
+            'total' => $total,
+            'hide_sidebar' => true
+        ]);
+    }
+
+    public function voidInvoice(Request $request, Response $response, array $args): Response
+    {
+        $invoiceId = (int)$args['id'];
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        
+        $this->invoiceService->setTenantId($tenantId);
+        
+        try {
+            $this->invoiceService->voidInvoice($invoiceId);
+            
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'success', 'message' => 'Invoice #' . $invoiceId . ' has been voided.']
+            ]))->withHeader('HX-Refresh', 'true')->withStatus(200);
+            
+        } catch (Exception $e) {
+            return $response->withHeader('HX-Trigger', json_encode([
+                'show-toast' => ['type' => 'error', 'message' => 'Void failed: ' . $e->getMessage()]
+            ]))->withStatus(200);
+        }
     }
 }

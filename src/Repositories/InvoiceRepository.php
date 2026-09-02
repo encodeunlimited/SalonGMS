@@ -123,4 +123,67 @@ class InvoiceRepository extends BaseRepository
         $stmt->execute(['tenant_id' => $this->getTenantId()]);
         return $stmt->fetchAll();
     }
+
+    public function getHistoryPaginated(string $search = '', string $sort = 'created_at', string $dir = 'desc', int $limit = 10, int $offset = 0): array
+    {
+        $allowedSorts = ['id' => 'i.id', 'created_at' => 'i.created_at', 'customer_name' => 'c.name', 'total_amount' => 'i.total_amount', 'status' => 'i.status', 'payment_method' => 'i.payment_method'];
+        $sortColumn = $allowedSorts[$sort] ?? 'i.created_at';
+        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
+
+        $where = "i.tenant_id = :tenant_id";
+        $params = [':tenant_id' => $this->getTenantId(), ':limit' => $limit, ':offset' => $offset];
+
+        if ($search) {
+            $where .= " AND (i.id LIKE :search OR c.name LIKE :search OR i.status LIKE :search OR i.payment_method LIKE :search)";
+            $params[':search'] = "%{$search}%";
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT i.id, i.total_amount, i.status, i.payment_method, i.created_at, 
+                   c.name as customer_name,
+                   COALESCE(
+                       (SELECT GROUP_CONCAT(ii.description, ', ') FROM invoice_items ii WHERE ii.invoice_id = i.id),
+                       a.service
+                   ) as service_names
+            FROM {$this->table} i
+            LEFT JOIN customers c ON i.customer_id = c.id
+            LEFT JOIN appointments a ON i.appointment_id = a.id
+            WHERE {$where}
+            ORDER BY {$sortColumn} {$direction}
+            LIMIT :limit OFFSET :offset
+        ");
+        
+        foreach ($params as $key => $value) {
+            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue($key, $value, $type);
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll() ?: [];
+    }
+
+    public function getHistoryCount(string $search = ''): int
+    {
+        $where = "i.tenant_id = :tenant_id";
+        $params = [':tenant_id' => $this->getTenantId()];
+
+        if ($search) {
+            $where .= " AND (i.id LIKE :search OR c.name LIKE :search OR i.status LIKE :search OR i.payment_method LIKE :search)";
+            $params[':search'] = "%{$search}%";
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT COUNT(i.id) 
+            FROM {$this->table} i
+            LEFT JOIN customers c ON i.customer_id = c.id
+            WHERE {$where}
+        ");
+        
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
 }

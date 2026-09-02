@@ -612,4 +612,28 @@ class InvoiceService extends BaseService
             }
         }
     }
+
+    public function getHistoryPaginated(string $search = '', string $sort = 'created_at', string $dir = 'desc', int $limit = 10, int $offset = 0): array
+    {
+        return $this->invoiceRepo->getHistoryPaginated($search, $sort, $dir, $limit, $offset);
+    }
+
+    public function getHistoryCount(string $search = ''): int
+    {
+        return $this->invoiceRepo->getHistoryCount($search);
+    }
+
+    public function voidInvoice(int $invoiceId): bool
+    {
+        $invoice = $this->invoiceRepo->getById($invoiceId);
+        if (!$invoice) {
+            throw new Exception("Invoice not found.");
+        }
+        
+        if ($invoice['status'] === 'void') {
+            throw new Exception("Invoice is already voided.");
+        }
+        
+        return $this->invoiceRepo->update($invoiceId, ['status' => 'void']);
+    }
 }

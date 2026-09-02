@@ -48,6 +48,8 @@ return function (App $app) {
         $group->post('/pos/open', \App\Web\Controllers\InvoiceController::class . ':openRegister');
         $group->post('/pos/close', \App\Web\Controllers\InvoiceController::class . ':closeRegister');
         $group->post('/pos/checkout', \App\Web\Controllers\InvoiceController::class . ':checkout');
+        $group->get('/pos/history', \App\Web\Controllers\InvoiceController::class . ':history');
+        $group->post('/pos/invoices/{id}/void', \App\Web\Controllers\InvoiceController::class . ':voidInvoice');
         $group->post('/invoices/{id}/pay', \App\Web\Controllers\InvoiceController::class . ':payRemaining');
         $group->post('/customers/{id}/invoices', [\App\Web\Controllers\CustomerController::class, 'createInvoice']);
         $group->post('/customers/{id}/bulk-invoice', [\App\Web\Controllers\InvoiceController::class, 'bulkInvoice']);

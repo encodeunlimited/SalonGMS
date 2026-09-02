@@ -101,6 +101,9 @@
             text-align: center;
             padding: 6px 2px;
         }
+        table.items-table th:first-child, table.items-table td:first-child {
+            text-align: left;
+        }
         table.items-table th {
             border-bottom: 1px dashed #000;
             border-top: 1px dashed #000;
@@ -110,8 +113,11 @@
             vertical-align: middle;
             font-weight: bold;
         }
+        table.items-table td .arabic-text {
+            font-size: 12px;
+        }
         .item-desc {
-            font-size: 14px;
+            font-size: 12px;
             margin-top: 3px;
         }
         .totals-grid {
@@ -246,13 +252,9 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 35%;">
+                <th style="width: 60%;">
                     <span class="arabic-text" dir="rtl">الصنف</span>
                     Item
-                </th>
-                <th style="width: 25%;">
-                    <span class="arabic-text" dir="rtl">موظفة</span>
-                    Staff
                 </th>
                 <th style="width: 10%;">
                     <span class="arabic-text" dir="rtl">كمية</span>
@@ -277,14 +279,13 @@
                     {% endif %}
                     <div class="item-desc">{{ item.description }}</div>
                 </td>
-                <td>{{ invoice.stylist_name|default('-')|upper }}</td>
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.unit_price|number_format(0) }}</td>
                 <td>{{ item.subtotal|number_format(0) }}</td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="5">No items found.</td>
+                <td colspan="4">No items found.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -331,6 +332,20 @@
             </div>
         </div>
     </div>
+    
+    {% if invoice.payment_method|lower == 'split' and invoice.split_details %}
+    <div style="margin-bottom: 15px; border: 1px dashed #000; padding: 5px;">
+        <div style="font-weight: bold; font-size: 14px; text-align: center; border-bottom: 1px dashed #000; padding-bottom: 3px; margin-bottom: 3px;">
+            Split Payment Details
+        </div>
+        {% for split in invoice.split_details %}
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 2px;">
+            <div style="font-weight: bold;">{{ split.method|upper }}</div>
+            <div style="font-weight: bold;">{{ split.amount|number_format(0) }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="footer">
         <div>Building 89 Al Hamad ST. AL Rayyan</div>

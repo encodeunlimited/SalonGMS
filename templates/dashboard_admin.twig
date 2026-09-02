@@ -14,7 +14,7 @@
 </div>
 
 <!-- KPI Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
         <div class="p-3 rounded-lg bg-green-50 text-green-600 mr-4">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -78,25 +78,23 @@
 </div>
 
 <!-- Charts Section -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
     <!-- Main Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
         <h3 class="text-base font-bold text-gray-900 mb-4">Weekly Revenue</h3>
-        <div id="revenue-chart"></div>
+        <div id="revenue-chart" class="flex-1"></div>
     </div>
     
     <!-- Donut Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
         <h3 class="text-base font-bold text-gray-900 mb-4">Services Breakdown</h3>
-        <div id="services-chart" class="flex justify-center mt-6"></div>
+        <div id="services-chart" class="flex justify-center mt-auto mb-auto"></div>
     </div>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
     <!-- Appointments Status Pie Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
         <h3 class="text-base font-bold text-gray-900 mb-4">Appointments Status</h3>
-        <div id="apt-status-chart" class="flex justify-center mt-6"></div>
+        <div id="apt-status-chart" class="flex justify-center mt-auto mb-auto"></div>
     </div>
 </div>
 

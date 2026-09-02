@@ -1,0 +1,109 @@
+<script>
+    // Global chart instances to destroy before re-rendering
+    window.chartInstances = window.chartInstances || {};
+
+    function renderCharts(dataStr) {
+        try {
+            const data = JSON.parse(dataStr);
+            
+            // Clean up old charts
+            Object.values(window.chartInstances).forEach(chart => {
+                if(chart) chart.destroy();
+            });
+            window.chartInstances = {};
+
+            // 1. Revenue Over Time (Area Chart)
+            if (document.querySelector("#revenueChart") && data.revenue_over_time && data.revenue_over_time.length > 0) {
+                const dates = data.revenue_over_time.map(item => item.date);
+                const revenues = data.revenue_over_time.map(item => parseFloat(item.revenue));
+                
+                var revenueOptions = {
+                    series: [{ name: 'Revenue', data: revenues }],
+                    chart: { type: 'area', height: 320, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                    colors: ['#d4af37'],
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 90, 100] } },
+                    dataLabels: { enabled: false },
+                    stroke: { curve: 'smooth', width: 2 },
+                    xaxis: { categories: dates, type: 'datetime' },
+                    yaxis: { labels: { formatter: function (value) { return "QAR " + value.toFixed(0); } } },
+                    tooltip: { x: { format: 'dd MMM yyyy' } }
+                };
+                window.chartInstances['revenue'] = new ApexCharts(document.querySelector("#revenueChart"), revenueOptions);
+                window.chartInstances['revenue'].render();
+            }
+
+            // 2. Revenue By Payment Method (Donut Chart)
+            if (document.querySelector("#paymentMethodChart") && data.revenue_by_payment_method && data.revenue_by_payment_method.length > 0) {
+                const methods = data.revenue_by_payment_method.map(item => item.payment_method || 'Unknown');
+                const methodRevenues = data.revenue_by_payment_method.map(item => parseFloat(item.revenue));
+                
+                var methodOptions = {
+                    series: methodRevenues,
+                    labels: methods,
+                    chart: { type: 'donut', height: 300, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#1e293b', '#d4af37', '#64748b', '#cbd5e1', '#e2e8f0', '#f8fafc'],
+                    dataLabels: { enabled: false },
+                    plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: function (w) { return "QAR " + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toFixed(0) } } } } } },
+                    legend: { position: 'bottom' }
+                };
+                window.chartInstances['payment'] = new ApexCharts(document.querySelector("#paymentMethodChart"), methodOptions);
+                window.chartInstances['payment'].render();
+            }
+
+            // 3. Appointments Summary (Pie Chart)
+            if (document.querySelector("#appointmentsChart") && data.appointments_summary && data.appointments_summary.length > 0) {
+                const statuses = data.appointments_summary.map(item => item.status);
+                const counts = data.appointments_summary.map(item => parseInt(item.count));
+                
+                var aptOptions = {
+                    series: counts,
+                    labels: statuses.map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+                    chart: { type: 'pie', height: 300, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#3b82f6', '#8b5cf6'],
+                    dataLabels: { enabled: true, formatter: function (val, opts) { return opts.w.config.series[opts.seriesIndex] } },
+                    legend: { position: 'bottom' }
+                };
+                window.chartInstances['appointments'] = new ApexCharts(document.querySelector("#appointmentsChart"), aptOptions);
+                window.chartInstances['appointments'].render();
+            }
+
+            // 4. Stylist Performance (Horizontal Bar Chart)
+            if (document.querySelector("#stylistPerformanceChart") && data.stylist_performance && data.stylist_performance.length > 0) {
+                const stylists = data.stylist_performance.map(item => item.name);
+                const revenues = data.stylist_performance.map(item => parseFloat(item.total_revenue || 0));
+                
+                var stylistOptions = {
+                    series: [{ name: 'Revenue', data: revenues }],
+                    chart: { type: 'bar', height: 300, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                    colors: ['#d4af37'],
+                    plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: stylists, labels: { formatter: function (value) { return "QAR " + value; } } }
+                };
+                window.chartInstances['stylistPerf'] = new ApexCharts(document.querySelector("#stylistPerformanceChart"), stylistOptions);
+                window.chartInstances['stylistPerf'].render();
+            }
+
+            // 5. Top Services (Bar Chart)
+            if (document.querySelector("#topServicesChart") && data.top_services && data.top_services.length > 0) {
+                const services = data.top_services.map(item => item.service_name);
+                const revenues = data.top_services.map(item => parseFloat(item.revenue || 0));
+                
+                var topServicesOptions = {
+                    series: [{ name: 'Revenue', data: revenues }],
+                    chart: { type: 'bar', height: 300, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                    colors: ['#0f172a'],
+                    plotOptions: { bar: { borderRadius: 4, columnWidth: '40%' } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: services },
+                    yaxis: { labels: { formatter: function (value) { return "QAR " + value; } } }
+                };
+                window.chartInstances['topServices'] = new ApexCharts(document.querySelector("#topServicesChart"), topServicesOptions);
+                window.chartInstances['topServices'].render();
+            }
+
+        } catch (e) {
+            console.error("Error rendering charts", e);
+        }
+    }
+</script>

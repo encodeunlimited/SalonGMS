@@ -99,7 +99,67 @@
 </script>
 
 <script>
-    if (typeof renderCharts === 'function') {
-        renderCharts(document.getElementById('reportsDataJSON').innerHTML);
+(function() {
+    function renderEodCharts() {
+        var dataEl = document.getElementById('reportsDataJSON');
+        if (!dataEl) return;
+        var data;
+        try { data = JSON.parse(dataEl.innerHTML); } catch(e) { console.error('EOD chart parse error', e); return; }
+
+        // Destroy old instances
+        if (window.chartInstances) {
+            Object.values(window.chartInstances).forEach(function(c) { if(c) c.destroy(); });
+        }
+        window.chartInstances = {};
+
+        // Payment Breakdown
+        if (document.querySelector('#paymentMethodChart') && data.revenue_by_payment_method && data.revenue_by_payment_method.length > 0) {
+            var methods = data.revenue_by_payment_method.map(function(i) { return i.payment_method || 'Unknown'; });
+            var revenues = data.revenue_by_payment_method.map(function(i) { return parseFloat(i.revenue); });
+            window.chartInstances['payment'] = new ApexCharts(document.querySelector('#paymentMethodChart'), {
+                series: revenues,
+                labels: methods,
+                chart: { type: 'donut', height: 300, fontFamily: 'Inter, sans-serif' },
+                colors: ['#1e293b', '#d4af37', '#64748b', '#cbd5e1', '#e2e8f0'],
+                dataLabels: { enabled: false },
+                plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return 'QAR ' + w.globals.seriesTotals.reduce(function(a,b){return a+b;},0).toFixed(0); } } } } } },
+                legend: { position: 'bottom' }
+            });
+            window.chartInstances['payment'].render();
+        } else if (document.querySelector('#paymentMethodChart')) {
+            document.querySelector('#paymentMethodChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No payment data for this date.</p>';
+        }
+
+        // Appointments Breakdown
+        if (document.querySelector('#appointmentsChart') && data.appointments_summary && data.appointments_summary.length > 0) {
+            var statuses = data.appointments_summary.map(function(i) { return i.status.charAt(0).toUpperCase() + i.status.slice(1); });
+            var counts = data.appointments_summary.map(function(i) { return parseInt(i.count); });
+            window.chartInstances['appointments'] = new ApexCharts(document.querySelector('#appointmentsChart'), {
+                series: counts,
+                labels: statuses,
+                chart: { type: 'pie', height: 300, fontFamily: 'Inter, sans-serif' },
+                colors: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#3b82f6', '#8b5cf6'],
+                dataLabels: { enabled: true, formatter: function(val, opts) { return opts.w.config.series[opts.seriesIndex]; } },
+                legend: { position: 'bottom' }
+            });
+            window.chartInstances['appointments'].render();
+        } else if (document.querySelector('#appointmentsChart')) {
+            document.querySelector('#appointmentsChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No appointment data for this date.</p>';
+        }
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderEodCharts);
+    } else {
+        renderEodCharts();
+    }
+
+    // Re-render on HTMX swap
+    document.addEventListener('htmx:afterSwap', function(e) {
+        if (e.target && e.target.id === 'reports-content') {
+            renderEodCharts();
+        }
+    });
+})();
 </script>
+

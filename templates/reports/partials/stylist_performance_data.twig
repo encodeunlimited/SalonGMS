@@ -49,7 +49,63 @@
 </script>
 
 <script>
-    if (typeof renderCharts === 'function') {
-        renderCharts(document.getElementById('reportsDataJSON').innerHTML);
+(function() {
+    function renderStylistCharts() {
+        var dataEl = document.getElementById('reportsDataJSON');
+        if (!dataEl) return;
+        var data;
+        try { data = JSON.parse(dataEl.innerHTML); } catch(e) { console.error('Stylist chart parse error', e); return; }
+
+        if (window.chartInstances) {
+            Object.values(window.chartInstances).forEach(function(c) { if(c) c.destroy(); });
+        }
+        window.chartInstances = {};
+
+        // Stylist Performance Bar Chart
+        if (document.querySelector('#stylistPerformanceChart') && data.stylist_performance && data.stylist_performance.length > 0) {
+            var stylists = data.stylist_performance.map(function(i) { return i.name; });
+            var revenues = data.stylist_performance.map(function(i) { return parseFloat(i.total_revenue || 0); });
+            window.chartInstances['stylistPerf'] = new ApexCharts(document.querySelector('#stylistPerformanceChart'), {
+                series: [{ name: 'Revenue', data: revenues }],
+                chart: { type: 'bar', height: 300, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                colors: ['#d4af37'],
+                plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                dataLabels: { enabled: false },
+                xaxis: { categories: stylists, labels: { formatter: function(v) { return 'QAR ' + v; } } }
+            });
+            window.chartInstances['stylistPerf'].render();
+        } else if (document.querySelector('#stylistPerformanceChart')) {
+            document.querySelector('#stylistPerformanceChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No stylist data for this period.</p>';
+        }
+
+        // Appointments Breakdown Pie
+        if (document.querySelector('#appointmentsChart') && data.appointments_summary && data.appointments_summary.length > 0) {
+            var statuses = data.appointments_summary.map(function(i) { return i.status.charAt(0).toUpperCase() + i.status.slice(1); });
+            var counts = data.appointments_summary.map(function(i) { return parseInt(i.count); });
+            window.chartInstances['appointments'] = new ApexCharts(document.querySelector('#appointmentsChart'), {
+                series: counts,
+                labels: statuses,
+                chart: { type: 'pie', height: 300, fontFamily: 'Inter, sans-serif' },
+                colors: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#3b82f6', '#8b5cf6'],
+                dataLabels: { enabled: true, formatter: function(val, opts) { return opts.w.config.series[opts.seriesIndex]; } },
+                legend: { position: 'bottom' }
+            });
+            window.chartInstances['appointments'].render();
+        } else if (document.querySelector('#appointmentsChart')) {
+            document.querySelector('#appointmentsChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No appointment data for this period.</p>';
+        }
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderStylistCharts);
+    } else {
+        renderStylistCharts();
+    }
+
+    document.addEventListener('htmx:afterSwap', function(e) {
+        if (e.target && e.target.id === 'reports-content') {
+            renderStylistCharts();
+        }
+    });
+})();
 </script>

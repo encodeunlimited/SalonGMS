@@ -58,7 +58,44 @@
 </script>
 
 <script>
-    if (typeof renderCharts === 'function') {
-        renderCharts(document.getElementById('reportsDataJSON').innerHTML);
+(function() {
+    function renderPaymentChart() {
+        var dataEl = document.getElementById('reportsDataJSON');
+        if (!dataEl) return;
+        var data;
+        try { data = JSON.parse(dataEl.innerHTML); } catch(e) { return; }
+
+        if (window.chartInstances) {
+            Object.values(window.chartInstances).forEach(function(c) { if(c) c.destroy(); });
+        }
+        window.chartInstances = {};
+
+        if (document.querySelector('#paymentMethodChart') && data.revenue_by_payment_method && data.revenue_by_payment_method.length > 0) {
+            var methods = data.revenue_by_payment_method.map(function(i) { return i.payment_method || 'Unknown'; });
+            var revenues = data.revenue_by_payment_method.map(function(i) { return parseFloat(i.revenue); });
+            window.chartInstances['payment'] = new ApexCharts(document.querySelector('#paymentMethodChart'), {
+                series: revenues,
+                labels: methods,
+                chart: { type: 'donut', height: 320, fontFamily: 'Inter, sans-serif' },
+                colors: ['#1e293b', '#d4af37', '#64748b', '#cbd5e1', '#e2e8f0'],
+                dataLabels: { enabled: false },
+                plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return 'QAR ' + w.globals.seriesTotals.reduce(function(a,b){return a+b;},0).toFixed(0); } } } } } },
+                legend: { position: 'bottom' }
+            });
+            window.chartInstances['payment'].render();
+        } else if (document.querySelector('#paymentMethodChart')) {
+            document.querySelector('#paymentMethodChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No payment data for this period.</p>';
+        }
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderPaymentChart);
+    } else {
+        renderPaymentChart();
+    }
+
+    document.addEventListener('htmx:afterSwap', function(e) {
+        if (e.target && e.target.id === 'reports-content') renderPaymentChart();
+    });
+})();
 </script>

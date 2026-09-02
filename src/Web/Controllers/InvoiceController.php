@@ -649,15 +649,14 @@ class InvoiceController
         
         return $this->view->render($response, 'pos/history.twig', [
             'title' => 'POS Transaction History',
-            'active_menu' => 'pos',
+            'active_menu' => 'reports',
             'transactions' => $transactions,
             'search' => $search,
             'sort' => $sort,
             'dir' => $dir,
             'page' => $page,
             'total_pages' => $totalPages,
-            'total' => $total,
-            'hide_sidebar' => true
+            'total' => $total
         ]);
     }
 

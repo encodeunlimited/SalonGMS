@@ -333,6 +333,24 @@
         </div>
     </div>
     
+    {% if invoice.customer_id %}
+    <div style="margin-bottom: 15px; border: 1px dashed #000; padding: 5px;">
+        <div style="font-weight: bold; font-size: 13px; text-align: center; border-bottom: 1px dashed #000; padding-bottom: 3px; margin-bottom: 3px;">
+            Loyalty Points
+        </div>
+        {% if invoice.earned_points %}
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
+            <div style="font-weight: bold;">Earned Points</div>
+            <div style="font-weight: bold;">{{ invoice.earned_points }}</div>
+        </div>
+        {% endif %}
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
+            <div style="font-weight: bold;">Points Balance</div>
+            <div style="font-weight: bold;">{{ invoice.customer_points|default(0) }}</div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if invoice.payment_method|lower == 'split' and invoice.split_details %}
     <div style="margin-bottom: 15px; border: 1px dashed #000; padding: 5px;">
         <div style="font-weight: bold; font-size: 14px; text-align: center; border-bottom: 1px dashed #000; padding-bottom: 3px; margin-bottom: 3px;">

@@ -17,6 +17,9 @@
             <button type="submit" class="bg-salon-dark text-white rounded-md px-3 py-1.5 text-sm font-medium hover:bg-salon-navy transition-colors">
                 Apply
             </button>
+            <button type="button" onclick="window.open('/web/reports/eod?print=1&date=' + document.querySelector('input[name=date]').value, 'receipt', 'width=350,height=600'); return false;" class="bg-gray-100 text-gray-700 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-gray-200 transition-colors ml-1 border border-gray-300">
+                Print 80mm
+            </button>
         </form>
     </div>
 </div>

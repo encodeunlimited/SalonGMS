@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EOD Report - {{ target_date }}</title>
+    <style>
+        @page {
+            margin: 0;
+            size: 80mm auto;
+        }
+        body {
+            margin: 0 auto;
+            padding: 10px 15px; 
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+            font-size: 13px;
+            color: #000;
+            width: 80mm;
+            max-width: 80mm;
+            box-sizing: border-box;
+            background: #fff;
+            text-align: center;
+        }
+        .header-logo {
+            background-color: #000;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 12px 5px;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 10px;
+            border-radius: 2px;
+        }
+        .header-title {
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.2;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .header-subtitle {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        table.items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        table.items-table th, table.items-table td {
+            text-align: right;
+            padding: 6px 2px;
+        }
+        table.items-table th:first-child, table.items-table td:first-child {
+            text-align: left;
+        }
+        table.items-table th {
+            border-bottom: 1px dashed #000;
+            border-top: 1px dashed #000;
+            font-size: 13px;
+        }
+        table.items-table td {
+            vertical-align: middle;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .totals-grid {
+            display: flex;
+            flex-direction: column;
+            border-top: 1px dashed #000;
+            padding-top: 5px;
+            margin-bottom: 15px;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .totals-row.grand-total {
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            padding: 5px 0;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        .totals-label {
+            font-weight: bold;
+        }
+        .totals-value {
+            font-weight: bold;
+        }
+        
+        .no-print {
+            display: none !important;
+        }
+        @media screen {
+            body {
+                margin: 20px auto;
+                border: 1px solid #ccc;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                min-height: 100vh;
+            }
+            .no-print {
+                display: block !important;
+                text-align: center;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .print-btn {
+                background: #000;
+                color: #fff;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">Print Report</button>
+        <button onclick="window.close()" class="print-btn" style="background: #666; margin-left: 10px;">Close</button>
+    </div>
+
+    <div class="header-logo">
+        Nabiha Henna
+    </div>
+
+    <div class="header-title">
+        END OF DAY REPORT
+    </div>
+    <div class="header-subtitle">
+        Date: {{ target_date }}
+    </div>
+
+    {% set cash_total = 0 %}
+    {% set card_total = 0 %}
+    {% for pay in revenue_by_payment_method %}
+        {% if pay.payment_method|lower == 'cash' or pay.payment_method == '' %}
+            {% set cash_total = cash_total + pay.revenue %}
+        {% elseif pay.payment_method|lower == 'card' %}
+            {% set card_total = card_total + pay.revenue %}
+        {% endif %}
+    {% endfor %}
+
+    <div style="text-align: left; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Payment Breakdown</div>
+    <table class="items-table">
+        <tbody>
+            <tr>
+                <td>Cash Collected</td>
+                <td>{{ cash_total|number_format(0) }}</td>
+            </tr>
+            <tr>
+                <td>Card / Other</td>
+                <td>{{ (total_revenue - cash_total)|number_format(0) }}</td>
+            </tr>
+            <tr>
+                <td style="border-top: 1px dashed #000; padding-top: 5px;">Total Revenue</td>
+                <td style="border-top: 1px dashed #000; padding-top: 5px;">{{ total_revenue|number_format(0) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="text-align: left; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Deductions</div>
+    <table class="items-table">
+        <tbody>
+            <tr>
+                <td>Expenses</td>
+                <td>{{ total_expenses|number_format(0) }}</td>
+            </tr>
+            <tr>
+                <td>Commissions</td>
+                <td>{{ total_commissions|number_format(0) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="totals-grid">
+        <div class="totals-row">
+            <div class="totals-label">Expected Drawer (Cash - Expenses)</div>
+            <div class="totals-value">{{ (cash_total - total_expenses)|number_format(0) }}</div>
+        </div>
+        
+        {% set eod_net = total_revenue - total_expenses - total_commissions %}
+        <div class="totals-row grand-total">
+            <div class="totals-label">Net Profit</div>
+            <div class="totals-value">{{ eod_net|number_format(0) }}</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 12px; font-weight: bold;">
+        Printed on {{ "now"|date("Y-m-d H:i:s") }}
+    </div>
+
+    <script>
+        window.onload = function() {
+            window.print();
+        };
+        window.onafterprint = function() {
+            window.close();
+        };
+    </script>
+</body>
+</html>

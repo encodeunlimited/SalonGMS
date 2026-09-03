@@ -159,6 +159,10 @@ class ReportController
         $data['active_menu'] = 'reports';
         $data['target_date'] = $date;
 
+        if (!empty($params['print'])) {
+            return $this->view->render($response, 'reports/daily_eod_print.twig', $data);
+        }
+
         if ($request->getHeaderLine('HX-Request') === 'true' && !empty($params['partial'])) {
             return $this->view->render($response, 'reports/partials/daily_eod_data.twig', $data);
         }

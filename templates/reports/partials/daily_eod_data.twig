@@ -12,67 +12,67 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         
         <!-- Cash Collected -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center">
             <div class="p-3 rounded-lg bg-green-50 text-green-600 mr-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
             <div>
-                <h3 class="text-sm font-medium text-gray-500">Cash Collected</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ cash_total|number_format(0) }}</p>
+                <h3 class="text-sm font-medium text-slate-500">Cash Collected</h3>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ cash_total|number_format(0) }}</p>
             </div>
         </div>
 
         <!-- Card / Other -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center">
             <div class="p-3 rounded-lg bg-blue-50 text-blue-600 mr-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
             </div>
             <div>
-                <h3 class="text-sm font-medium text-gray-500">Card / Other</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ (total_revenue - cash_total)|number_format(0) }}</p>
+                <h3 class="text-sm font-medium text-slate-500">Card / Other</h3>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ (total_revenue - cash_total)|number_format(0) }}</p>
             </div>
         </div>
 
         <!-- Expenses -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center">
             <div class="p-3 rounded-lg bg-red-50 text-red-600 mr-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <div>
-                <h3 class="text-sm font-medium text-gray-500">Expenses</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ total_expenses|number_format(0) }}</p>
+                <h3 class="text-sm font-medium text-slate-500">Expenses</h3>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ total_expenses|number_format(0) }}</p>
             </div>
         </div>
 
         <!-- Commissions -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center">
             <div class="p-3 rounded-lg bg-purple-50 text-purple-600 mr-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </div>
             <div>
-                <h3 class="text-sm font-medium text-gray-500">Commissions</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ total_commissions|number_format(0) }}</p>
+                <h3 class="text-sm font-medium text-slate-500">Commissions</h3>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ total_commissions|number_format(0) }}</p>
             </div>
         </div>
 
         <!-- Net Profit -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center">
             <div class="p-3 rounded-lg {% set eod_net = total_revenue - total_expenses - total_commissions %}{% if eod_net >= 0 %}bg-teal-50 text-teal-600{% else %}bg-orange-50 text-orange-600{% endif %} mr-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
             </div>
             <div>
-                <h3 class="text-sm font-medium text-gray-500">Net Profit</h3>
+                <h3 class="text-sm font-medium text-slate-500">Net Profit</h3>
                 <p class="text-2xl font-bold {% if eod_net >= 0 %}text-teal-600{% else %}text-orange-600{% endif %} mt-1">QAR {{ eod_net|number_format(0) }}</p>
             </div>
         </div>
 
         <!-- Expected Cash -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-2 border-green-200 bg-green-50/30 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-green-200 bg-green-50/30 flex items-center">
             <div class="p-3 rounded-lg bg-green-500 text-white mr-4 shadow-sm">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <div>
-                <h3 class="text-sm font-medium text-gray-600">Expected Drawer</h3>
+                <h3 class="text-sm font-medium text-slate-600">Expected Drawer</h3>
                 <p class="text-2xl font-bold text-green-700 mt-1">QAR {{ (cash_total - total_expenses)|number_format(0) }}</p>
             </div>
         </div>
@@ -80,13 +80,13 @@
     </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Payment Breakdown</h3>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-slate-900 mb-4">Payment Breakdown</h3>
         <div id="paymentMethodChart" class="flex-1 flex items-center justify-center"></div>
     </div>
     
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Appointments Breakdown</h3>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-slate-900 mb-4">Appointments Breakdown</h3>
         <div id="appointmentsChart" class="flex-1 flex items-center justify-center"></div>
     </div>
 </div>
@@ -127,7 +127,7 @@
             });
             window.chartInstances['payment'].render();
         } else if (document.querySelector('#paymentMethodChart')) {
-            document.querySelector('#paymentMethodChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No payment data for this date.</p>';
+            document.querySelector('#paymentMethodChart').innerHTML = '<p class="text-sm text-slate-400 text-center py-8">No payment data for this date.</p>';
         }
 
         // Appointments Breakdown
@@ -144,7 +144,7 @@
             });
             window.chartInstances['appointments'].render();
         } else if (document.querySelector('#appointmentsChart')) {
-            document.querySelector('#appointmentsChart').innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No appointment data for this date.</p>';
+            document.querySelector('#appointmentsChart').innerHTML = '<p class="text-sm text-slate-400 text-center py-8">No appointment data for this date.</p>';
         }
     }
 

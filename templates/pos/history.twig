@@ -3,11 +3,11 @@
 {% block content %}
 <div class="mb-6 flex items-center justify-between">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">POS Transaction History</h2>
-        <p class="text-sm text-gray-500 mt-1">View, reprint, or void recent point-of-sale transactions.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">POS Transaction History</h2>
+        <p class="text-sm text-slate-500 mt-1">View, reprint, or void recent point-of-sale transactions.</p>
     </div>
     <div>
-        <a href="/web/pos" class="bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 transition-colors shadow-sm flex items-center">
+        <a href="/web/pos" class="bg-white text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 transition-colors shadow-sm flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to POS
         </a>
@@ -15,25 +15,25 @@
 </div>
 
 <div id="table-container">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <!-- Search / Filter bar -->
-        <div class="p-4 border-b border-gray-100 bg-gray-50 flex gap-4">
+        <div class="p-4 border-b border-slate-100 bg-slate-50 flex gap-4">
             <div class="relative flex-1 max-w-md">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
                 <input type="search" id="search-box" name="search" value="{{ search }}" placeholder="Search transactions..." 
                        hx-get="/web/pos/history?sort={{ sort }}&dir={{ dir }}" 
                        hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true"
                        hx-trigger="keyup changed delay:500ms, search"
-                       class="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
+                       class="block w-full pl-12 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
             </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
+                    <tr class="text-xs text-slate-500 bg-slate-50/50 uppercase font-bold tracking-wider">
                         <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                             hx-get="/web/pos/history?sort=created_at&dir={{ sort == 'created_at' and dir == 'asc' ? 'desc' : 'asc' }}"
                             hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
@@ -49,7 +49,7 @@
                             hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
                             Customer {% if sort == 'customer_name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                         </th>
-                        <th class="px-6 py-5 font-medium text-gray-500">Services</th>
+                        <th class="px-6 py-5 font-medium text-slate-500">Services</th>
                         <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                             hx-get="/web/pos/history?sort=payment_method&dir={{ sort == 'payment_method' and dir == 'asc' ? 'desc' : 'asc' }}"
                             hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
@@ -68,15 +68,15 @@
                         <th class="px-6 py-5 font-medium text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-slate-50">
                     {% for txn in transactions %}
-                    <tr class="hover:bg-gray-50 transition-colors group">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ txn.created_at|date('M j, Y g:i A') }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ '%05d'|format(txn.id) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ txn.customer_name|default('Walk-in') }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ txn.service_names }}">{{ txn.service_names|default('-') }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ txn.payment_method|default('-') }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ txn.total_amount|number_format(2) }}</td>
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ txn.created_at|date('M j, Y g:i A') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">#{{ '%05d'|format(txn.id) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{{ txn.customer_name|default('Walk-in') }}</td>
+                        <td class="px-6 py-4 text-sm text-slate-500 max-w-xs truncate" title="{{ txn.service_names }}">{{ txn.service_names|default('-') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ txn.payment_method|default('-') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{{ txn.total_amount|number_format(2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if txn.status == 'paid' %}
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Paid</span>
@@ -109,7 +109,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-gray-500 bg-gray-50 rounded-b-xl">
+                        <td colspan="8" class="px-6 py-12 text-center text-slate-500 bg-slate-50 rounded-b-xl">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 <p class="text-base font-medium">No transactions found</p>
@@ -123,23 +123,23 @@
         </div>
         
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-gray-100 bg-white flex items-center justify-between">
-            <div class="text-sm text-gray-500">
+        <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-between">
+            <div class="text-sm text-slate-500">
                 {% if total > 0 %}
-                Showing <span class="font-medium text-gray-900">{{ (page - 1) * 15 + 1 }}</span> to 
-                <span class="font-medium text-gray-900">{{ min(page * 15, total) }}</span> of 
-                <span class="font-medium text-gray-900">{{ total }}</span> transactions
+                Showing <span class="font-medium text-slate-900">{{ (page - 1) * 15 + 1 }}</span> to 
+                <span class="font-medium text-slate-900">{{ min(page * 15, total) }}</span> of 
+                <span class="font-medium text-slate-900">{{ total }}</span> transactions
                 {% else %}
                 No transactions
                 {% endif %}
             </div>
             <div class="flex gap-2">
                 {% if page > 1 %}
-                <button hx-get="/web/pos/history?page={{ page - 1 }}&sort={{ sort }}&dir={{ dir }}" hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <button hx-get="/web/pos/history?page={{ page - 1 }}&sort={{ sort }}&dir={{ dir }}" hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
                     Previous
                 </button>
                 {% else %}
-                <button disabled class="px-3 py-1 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                <button disabled class="px-3 py-1 border border-slate-200 rounded-md text-sm font-medium text-slate-400 bg-slate-50 cursor-not-allowed">
                     Previous
                 </button>
                 {% endif %}
@@ -147,9 +147,9 @@
                 <div class="hidden sm:flex items-center space-x-1">
                     {% for p in 1..max(1, total_pages) %}
                         {% if p == page %}
-                            <span class="px-3 py-1 bg-salon-accent text-white rounded-md text-sm font-medium">{{ p }}</span>
+                            <span class="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium">{{ p }}</span>
                         {% else %}
-                            <button hx-get="/web/pos/history?page={{ p }}&sort={{ sort }}&dir={{ dir }}" hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
+                            <button hx-get="/web/pos/history?page={{ p }}&sort={{ sort }}&dir={{ dir }}" hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-sm font-medium transition-colors">
                                 {{ p }}
                             </button>
                         {% endif %}
@@ -157,11 +157,11 @@
                 </div>
                 
                 {% if page < total_pages %}
-                <button hx-get="/web/pos/history?page={{ page + 1 }}&sort={{ sort }}&dir={{ dir }}" hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <button hx-get="/web/pos/history?page={{ page + 1 }}&sort={{ sort }}&dir={{ dir }}" hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
                     Next
                 </button>
                 {% else %}
-                <button disabled class="px-3 py-1 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                <button disabled class="px-3 py-1 border border-slate-200 rounded-md text-sm font-medium text-slate-400 bg-slate-50 cursor-not-allowed">
                     Next
                 </button>
                 {% endif %}

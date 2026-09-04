@@ -3,8 +3,8 @@
 {% block content %}
 <div class="mb-8 flex items-center justify-between">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Inventory</h2>
-        <p class="text-sm text-gray-500 mt-1">Manage your product stock.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Inventory</h2>
+        <p class="text-sm text-slate-500 mt-1">Manage your product stock.</p>
     </div>
     <div class="flex items-center space-x-2">
         <button hx-get="/web/inventory/batch-issue" hx-target="#modal-container" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center">
@@ -16,7 +16,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Create GRN
         </button>
-        <button hx-get="/web/inventory/create" hx-target="#modal-container" class="bg-salon-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm flex items-center">
+        <button hx-get="/web/inventory/create" hx-target="#modal-container" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Create Product
         </button>
@@ -25,24 +25,24 @@
 </div>
 
 <div id="table-container">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <!-- Search Bar -->
-        <div class="p-4 border-b border-gray-100 bg-gray-50 flex gap-4">
+        <div class="p-4 border-b border-slate-100 bg-slate-50 flex gap-4">
             <div class="relative flex-1 max-w-md">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
                 <input type="search" id="search-box" name="search" value="{{ search }}" placeholder="Search items..." 
                        hx-get="/web/inventory?sort={{ sort }}&dir={{ dir }}" 
                        hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true"
                        hx-trigger="keyup changed delay:500ms, search"
-                       class="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-salon-accent focus:border-salon-accent sm:text-sm transition-colors">
+                       class="block w-full pl-12 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
             </div>
         </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
+                <tr class="text-xs text-slate-500 bg-slate-50/50 uppercase font-bold tracking-wider">
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/inventory?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
@@ -66,13 +66,13 @@
                     <th class="px-6 py-5 font-medium text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody id="inventory-table-body" class="divide-y divide-gray-100 text-sm">
+            <tbody id="inventory-table-body" class="divide-y divide-slate-50 text-sm">
                 {% for item in items %}
                     {% include "inventory/row.twig" %}
                 {% else %}
                 <tr id="empty-state">
-                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                        <p class="text-base font-medium text-gray-900">No inventory items found</p>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                        <p class="text-base font-medium text-slate-900">No inventory items found</p>
                     </td>
                 </tr>
                 {% endfor %}

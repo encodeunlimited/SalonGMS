@@ -3,11 +3,11 @@
 {% block content %}
 <div class="mb-8 flex items-center justify-between" x-data="{ modalOpen: false }">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Appointments</h2>
-        <p class="text-sm text-gray-500 mt-1">Manage your schedule and bookings.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Appointments</h2>
+        <p class="text-sm text-slate-500 mt-1">Manage your schedule and bookings.</p>
     </div>
     {% if auth_user.role != 'cashier' %}
-    <button @click="modalOpen = true" class="bg-salon-accent text-white px-5 py-3 rounded-lg text-sm font-medium hover:bg-yellow-600 shadow-sm transition-colors flex items-center">
+    <button @click="modalOpen = true" class="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors flex items-center">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
         New Appointment
     </button>
@@ -17,7 +17,7 @@
     <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             
-            <div x-show="modalOpen" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="modalOpen = false"></div>
+            <div x-show="modalOpen" x-transition.opacity class="fixed inset-0 bg-slate-500 bg-opacity-75 transition-opacity" @click="modalOpen = false"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
@@ -25,7 +25,7 @@
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            <h3 class="text-lg leading-6 font-medium text-slate-900" id="modal-title">
                                 Book New Appointment
                             </h3>
                             <div class="mt-4">
@@ -33,14 +33,14 @@
                                 <form hx-post="/web/appointments" hx-target="#appointment-table-body" hx-swap="afterbegin" @htmx:after-request="if($event.detail.elt === $el && $event.detail.successful && !$event.detail.xhr.response.includes('id=\'form-messages\'')) { modalOpen = false; $el.reset(); window.location.reload(); }">
                                     <div id="form-messages" class="mb-4"></div>
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Customer</label>
+                                        <label class="block text-sm font-medium text-slate-700">Customer</label>
                                         <select name="customer_id" required hx-get="/web/appointments/services" hx-target="#service_selection_wrapper" hx-swap="innerHTML" x-data x-init="new TomSelect($el, {
                                             maxOptions: 50,
                                             create: function(input, callback) {
                                                 $dispatch('open-customer-modal', { input: input, callback: callback });
                                             },
                                             onFocus: function() { this.clear(); }
-                                        })" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent sm:text-sm">
+                                        })" class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 sm:text-sm">
                                             <option value="">Search by Name or Phone...</option>
                                             {% for customer in customers %}
                                                 <option value="{{ customer.id }}">{{ customer.name }} - {{ customer.phone }}</option>
@@ -49,13 +49,13 @@
                                     </div>
                                     <div id="service_selection_wrapper">
                                         <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700">Service</label>
+                                            <label class="block text-sm font-medium text-slate-700">Service</label>
                                             <select id="service_id" name="service_id" required hx-get="/web/appointments/stylists" hx-target="#stylist_id" hx-swap="innerHTML"
                                                     x-data="{ tom: null }" 
                                                     x-init="if (!$el.tomselect) { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
                                                     @htmx:before-swap.window="if ($event.detail.target.id === 'service_id' && tom) { tom.destroy(); tom = null; }"
                                                     @htmx:after-swap.window="if ($event.detail.target.id === 'service_id') { tom = new TomSelect($el, {maxOptions: 50, onFocus: function() { this.clear(); }}); }"
-                                                    class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                                    class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                                 <option value="">Select a service...</option>
                                                 <optgroup label="Regular Services">
                                                     {% for service in services %}
@@ -77,14 +77,14 @@
                                         </div>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Stylist</label>
+                                        <label class="block text-sm font-medium text-slate-700">Stylist</label>
                                         <div id="stylist_id" class="mt-1 min-h-[50px]">
-                                            <div class="text-sm text-gray-500 py-2">Select a service first to see available stylists...</div>
+                                            <div class="text-sm text-slate-500 py-2">Select a service first to see available stylists...</div>
                                         </div>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Booking Type</label>
-                                        <select name="booking_type" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                        <label class="block text-sm font-medium text-slate-700">Booking Type</label>
+                                        <select name="booking_type" required class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                             {% for btype in booking_types %}
                                                 <option value="{{ btype }}">{{ btype }}</option>
                                             {% endfor %}
@@ -92,12 +92,12 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 mb-4">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700">Date</label>
-                                            <input type="date" name="date" required class="mt-1 focus:ring-salon-accent focus:border-salon-accent block w-full shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                                            <label class="block text-sm font-medium text-slate-700">Date</label>
+                                            <input type="date" name="date" required class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700">Time</label>
-                                            <select name="time" required class="mt-1 focus:ring-salon-accent focus:border-salon-accent block w-full shadow-sm sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                                            <label class="block text-sm font-medium text-slate-700">Time</label>
+                                            <select name="time" required class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
                                                 <option value="">Select time...</option>
                                                 {% for hour in open_hour..close_hour %}
                                                     {% for min in ['00', '15', '30', '45'] %}
@@ -108,7 +108,7 @@
                                         </div>
                                     </div>
                                     <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
-                                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-5 py-3 bg-salon-dark text-base font-medium text-white hover:bg-salon-navy focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-5 py-3 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
                                             Save Appointment
                                             <!-- Spinner -->
                                             <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -116,7 +116,7 @@
                                               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
                                         </button>
-                                        <button type="button" @click="modalOpen = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-5 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                        <button type="button" @click="modalOpen = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-5 py-3 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                                             Cancel
                                         </button>
                                     </div>
@@ -132,23 +132,23 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Calendar View -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2 h-[600px] overflow-hidden flex flex-col">
-        <h3 class="text-base font-bold text-gray-900 mb-4 flex-shrink-0">Calendar</h3>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 h-[600px] overflow-hidden flex flex-col">
+        <h3 class="text-base font-bold text-slate-900 mb-4 flex-shrink-0">Calendar</h3>
         <div id="calendar" class="flex-1 w-full h-full"></div>
     </div>
 
     <!-- Data Table View -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[600px]" id="appointments-list-container">
-        <div class="p-6 border-b border-gray-100 flex-shrink-0">
-            <h3 class="text-base font-bold text-gray-900">Upcoming</h3>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]" id="appointments-list-container">
+        <div class="p-6 border-b border-slate-100 flex-shrink-0">
+            <h3 class="text-base font-bold text-slate-900">Upcoming</h3>
         </div>
         <div class="flex-1 overflow-y-auto">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50 sticky top-0">
+                <thead class="bg-slate-50 sticky top-0">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Client</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="appointment-table-body">
@@ -192,30 +192,30 @@
      @open-customer-modal.window="showCustModal = true; phone = $event.detail.input; callback = $event.detail.callback;"
      class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-show="showCustModal" x-cloak>
     
-    <div x-show="showCustModal" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    <div x-show="showCustModal" x-transition.opacity class="fixed inset-0 bg-slate-500 bg-opacity-75 transition-opacity"></div>
     <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div x-show="showCustModal" @click.away="showCustModal = false; if(callback) callback(false);" x-transition class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
                 <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                            <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">Register New Customer</h3>
+                            <h3 class="text-base font-semibold leading-6 text-slate-900 mb-4">Register New Customer</h3>
                             <form @submit.prevent="submitForm">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Phone</label>
-                                    <input type="text" x-model="phone" required class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    <label class="block text-sm font-medium text-slate-700">Phone</label>
+                                    <input type="text" x-model="phone" required class="mt-1 block w-full py-2 px-3 border border-slate-200 rounded-lg shadow-sm sm:text-sm">
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Name</label>
-                                    <input type="text" x-model="name" required class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm sm:text-sm" placeholder="John Doe">
+                                    <label class="block text-sm font-medium text-slate-700">Name</label>
+                                    <input type="text" x-model="name" required class="mt-1 block w-full py-2 px-3 border border-slate-200 rounded-lg shadow-sm sm:text-sm" placeholder="John Doe">
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Email (Optional)</label>
-                                    <input type="email" x-model="email" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                    <label class="block text-sm font-medium text-slate-700">Email (Optional)</label>
+                                    <input type="email" x-model="email" class="mt-1 block w-full py-2 px-3 border border-slate-200 rounded-lg shadow-sm sm:text-sm">
                                 </div>
                                 <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                                    <button type="submit" class="inline-flex w-full justify-center rounded-md bg-salon-accent px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-600 sm:ml-3 sm:w-auto">Register & Select</button>
-                                    <button type="button" @click="showCustModal = false; if(callback) callback(false);" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                                    <button type="submit" class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 sm:ml-3 sm:w-auto">Register & Select</button>
+                                    <button type="button" @click="showCustModal = false; if(callback) callback(false);" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-slate-50 sm:mt-0 sm:w-auto">Cancel</button>
                                 </div>
                             </form>
                         </div>
@@ -270,34 +270,34 @@
             ],
             eventDidMount: function(info) {
                 var props = info.event.extendedProps;
-                var custImg = props.customer_image ? `<img src="${props.customer_image}" class="w-10 h-10 rounded-full object-cover border border-gray-200">` : `<div class="w-10 h-10 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg">${props.customer.charAt(0).toUpperCase()}</div>`;
-                var stylistImg = props.stylist_image ? `<img src="${props.stylist_image}" class="w-6 h-6 rounded-full object-cover border border-gray-200">` : `<div class="w-6 h-6 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-xs">${props.stylist.charAt(0).toUpperCase()}</div>`;
+                var custImg = props.customer_image ? `<img src="${props.customer_image}" class="w-10 h-10 rounded-full object-cover border border-slate-200">` : `<div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">${props.customer.charAt(0).toUpperCase()}</div>`;
+                var stylistImg = props.stylist_image ? `<img src="${props.stylist_image}" class="w-6 h-6 rounded-full object-cover border border-slate-200">` : `<div class="w-6 h-6 rounded-full bg-gray-300 text-slate-700 flex items-center justify-center font-bold text-xs">${props.stylist.charAt(0).toUpperCase()}</div>`;
 
                 var buttonsHtml = '';
                 {% if auth_user.role != 'cashier' %}
                 if (props.status === 'scheduled' || props.status === 'pending') {
                     buttonsHtml = `<button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "approved"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-colors" title="Approve"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg></button>
-                                   <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
-                                   <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                                   <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
+                                   <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
                                    <button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "cancelled"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 shadow-sm transition-colors" title="Cancel Appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
                 } else if (props.status === 'approved') {
                     buttonsHtml = `<button class="p-1.5 inline-flex items-center justify-center bg-blue-50 text-blue-400 border border-blue-200 rounded cursor-default" disabled title="Approved"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg></button>
                                    <button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "done"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-sm transition-colors" title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
-                                   <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                                   <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
                                    <button hx-put="/web/appointments/${props.id}/status" hx-vals='{"status": "cancelled"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 shadow-sm transition-colors" title="Cancel Appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
                 } else if (props.status === 'done') {
                     buttonsHtml = `<button class="p-1.5 inline-flex items-center justify-center bg-emerald-50 text-emerald-500 border border-emerald-200 rounded cursor-default" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
                                    <a href="/web/pos?appointment_id=${props.id}" class="p-1.5 inline-flex items-center justify-center bg-amber-500 text-white rounded hover:bg-amber-600 shadow-sm transition-colors" title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></a>
-                                   <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Cannot cancel a done appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
+                                   <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Cannot cancel a done appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
                 } else if (props.status === 'paid') {
                     buttonsHtml = `<span class="inline-flex items-center justify-center p-1.5 rounded bg-gray-900 text-white shadow-sm" title="Completed"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>`;
                 } else if (props.status === 'cancelled') {
                     buttonsHtml = `<span class="inline-flex items-center justify-center p-1.5 rounded bg-red-100 text-red-800 shadow-sm" title="Cancelled"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>`;
                 } else {
-                    buttonsHtml = `<span class="inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">${props.status}</span>`;
+                    buttonsHtml = `<span class="inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium bg-slate-100 text-slate-800">${props.status}</span>`;
                 }
                 {% else %}
-                    buttonsHtml = `<span class="inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">${props.status.charAt(0).toUpperCase() + props.status.slice(1)}</span>`;
+                    buttonsHtml = `<span class="inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium bg-slate-100 text-slate-800">${props.status.charAt(0).toUpperCase() + props.status.slice(1)}</span>`;
                 {% endif %}
 
                 var waMessage = `Hello ${props.customer},\n\nYour appointment for ${props.service} on ${info.event.start ? info.event.start.toLocaleString() : 'the scheduled time'} is currently: ${props.status.toUpperCase()}.\n\nStylist: ${props.stylist}`;
@@ -317,25 +317,25 @@
                 
                 var tooltipContent = `
                     <div class="p-2 w-56 text-left font-sans">
-                        <div class="flex items-center space-x-3 mb-2 border-b border-gray-100 pb-2">
+                        <div class="flex items-center space-x-3 mb-2 border-b border-slate-100 pb-2">
                             ${custImg}
                             <div>
-                                <div class="font-bold text-sm text-gray-900">${props.customer}</div>
-                                <div class="text-[10px] text-gray-500 uppercase tracking-wide">${props.booking_type}</div>
+                                <div class="font-bold text-sm text-slate-900">${props.customer}</div>
+                                <div class="text-[10px] text-slate-500 uppercase tracking-wide">${props.booking_type}</div>
                             </div>
                         </div>
                         <div class="mb-2">
-                            <span class="text-[10px] font-semibold text-gray-400 uppercase">Service</span>
-                            <div class="text-sm font-medium text-gray-800">${props.service}</div>
+                            <span class="text-[10px] font-semibold text-slate-400 uppercase">Service</span>
+                            <div class="text-sm font-medium text-slate-800">${props.service}</div>
                         </div>
                         <div class="mb-2">
-                            <span class="text-[10px] font-semibold text-gray-400 uppercase">Stylist</span>
+                            <span class="text-[10px] font-semibold text-slate-400 uppercase">Stylist</span>
                             <div class="flex items-center space-x-2 mt-1">
                                 ${stylistImg}
-                                <span class="text-sm text-gray-700">${props.stylist}</span>
+                                <span class="text-sm text-slate-700">${props.stylist}</span>
                             </div>
                         </div>
-                        <div class="mt-3 pt-2 border-t border-gray-100">
+                        <div class="mt-3 pt-2 border-t border-slate-100">
                             <div class="flex items-center gap-1 justify-center mt-1">
                                 ${buttonsHtml}
                                 <a href="${waLink}" target="_blank" class="p-1.5 inline-flex items-center justify-center bg-green-500 text-white rounded shadow-sm transition-colors ${waDisabled}" ${!props.customer_phone ? 'onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent(\'show-toast\', {detail: {type: \'error\', message: \'No phone number available\'}}));"' : ''} title="Send WhatsApp">

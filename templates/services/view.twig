@@ -14,7 +14,7 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100" 
              x-transition:leave-end="opacity-0" 
-             class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+             class="fixed inset-0 bg-slate-500 bg-opacity-75 transition-opacity" 
              @click="open = false; setTimeout(() => $dispatch('close-modal'), 300)"
              aria-hidden="true"></div>
 
@@ -32,45 +32,45 @@
             
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-salon-light sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-salon-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-slate-50 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Service Details</h3>
+                        <h3 class="text-lg leading-6 font-medium text-slate-900" id="modal-title">Service Details</h3>
                         
                         <div class="mt-4 space-y-4">
                             <div>
-                                <h4 class="text-sm font-medium text-gray-500">Name</h4>
-                                <p class="mt-1 text-base text-gray-900">{{ service.name }}</p>
+                                <h4 class="text-sm font-medium text-slate-500">Name</h4>
+                                <p class="mt-1 text-base text-slate-900">{{ service.name }}</p>
                             </div>
                             <div>
-                                <h4 class="text-sm font-medium text-gray-500">Description</h4>
-                                <p class="mt-1 text-base text-gray-900">{{ service.description|default('No description.') }}</p>
+                                <h4 class="text-sm font-medium text-slate-500">Description</h4>
+                                <p class="mt-1 text-base text-slate-900">{{ service.description|default('No description.') }}</p>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <h4 class="text-sm font-medium text-gray-500">Duration</h4>
-                                    <p class="mt-1 text-base text-gray-900">{{ service.duration_minutes }} mins</p>
+                                    <h4 class="text-sm font-medium text-slate-500">Duration</h4>
+                                    <p class="mt-1 text-base text-slate-900">{{ service.duration_minutes }} mins</p>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-gray-500">Price</h4>
-                                    <p class="mt-1 text-base text-gray-900">QAR {{ service.price|number_format(2) }}</p>
+                                    <h4 class="text-sm font-medium text-slate-500">Price</h4>
+                                    <p class="mt-1 text-base text-slate-900">QAR {{ service.price|number_format(2) }}</p>
                                 </div>
                             </div>
                             
                             <div>
-                                <h4 class="text-sm font-medium text-gray-500 mb-2">Images</h4>
+                                <h4 class="text-sm font-medium text-slate-500 mb-2">Images</h4>
                                 {% if service.images and service.images|length > 0 %}
                                     <div class="grid grid-cols-3 gap-2">
                                         {% for img in service.images %}
-                                            <img src="{{ img }}" class="h-24 w-full object-cover rounded shadow-sm border border-gray-200">
+                                            <img src="{{ img }}" class="h-24 w-full object-cover rounded shadow-sm border border-slate-200">
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    <p class="text-sm text-gray-500 italic">No images uploaded.</p>
+                                    <p class="text-sm text-slate-500 italic">No images uploaded.</p>
                                 {% endif %}
                             </div>
                         </div>
@@ -78,11 +78,11 @@
                 </div>
             </div>
             
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-xl border-t border-gray-100">
-                <button type="button" @click="open = false; setTimeout(() => $dispatch('close-modal'), 300)" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+            <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-xl border-t border-slate-100">
+                <button type="button" @click="open = false; setTimeout(() => $dispatch('close-modal'), 300)" class="w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     Close
                 </button>
-                <button hx-get="/web/services/{{ service.id }}/edit" hx-target="#modal-container" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-salon-dark text-base font-medium text-white hover:bg-salon-navy focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                <button hx-get="/web/services/{{ service.id }}/edit" hx-target="#modal-container" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     Edit Service
                 </button>
             </div>

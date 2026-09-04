@@ -3,87 +3,107 @@
 {% block content %}
 <div class="mb-8 flex items-center justify-between">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Daily Overview</h2>
-        <p class="text-sm text-gray-500 mt-1">Here's what's happening at your salon today.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Daily Overview</h2>
+        <p class="text-sm text-slate-500 mt-1">Here's what's happening at your salon today.</p>
     </div>
 </div>
 
 <!-- KPI Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
-        <div class="p-3 rounded-lg bg-green-50 text-green-600 mr-4">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        </div>
-        <div>
-            <h3 class="text-sm font-medium text-gray-500">Revenue Today</h3>
-            <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ kpi.revenue_today|number_format(0) }}</p>
-            <div class="mt-2 text-xs flex flex-col space-y-0.5 text-gray-500 font-medium">
-                <span>Cash: <span class="text-green-600">QAR {{ kpi.cash_today|number_format(0) }}</span></span>
-                <span>Card: <span class="text-blue-600">QAR {{ kpi.card_today|number_format(0) }}</span></span>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <!-- Revenue -->
+    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden text-left hover:scale-[1.02] transition-transform w-full">
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-blue-100 mb-1 uppercase">Revenue Today</p>
+                <h2 class="text-3xl font-black mb-2">QAR {{ kpi.revenue_today|number_format(0) }}</h2>
+                <p class="text-[10px] text-blue-200 font-medium">Cash: QAR {{ kpi.cash_today|number_format(0) }} | Card: QAR {{ kpi.card_today|number_format(0) }}</p>
+            </div>
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="dollar-sign" class="w-5 h-5 text-white"></i>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
-        <div class="p-3 rounded-lg bg-red-50 text-red-600 mr-4">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        </div>
-        <div>
-            <h3 class="text-sm font-medium text-gray-500">Expenses Today</h3>
-            <p class="text-2xl font-bold text-gray-900 mt-1">QAR {{ kpi.expenses_today|number_format(0) }}</p>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4 hover:shadow-md transition-shadow">
-        <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-        </div>
-        <div>
-            <h3 class="text-sm font-medium text-gray-500">Net Profit</h3>
-            {% set net_profit = kpi.revenue_today - kpi.expenses_today - kpi.commissions_today %}
-            <p class="text-2xl font-bold {% if net_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">QAR {{ net_profit|number_format(0) }}</p>
-            <p class="text-xs text-gray-400 mt-1">Excl. expenses & comms</p>
+
+    <!-- Expenses -->
+    <div class="bg-gradient-to-r from-rose-500 to-red-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden text-left hover:scale-[1.02] transition-transform w-full">
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-rose-100 mb-1 uppercase">Expenses Today</p>
+                <h2 class="text-3xl font-black mb-2">QAR {{ kpi.expenses_today|number_format(0) }}</h2>
+            </div>
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="trending-down" class="w-5 h-5 text-white"></i>
+            </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
-        <div class="p-3 rounded-lg bg-indigo-50 text-indigo-600 mr-4">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        </div>
-        <div>
-            <h3 class="text-sm font-medium text-gray-500">Appts Today</h3>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ kpi.appointments_today }}</p>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
-        <div class="p-3 rounded-lg bg-purple-50 text-purple-600 mr-4">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        </div>
-        <div>
-            <h3 class="text-sm font-medium text-gray-500">Stylists</h3>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ kpi.active_stylists }}</p>
+
+    <!-- Net Profit -->
+    <div class="bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden text-left hover:scale-[1.02] transition-transform w-full">
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-emerald-100 mb-1 uppercase">Net Profit</p>
+                {% set net_profit = kpi.revenue_today - kpi.expenses_today - kpi.commissions_today %}
+                <h2 class="text-3xl font-black mb-2">QAR {{ net_profit|number_format(0) }}</h2>
+                <p class="text-[10px] text-emerald-200 font-medium">Excl. expenses & comms</p>
+            </div>
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="pie-chart" class="w-5 h-5 text-white"></i>
+            </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
-        <div class="p-3 rounded-lg bg-yellow-50 text-yellow-600 mr-4">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+
+    <!-- Appts -->
+    <div class="bg-gradient-to-r from-purple-500 to-purple-700 rounded-xl p-5 text-white shadow-md relative overflow-hidden text-left hover:scale-[1.02] transition-transform w-full">
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-purple-100 mb-1 uppercase">Appts Today</p>
+                <h2 class="text-3xl font-black mb-2">{{ kpi.appointments_today }}</h2>
+            </div>
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="calendar" class="w-5 h-5 text-white"></i>
+            </div>
         </div>
-        <div>
-            <h3 class="text-sm font-medium text-gray-500">New Cust</h3>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ kpi.new_customers }}</p>
+    </div>
+
+    <!-- Stylists -->
+    <div class="bg-gradient-to-r from-orange-400 to-amber-500 rounded-xl p-5 text-white shadow-md relative overflow-hidden text-left hover:scale-[1.02] transition-transform w-full">
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-orange-100 mb-1 uppercase">Stylists</p>
+                <h2 class="text-3xl font-black mb-2">{{ kpi.active_stylists }}</h2>
+            </div>
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="users" class="w-5 h-5 text-white"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Cust -->
+    <div class="bg-gradient-to-r from-teal-400 to-teal-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden text-left hover:scale-[1.02] transition-transform w-full">
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-teal-100 mb-1 uppercase">New Cust</p>
+                <h2 class="text-3xl font-black mb-2">{{ kpi.new_customers }}</h2>
+            </div>
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Charts Section -->
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Weekly Revenue</h3>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
+        <h3 class="text-base font-bold text-slate-900 mb-4">Weekly Revenue</h3>
         <div id="revenue-chart" class="flex-1"></div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Services Breakdown</h3>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+        <h3 class="text-base font-bold text-slate-900 mb-4">Services Breakdown</h3>
         <div id="services-chart" class="flex justify-center mt-auto mb-auto"></div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Appointments Status</h3>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+        <h3 class="text-base font-bold text-slate-900 mb-4">Appointments Status</h3>
         <div id="apt-status-chart" class="flex justify-center mt-auto mb-auto"></div>
     </div>
 </div>
@@ -94,16 +114,16 @@
     <div class="lg:col-span-2 space-y-6">
 
         <!-- Today's Appointments -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900">Today's Appointments</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900">Today's Appointments</h3>
                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ today_appointments|length }}</span>
             </div>
             {% if today_appointments|length > 0 %}
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                            <tr class="text-xs text-slate-500 bg-slate-50/50 uppercase font-bold tracking-wider">
                                 <th class="px-6 py-3 font-medium">Time</th>
                                 <th class="px-6 py-3 font-medium">Customer</th>
                                 <th class="px-6 py-3 font-medium">Service</th>
@@ -111,13 +131,13 @@
                                 <th class="px-6 py-3 font-medium text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-50">
                             {% for apt in today_appointments %}
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ apt.customer }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.service }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.stylist }}</td>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700 font-medium">{{ apt.customer }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ apt.service }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ apt.stylist }}</td>
                                     <td class="px-6 py-4 text-right">
                                         {% if apt.status == 'scheduled' or apt.status == 'pending' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
@@ -130,7 +150,7 @@
                                         {% elseif apt.status == 'cancelled' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>
                                         {% else %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">{{ apt.status }}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -139,40 +159,40 @@
                     </table>
                 </div>
             {% else %}
-                <div class="p-8 text-center text-gray-500 text-sm">No appointments scheduled for today.</div>
+                <div class="p-8 text-center text-slate-500 text-sm">No appointments scheduled for today.</div>
             {% endif %}
         </div>
 
         <!-- Tomorrow's Appointments -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900">Tomorrow's Appointments</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900">Tomorrow's Appointments</h3>
                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ tomorrow_appointments|length }}</span>
             </div>
             {% if tomorrow_appointments|length > 0 %}
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                            <tr class="text-xs text-slate-500 bg-slate-50/50 uppercase font-bold tracking-wider">
                                 <th class="px-6 py-3 font-medium">Time</th>
                                 <th class="px-6 py-3 font-medium">Customer</th>
                                 <th class="px-6 py-3 font-medium">Service</th>
                                 <th class="px-6 py-3 font-medium text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-50">
                             {% for apt in tomorrow_appointments %}
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ apt.customer }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.service }}</td>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700 font-medium">{{ apt.customer }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ apt.service }}</td>
                                     <td class="px-6 py-4 text-right">
                                         {% if apt.status == 'scheduled' or apt.status == 'pending' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
                                         {% elseif apt.status == 'approved' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Approved</span>
                                         {% else %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">{{ apt.status }}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -181,7 +201,7 @@
                     </table>
                 </div>
             {% else %}
-                <div class="p-8 text-center text-gray-500 text-sm">No appointments scheduled for tomorrow.</div>
+                <div class="p-8 text-center text-slate-500 text-sm">No appointments scheduled for tomorrow.</div>
             {% endif %}
         </div>
     </div>
@@ -190,42 +210,42 @@
     <div class="lg:col-span-1 space-y-6">
 
         <!-- Pending Payments -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900">Payment Pending</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900">Payment Pending</h3>
                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ pending_payments|length }}</span>
             </div>
             <ul class="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
                 {% for payment in pending_payments %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             {% if payment.profile_image %}
                                 <img src="{{ payment.profile_image }}" class="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" alt="">
                             {% else %}
-                                <div class="w-10 h-10 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
                                     {{ payment.customer_name|slice(0, 1)|upper }}
                                 </div>
                             {% endif %}
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ payment.customer_name }}</p>
-                                <p class="text-xs text-gray-500 truncate">#INV-{{ "%05d"|format(payment.id) }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ payment.customer_name }}</p>
+                                <p class="text-xs text-slate-500 truncate">#INV-{{ "%05d"|format(payment.id) }}</p>
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0 flex flex-col items-end">
                             <p class="text-sm font-bold text-red-600">QAR {{ payment.total_amount|number_format(2) }}</p>
-                            <a href="/web/customers/{{ payment.customer_id }}/profile" class="text-xs font-medium text-salon-navy hover:text-salon-dark mt-1">Pay Now &rarr;</a>
+                            <a href="/web/customers/{{ payment.customer_id }}/profile" class="text-xs font-medium text-indigo-600 hover:text-indigo-700 mt-1">Pay Now &rarr;</a>
                         </div>
                     </li>
                 {% else %}
-                    <li class="p-8 text-center text-gray-500 text-sm">All invoices are paid up!</li>
+                    <li class="p-8 text-center text-slate-500 text-sm">All invoices are paid up!</li>
                 {% endfor %}
             </ul>
         </div>
 
         <!-- Inventory Alerts -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-orange-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-orange-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900 flex items-center">
                     <svg class="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Inventory Alerts
                 </h3>
@@ -233,43 +253,43 @@
             </div>
             <ul class="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
                 {% for item in low_stock_alerts %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mr-3 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                             </div>
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ item.name }}</p>
                                 <p class="text-xs text-red-600 font-bold truncate">Low Stock: {{ item.quantity }} left</p>
                             </div>
                         </div>
-                        <a href="/web/inventory" class="text-xs font-medium text-salon-navy hover:text-salon-dark">Restock &rarr;</a>
+                        <a href="/web/inventory" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">Restock &rarr;</a>
                     </li>
                 {% endfor %}
                 {% for item in expiry_alerts %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-3 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ item.name }}</p>
                                 <p class="text-xs text-orange-600 font-bold truncate">Expiring: {{ item.expiry_date|date("M d, Y") }}</p>
                             </div>
                         </div>
-                        <a href="/web/inventory" class="text-xs font-medium text-salon-navy hover:text-salon-dark">Manage &rarr;</a>
+                        <a href="/web/inventory" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">Manage &rarr;</a>
                     </li>
                 {% endfor %}
                 {% if low_stock_alerts|length == 0 and expiry_alerts|length == 0 %}
-                    <li class="p-8 text-center text-gray-500 text-sm">Inventory is healthy!</li>
+                    <li class="p-8 text-center text-slate-500 text-sm">Inventory is healthy!</li>
                 {% endif %}
             </ul>
         </div>
 
         <!-- Today's Birthdays -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-pink-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-pink-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900 flex items-center">
                     <svg class="w-5 h-5 text-pink-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"></path></svg>
                     Today's Birthdays
                 </h3>
@@ -277,7 +297,7 @@
             </div>
             <ul class="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
                 {% for customer in todays_birthdays %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             {% if customer.profile_image %}
                                 <img src="{{ customer.profile_image }}" class="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" alt="">
@@ -287,14 +307,14 @@
                                 </div>
                             {% endif %}
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ customer.name }}</p>
-                                <p class="text-xs text-gray-500 truncate">{{ customer.phone }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ customer.name }}</p>
+                                <p class="text-xs text-slate-500 truncate">{{ customer.phone }}</p>
                             </div>
                         </div>
-                        <a href="/web/customers/{{ customer.id }}/profile" class="text-xs font-medium text-salon-navy hover:text-salon-dark">Profile &rarr;</a>
+                        <a href="/web/customers/{{ customer.id }}/profile" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">Profile &rarr;</a>
                     </li>
                 {% else %}
-                    <li class="p-8 text-center text-gray-500 text-sm">No birthdays today.</li>
+                    <li class="p-8 text-center text-slate-500 text-sm">No birthdays today.</li>
                 {% endfor %}
             </ul>
         </div>

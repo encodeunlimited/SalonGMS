@@ -1,21 +1,21 @@
 <tr id="apt-{{ appointment.id }}" class="hover:bg-slate-50 transition-colors">
     <td class="px-6 py-5 whitespace-nowrap">
-        <div class="text-sm font-medium text-gray-900">{{ appointment.time }}</div>
-        <div class="text-xs text-gray-500">{{ appointment.date }}</div>
+        <div class="text-sm font-medium text-slate-900">{{ appointment.time }}</div>
+        <div class="text-xs text-slate-500">{{ appointment.date }}</div>
     </td>
     <td class="px-6 py-5 whitespace-nowrap">
         <div class="flex items-center">
             {% if appointment.customer_image %}
                 <img src="{{ appointment.customer_image }}" alt="{{ appointment.customer }}" class="w-8 h-8 rounded-full object-cover mr-3 shadow-sm">
             {% else %}
-                <div class="w-8 h-8 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-xs mr-3 shadow-sm">
+                <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs mr-3 shadow-sm">
                     {{ appointment.customer|slice(0, 1)|upper }}
                 </div>
             {% endif %}
             <div>
-                <div class="text-sm font-bold text-gray-900">{{ appointment.customer }}</div>
-                <div class="text-xs text-gray-500 mt-1 flex items-center">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+                <div class="text-sm font-bold text-slate-900">{{ appointment.customer }}</div>
+                <div class="text-xs text-slate-500 mt-1 flex items-center">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 mr-2">
                         {{ appointment.service }}
                     </span>
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mr-2 {% if appointment.booking_type == 'Home Visit' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
@@ -25,7 +25,7 @@
                         {% if appointment.stylist_image %}
                             <img src="{{ appointment.stylist_image }}" class="w-4 h-4 rounded-full mr-1 object-cover" title="{{ appointment.stylist }}">
                         {% else %}
-                            <div class="w-4 h-4 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center font-bold mr-1" style="font-size: 0.5rem;" title="{{ appointment.stylist }}">
+                            <div class="w-4 h-4 rounded-full bg-gray-300 text-slate-700 flex items-center justify-center font-bold mr-1" style="font-size: 0.5rem;" title="{{ appointment.stylist }}">
                                 {{ appointment.stylist|slice(0, 1)|upper }}
                             </div>
                         {% endif %}
@@ -40,27 +40,27 @@
             {% if auth_user.role != 'cashier' %}
             {% if appointment.status == 'scheduled' or appointment.status == 'pending' %}
                 <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "approved"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-colors" title="Approve"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg></button>
-                <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
-                <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
+                <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
                 <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "cancelled"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 shadow-sm transition-colors" title="Cancel Appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             {% elseif appointment.status == 'approved' %}
                 <button class="p-1.5 inline-flex items-center justify-center bg-blue-50 text-blue-400 border border-blue-200 rounded cursor-default" disabled title="Approved"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg></button>
                 <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "done"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-sm transition-colors" title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
-                <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
                 <button hx-put="/web/appointments/{{ appointment.id }}/status" hx-vals='{"status": "cancelled"}' hx-swap="none" class="p-1.5 inline-flex items-center justify-center bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 shadow-sm transition-colors" title="Cancel Appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             {% elseif appointment.status == 'done' %}
                 <button class="p-1.5 inline-flex items-center justify-center bg-emerald-50 text-emerald-500 border border-emerald-200 rounded cursor-default" disabled title="Done"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>
                 <a href="/web/pos?appointment_id={{ appointment.id }}" class="p-1.5 inline-flex items-center justify-center bg-amber-500 text-white rounded hover:bg-amber-600 shadow-sm transition-colors" title="Paid"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></a>
-                <button class="p-1.5 inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded cursor-not-allowed border border-gray-200" disabled title="Cannot cancel a done appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button class="p-1.5 inline-flex items-center justify-center bg-slate-100 text-slate-400 rounded cursor-not-allowed border border-slate-200" disabled title="Cannot cancel a done appointment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             {% elseif appointment.status == 'paid' %}
                 <span class="inline-flex items-center justify-center p-1.5 rounded bg-gray-900 text-white shadow-sm" title="Completed"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
             {% elseif appointment.status == 'cancelled' %}
                 <span class="inline-flex items-center justify-center p-1.5 rounded bg-red-100 text-red-800 shadow-sm" title="Cancelled"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
             {% else %}
-                <span class="inline-flex items-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ appointment.status|capitalize }}</span>
+                <span class="inline-flex items-center px-2 py-1.5 rounded text-xs font-medium bg-slate-100 text-slate-800">{{ appointment.status|capitalize }}</span>
             {% endif %}
             {% else %}
-                <span class="inline-flex items-center px-2 py-1.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ appointment.status|capitalize }}</span>
+                <span class="inline-flex items-center px-2 py-1.5 rounded text-xs font-medium bg-slate-100 text-slate-800">{{ appointment.status|capitalize }}</span>
             {% endif %}
             
 

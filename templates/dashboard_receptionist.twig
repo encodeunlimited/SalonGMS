@@ -3,10 +3,10 @@
 {% block content %}
 <div class="mb-8 flex items-center justify-between">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Front Desk Dashboard</h2>
-        <p class="text-sm text-gray-500 mt-1">Manage today's appointments and payments.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Front Desk Dashboard</h2>
+        <p class="text-sm text-slate-500 mt-1">Manage today's appointments and payments.</p>
     </div>
-    <a href="/web/pos" class="bg-salon-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-salon-navy shadow-sm transition-colors flex items-center">
+    <a href="/web/pos" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors flex items-center">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
         Open POS
     </a>
@@ -15,8 +15,8 @@
 <!-- Charts Section -->
 <div class="grid grid-cols-1 mb-8">
     <!-- Appointments Status Donut Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Today's Appointment Status</h3>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <h3 class="text-base font-bold text-slate-900 mb-4">Today's Appointment Status</h3>
         <div id="apt-status-chart" class="flex justify-center mt-6"></div>
     </div>
 </div>
@@ -28,16 +28,16 @@
     <div class="lg:col-span-2 space-y-6">
         
         <!-- Today's Appointments -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900">Today's Appointments</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900">Today's Appointments</h3>
                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ today_appointments|length }}</span>
             </div>
             {% if today_appointments|length > 0 %}
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                            <tr class="text-xs text-slate-500 bg-slate-50/50 uppercase font-bold tracking-wider">
                                 <th class="px-6 py-3 font-medium">Time</th>
                                 <th class="px-6 py-3 font-medium">Customer</th>
                                 <th class="px-6 py-3 font-medium">Service</th>
@@ -45,13 +45,13 @@
                                 <th class="px-6 py-3 font-medium text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-50">
                             {% for apt in today_appointments %}
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ apt.customer }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.service }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.stylist }}</td>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700 font-medium">{{ apt.customer }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ apt.service }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ apt.stylist }}</td>
                                     <td class="px-6 py-4 text-right">
                                         {% if apt.status == 'scheduled' or apt.status == 'pending' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
@@ -64,7 +64,7 @@
                                         {% elseif apt.status == 'cancelled' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>
                                         {% else %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">{{ apt.status }}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -73,40 +73,40 @@
                     </table>
                 </div>
             {% else %}
-                <div class="p-8 text-center text-gray-500 text-sm">No appointments scheduled for today.</div>
+                <div class="p-8 text-center text-slate-500 text-sm">No appointments scheduled for today.</div>
             {% endif %}
         </div>
 
         <!-- Tomorrow's Appointments -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900">Tomorrow's Appointments</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900">Tomorrow's Appointments</h3>
                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ tomorrow_appointments|length }}</span>
             </div>
             {% if tomorrow_appointments|length > 0 %}
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                            <tr class="text-xs text-slate-500 bg-slate-50/50 uppercase font-bold tracking-wider">
                                 <th class="px-6 py-3 font-medium">Time</th>
                                 <th class="px-6 py-3 font-medium">Customer</th>
                                 <th class="px-6 py-3 font-medium">Service</th>
                                 <th class="px-6 py-3 font-medium text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-50">
                             {% for apt in tomorrow_appointments %}
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ apt.customer }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ apt.service }}</td>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap">{{ apt.time|date("g:i A") }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700 font-medium">{{ apt.customer }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ apt.service }}</td>
                                     <td class="px-6 py-4 text-right">
                                         {% if apt.status == 'scheduled' or apt.status == 'pending' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
                                         {% elseif apt.status == 'approved' %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Approved</span>
                                         {% else %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">{{ apt.status }}</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">{{ apt.status }}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -115,7 +115,7 @@
                     </table>
                 </div>
             {% else %}
-                <div class="p-8 text-center text-gray-500 text-sm">No appointments scheduled for tomorrow.</div>
+                <div class="p-8 text-center text-slate-500 text-sm">No appointments scheduled for tomorrow.</div>
             {% endif %}
         </div>
     </div>
@@ -124,9 +124,9 @@
     <div class="lg:col-span-1 space-y-6">
 
         <!-- Inventory Alerts -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-orange-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-orange-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900 flex items-center">
                     <svg class="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Inventory Alerts
                 </h3>
@@ -134,47 +134,47 @@
             </div>
             <ul class="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
                 {% for item in low_stock_alerts %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                             </div>
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ item.name }}</p>
                                 <p class="text-xs text-red-600 font-bold truncate">Low Stock: {{ item.quantity }} left</p>
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0">
-                            <a href="/web/inventory" class="text-xs font-medium text-salon-navy hover:text-salon-dark">Restock &rarr;</a>
+                            <a href="/web/inventory" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">Restock &rarr;</a>
                         </div>
                     </li>
                 {% endfor %}
                 {% for item in expiry_alerts %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ item.name }}</p>
                                 <p class="text-xs text-orange-600 font-bold truncate">Expiring: {{ item.expiry_date|date("M d, Y") }}</p>
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0">
-                            <a href="/web/inventory" class="text-xs font-medium text-salon-navy hover:text-salon-dark">Manage &rarr;</a>
+                            <a href="/web/inventory" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">Manage &rarr;</a>
                         </div>
                     </li>
                 {% endfor %}
                 {% if low_stock_alerts|length == 0 and expiry_alerts|length == 0 %}
-                    <li class="p-8 text-center text-gray-500 text-sm">Inventory is healthy!</li>
+                    <li class="p-8 text-center text-slate-500 text-sm">Inventory is healthy!</li>
                 {% endif %}
             </ul>
         </div>
 
         <!-- Today's Birthdays -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-pink-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900 flex items-center">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-pink-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900 flex items-center">
                     <svg class="w-5 h-5 text-pink-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"></path></svg>
                     Today's Birthdays
                 </h3>
@@ -182,7 +182,7 @@
             </div>
             <ul class="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
                 {% for customer in todays_birthdays %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             {% if customer.profile_image %}
                                 <img src="{{ customer.profile_image }}" class="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" alt="">
@@ -192,49 +192,49 @@
                                 </div>
                             {% endif %}
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ customer.name }}</p>
-                                <p class="text-xs text-gray-500 truncate">{{ customer.phone }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ customer.name }}</p>
+                                <p class="text-xs text-slate-500 truncate">{{ customer.phone }}</p>
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0 flex flex-col items-end">
-                            <a href="/web/customers/{{ customer.id }}/profile" class="text-xs font-medium text-salon-navy hover:text-salon-dark mt-1">Profile &rarr;</a>
+                            <a href="/web/customers/{{ customer.id }}/profile" class="text-xs font-medium text-indigo-600 hover:text-indigo-700 mt-1">Profile &rarr;</a>
                         </div>
                     </li>
                 {% else %}
-                    <li class="p-8 text-center text-gray-500 text-sm">No birthdays today.</li>
+                    <li class="p-8 text-center text-slate-500 text-sm">No birthdays today.</li>
                 {% endfor %}
             </ul>
         </div>
 
         <!-- Pending Payments -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-base font-bold text-gray-900">Payment Pending</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900">Payment Pending</h3>
                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ pending_payments|length }}</span>
             </div>
             <ul class="divide-y divide-gray-100 max-h-[800px] overflow-y-auto">
                 {% for payment in pending_payments %}
-                    <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div class="flex items-center overflow-hidden">
                             {% if payment.profile_image %}
                                 <img src="{{ payment.profile_image }}" class="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" alt="">
                             {% else %}
-                                <div class="w-10 h-10 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg mr-3 flex-shrink-0">
                                     {{ payment.customer_name|slice(0, 1)|upper }}
                                 </div>
                             {% endif %}
                             <div class="truncate mr-2">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ payment.customer_name }}</p>
-                                <p class="text-xs text-gray-500 truncate">#INV-{{ "%05d"|format(payment.id) }}</p>
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ payment.customer_name }}</p>
+                                <p class="text-xs text-slate-500 truncate">#INV-{{ "%05d"|format(payment.id) }}</p>
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0 flex flex-col items-end">
                             <p class="text-sm font-bold text-red-600">QAR {{ payment.total_amount|number_format(2) }}</p>
-                            <a href="/web/customers/{{ payment.customer_id }}/profile" class="text-xs font-medium text-salon-navy hover:text-salon-dark mt-1">Pay Now &rarr;</a>
+                            <a href="/web/customers/{{ payment.customer_id }}/profile" class="text-xs font-medium text-indigo-600 hover:text-indigo-700 mt-1">Pay Now &rarr;</a>
                         </div>
                     </li>
                 {% else %}
-                    <li class="p-8 text-center text-gray-500 text-sm">All invoices are paid up!</li>
+                    <li class="p-8 text-center text-slate-500 text-sm">All invoices are paid up!</li>
                 {% endfor %}
             </ul>
         </div>

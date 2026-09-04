@@ -4,8 +4,8 @@
 <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
     <div class="sm:flex sm:items-center mb-8">
         <div class="sm:flex-auto">
-            <h1 class="text-2xl font-bold text-gray-900">Salon Settings</h1>
-            <p class="mt-2 text-sm text-gray-700">Configure your salon's business hours and other preferences.</p>
+            <h1 class="text-2xl font-bold text-slate-900">Salon Settings</h1>
+            <p class="mt-2 text-sm text-slate-700">Configure your salon's business hours and other preferences.</p>
         </div>
     </div>
 
@@ -14,73 +14,73 @@
             <form hx-post="/web/settings" hx-target="#form-messages" hx-swap="outerHTML">
                 <div id="form-messages"></div>
                 
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">General Settings</h3>
+                <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">General Settings</h3>
                 
                 <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 mb-6">
                     <div class="sm:col-span-3">
-                        <label for="open_time" class="block text-sm font-medium text-gray-700">Opening Time</label>
+                        <label for="open_time" class="block text-sm font-medium text-slate-700">Opening Time</label>
                         <div class="mt-1">
-                            <input type="time" name="open_time" id="open_time" value="{{ settings.open_time|default('09:00') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                            <input type="time" name="open_time" id="open_time" value="{{ settings.open_time|default('09:00') }}" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
                         </div>
                     </div>
 
                     <div class="sm:col-span-3">
-                        <label for="close_time" class="block text-sm font-medium text-gray-700">Closing Time</label>
+                        <label for="close_time" class="block text-sm font-medium text-slate-700">Closing Time</label>
                         <div class="mt-1">
-                            <input type="time" name="close_time" id="close_time" value="{{ settings.close_time|default('17:00') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                            <input type="time" name="close_time" id="close_time" value="{{ settings.close_time|default('17:00') }}" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 mb-2">
                     <div class="sm:col-span-3">
-                        <label for="loyalty_points_per_currency" class="block text-sm font-medium text-gray-700">Loyalty Points Earned Per 1 QAR Spent</label>
+                        <label for="loyalty_points_per_currency" class="block text-sm font-medium text-slate-700">Loyalty Points Earned Per 1 QAR Spent</label>
                         <div class="mt-1">
-                            <input type="number" step="1" name="loyalty_points_per_currency" id="loyalty_points_per_currency" value="{{ settings.loyalty_points_per_currency|default('10') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border" placeholder="e.g. 10">
+                            <input type="number" step="1" name="loyalty_points_per_currency" id="loyalty_points_per_currency" value="{{ settings.loyalty_points_per_currency|default('10') }}" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-md py-2 px-3 border" placeholder="e.g. 10">
                         </div>
-                        <p class="mt-1 text-xs text-gray-500">How many points the customer earns for spending 1 QAR.</p>
+                        <p class="mt-1 text-xs text-slate-500">How many points the customer earns for spending 1 QAR.</p>
                     </div>
 
                     <div class="sm:col-span-3">
-                        <label for="loyalty_currency_per_point" class="block text-sm font-medium text-gray-700">Loyalty Discount Value (QAR) Per Point</label>
+                        <label for="loyalty_currency_per_point" class="block text-sm font-medium text-slate-700">Loyalty Discount Value (QAR) Per Point</label>
                         <div class="mt-1">
-                            <input type="number" step="0.001" name="loyalty_currency_per_point" id="loyalty_currency_per_point" value="{{ settings.loyalty_currency_per_point|default('0.001') }}" required class="shadow-sm focus:ring-salon-accent focus:border-salon-accent block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border" placeholder="e.g. 0.001">
+                            <input type="number" step="0.001" name="loyalty_currency_per_point" id="loyalty_currency_per_point" value="{{ settings.loyalty_currency_per_point|default('0.001') }}" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-md py-2 px-3 border" placeholder="e.g. 0.001">
                         </div>
-                        <p class="mt-1 text-xs text-gray-500">How much discount (in QAR) 1 point gives.</p>
+                        <p class="mt-1 text-xs text-slate-500">How much discount (in QAR) 1 point gives.</p>
                     </div>
                 </div>
 
-                <hr class="my-6 border-gray-200">
-                <h3 class="text-md font-semibold leading-6 text-gray-900 mb-4">POS Payment Options Visibility</h3>
+                <hr class="my-6 border-slate-200">
+                <h3 class="text-md font-semibold leading-6 text-slate-900 mb-4">POS Payment Options Visibility</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="pos_show_cash" value="1" {% if settings.pos_show_cash|default('1') == '1' %}checked{% endif %} class="rounded border-gray-300 text-salon-accent shadow-sm focus:border-salon-accent focus:ring focus:ring-salon-accent focus:ring-opacity-50">
-                        <span class="text-sm font-medium text-gray-700">Cash</span>
+                        <input type="checkbox" name="pos_show_cash" value="1" {% if settings.pos_show_cash|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <span class="text-sm font-medium text-slate-700">Cash</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="pos_show_card" value="1" {% if settings.pos_show_card|default('1') == '1' %}checked{% endif %} class="rounded border-gray-300 text-salon-accent shadow-sm focus:border-salon-accent focus:ring focus:ring-salon-accent focus:ring-opacity-50">
-                        <span class="text-sm font-medium text-gray-700">Card</span>
+                        <input type="checkbox" name="pos_show_card" value="1" {% if settings.pos_show_card|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <span class="text-sm font-medium text-slate-700">Card</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="pos_show_bank_transfer" value="1" {% if settings.pos_show_bank_transfer|default('1') == '1' %}checked{% endif %} class="rounded border-gray-300 text-salon-accent shadow-sm focus:border-salon-accent focus:ring focus:ring-salon-accent focus:ring-opacity-50">
-                        <span class="text-sm font-medium text-gray-700">Bank Transfer</span>
+                        <input type="checkbox" name="pos_show_bank_transfer" value="1" {% if settings.pos_show_bank_transfer|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <span class="text-sm font-medium text-slate-700">Bank Transfer</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="pos_show_points" value="1" {% if settings.pos_show_points|default('1') == '1' %}checked{% endif %} class="rounded border-gray-300 text-salon-accent shadow-sm focus:border-salon-accent focus:ring focus:ring-salon-accent focus:ring-opacity-50">
-                        <span class="text-sm font-medium text-gray-700">Points</span>
+                        <input type="checkbox" name="pos_show_points" value="1" {% if settings.pos_show_points|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <span class="text-sm font-medium text-slate-700">Points</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="pos_show_credit" value="1" {% if settings.pos_show_credit|default('1') == '1' %}checked{% endif %} class="rounded border-gray-300 text-salon-accent shadow-sm focus:border-salon-accent focus:ring focus:ring-salon-accent focus:ring-opacity-50">
-                        <span class="text-sm font-medium text-gray-700">Credit</span>
+                        <input type="checkbox" name="pos_show_credit" value="1" {% if settings.pos_show_credit|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <span class="text-sm font-medium text-slate-700">Credit</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="pos_show_split" value="1" {% if settings.pos_show_split|default('1') == '1' %}checked{% endif %} class="rounded border-gray-300 text-salon-accent shadow-sm focus:border-salon-accent focus:ring focus:ring-salon-accent focus:ring-opacity-50">
-                        <span class="text-sm font-medium text-gray-700">Split</span>
+                        <input type="checkbox" name="pos_show_split" value="1" {% if settings.pos_show_split|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <span class="text-sm font-medium text-slate-700">Split</span>
                     </label>
                 </div>
 
                 <div class="mt-6 mb-8">
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-salon-dark py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-salon-navy focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         Save Settings
                         <svg class="animate-spin ml-2 h-5 w-5 text-white htmx-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -90,57 +90,57 @@
                 </div>
             </form>
 
-            <hr class="my-6 border-gray-200">
+            <hr class="my-6 border-slate-200">
             
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Booking Types</h3>
+            <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Booking Types</h3>
             <div class="mb-8">
                 <form hx-post="/web/settings/booking-types" hx-target="#booking-types-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newBookingInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newBookingInput" placeholder="Add new booking type" required class="flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                    <input type="text" name="name" x-ref="newBookingInput" placeholder="Add new booking type" required class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add</button>
                 </form>
                 
-                <ul id="booking-types-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                <ul id="booking-types-list" class="divide-y divide-gray-200 border border-slate-200 rounded-md">
                     {% for item in bookingTypes %}
                         {% include 'settings/type_item.twig' with {'item': item, 'type': 'booking'} %}
                     {% else %}
-                        <li class="p-3 text-sm text-gray-500 text-center">No booking types added yet.</li>
+                        <li class="p-3 text-sm text-slate-500 text-center">No booking types added yet.</li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <hr class="my-6 border-gray-200">
+            <hr class="my-6 border-slate-200">
             
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Payment Types</h3>
+            <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Payment Types</h3>
             <div class="mb-8">
                 <form hx-post="/web/settings/payment-types" hx-target="#payment-types-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newPaymentInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newPaymentInput" placeholder="Add new payment type" required class="flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                    <input type="text" name="name" x-ref="newPaymentInput" placeholder="Add new payment type" required class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add</button>
                 </form>
                 
-                <ul id="payment-types-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                <ul id="payment-types-list" class="divide-y divide-gray-200 border border-slate-200 rounded-md">
                     {% for item in paymentTypes %}
                         {% include 'settings/type_item.twig' with {'item': item, 'type': 'payment'} %}
                     {% else %}
-                        <li class="p-3 text-sm text-gray-500 text-center">No payment types added yet.</li>
+                        <li class="p-3 text-sm text-slate-500 text-center">No payment types added yet.</li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <hr class="my-6 border-gray-200">
+            <hr class="my-6 border-slate-200">
             
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Service Categories</h3>
+            <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Service Categories</h3>
             <div class="mb-8">
                 <form hx-post="/web/settings/service-categories" hx-target="#service-categories-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) { $refs.newServiceCategoryInput.value = ''; $refs.newServiceCategoryArabicInput.value = ''; }" class="flex flex-col sm:flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="w-full sm:flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
-                    <input type="text" name="arabic_name" x-ref="newServiceCategoryArabicInput" placeholder="Arabic Name (Optional)" class="w-full sm:flex-1 shadow-sm focus:ring-salon-accent focus:border-salon-accent block sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-salon-accent focus:ring-offset-2">Add</button>
+                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
+                    <input type="text" name="arabic_name" x-ref="newServiceCategoryArabicInput" placeholder="Arabic Name (Optional)" class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
+                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add</button>
                 </form>
                 
-                <ul id="service-categories-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                <ul id="service-categories-list" class="divide-y divide-gray-200 border border-slate-200 rounded-md">
                     {% for item in serviceCategories %}
                         {% include 'settings/type_item.twig' with {'item': item, 'type': 'service-categories', 'path': 'service-categories'} %}
                     {% else %}
-                        <li class="p-3 text-sm text-gray-500 text-center">No service categories added yet.</li>
+                        <li class="p-3 text-sm text-slate-500 text-center">No service categories added yet.</li>
                     {% endfor %}
                 </ul>
             </div>

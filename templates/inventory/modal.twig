@@ -2,7 +2,7 @@
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         
         <!-- Background overlay -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" x-show="open" x-transition.opacity @click="open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300)"></div>
+        <div class="fixed inset-0 bg-slate-500 bg-opacity-75 transition-opacity" x-show="open" x-transition.opacity @click="open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300)"></div>
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
@@ -10,11 +10,11 @@
         <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" x-show="open" x-transition>
             
             <!-- Header -->
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+            <div class="bg-slate-50 px-4 py-3 sm:px-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg leading-6 font-bold text-slate-900" id="modal-title">
                     {{ item ? 'Edit Product' : 'Create Product' }}
                 </h3>
-                <button type="button" @click="open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300)" class="text-gray-400 hover:text-gray-500 p-2 -mr-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors">
+                <button type="button" @click="open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300)" class="text-slate-400 hover:text-slate-500 p-2 -mr-2 bg-slate-50 rounded-full hover:bg-slate-100 transition-colors">
                     <span class="sr-only">Close</span>
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -29,40 +29,40 @@
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Name</label>
-                            <input type="text" name="name" value="{{ item.name }}" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                            <label class="block text-sm font-medium text-slate-700">Name</label>
+                            <input type="text" name="name" value="{{ item.name }}" required class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">SKU</label>
-                            <input type="text" name="sku" value="{{ item.sku }}" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                            <label class="block text-sm font-medium text-slate-700">SKU</label>
+                            <input type="text" name="sku" value="{{ item.sku }}" class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea name="description" rows="3" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">{{ item.description }}</textarea>
+                            <label class="block text-sm font-medium text-slate-700">Description</label>
+                            <textarea name="description" rows="3" class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{{ item.description }}</textarea>
                         </div>
                         
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Low Stock Limit</label>
-                                <input type="number" name="low_stock_limit" value="{{ item.low_stock_limit ?? 5 }}" min="0" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm">
+                                <label class="block text-sm font-medium text-slate-700">Low Stock Limit</label>
+                                <input type="number" name="low_stock_limit" value="{{ item.low_stock_limit ?? 5 }}" min="0" class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             </div>
                             {% if item %}
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Current Stock</label>
-                                <input type="number" value="{{ item.quantity }}" readonly class="mt-1 block w-full py-2 px-3 border border-gray-200 bg-gray-50 text-gray-500 rounded-md shadow-sm sm:text-sm cursor-not-allowed">
-                                <p class="text-xs text-gray-500 mt-1">Use Stock In/Out to modify stock</p>
+                                <label class="block text-sm font-medium text-slate-700">Current Stock</label>
+                                <input type="number" value="{{ item.quantity }}" readonly class="mt-1 block w-full py-2 px-3 border border-slate-200 bg-slate-50 text-slate-500 rounded-md shadow-sm sm:text-sm cursor-not-allowed">
+                                <p class="text-xs text-slate-500 mt-1">Use Stock In/Out to modify stock</p>
                             </div>
                             {% endif %}
                         </div>
                     </div>
                     
-                    <div class="mt-6 sm:flex sm:flex-row-reverse border-t border-gray-100 pt-4">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-5 py-3 bg-salon-dark text-base font-medium text-white hover:bg-salon-navy focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-salon-dark sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                    <div class="mt-6 sm:flex sm:flex-row-reverse border-t border-slate-100 pt-4">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-5 py-3 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-salon-dark sm:ml-3 sm:w-auto sm:text-sm transition-colors">
                             {{ item ? 'Update Product' : 'Create Product' }}
                         </button>
-                        <button type="button" @click="open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-5 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                        <button type="button" @click="open = false; setTimeout(() => $el.closest('#modal-container').innerHTML = '', 300)" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-5 py-3 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
                             Cancel
                         </button>
                     </div>

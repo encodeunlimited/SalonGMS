@@ -2,39 +2,39 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Birthdays & Special Offers</h1>
-    <p class="text-gray-600 mt-1">Send personalized birthday greetings and package offers to your customers via WhatsApp.</p>
+    <h1 class="text-2xl font-bold text-slate-800">Birthdays & Special Offers</h1>
+    <p class="text-slate-600 mt-1">Send personalized birthday greetings and package offers to your customers via WhatsApp.</p>
 </div>
 
 <div class="space-y-6">
     
     <!-- Today's Birthdays -->
-    <div class="bg-white rounded-xl shadow-sm border border-salon-border">
-        <div class="px-6 py-4 border-b border-salon-border bg-salon-light flex justify-between items-center rounded-t-xl">
-            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-salon-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center rounded-t-xl">
+            <h2 class="text-lg font-semibold text-slate-800 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Today's Birthdays
             </h2>
             <span class="bg-red-100 text-red-600 py-1 px-3 rounded-full text-xs font-bold">{{ todays_birthdays|length }}</span>
         </div>
         
-        <div class="divide-y divide-gray-100">
+        <div class="divide-y divide-slate-50">
             {% if todays_birthdays|length > 0 %}
                 {% for customer in todays_birthdays %}
                     <div class="p-6 flex flex-col md:flex-row justify-between items-center bg-red-50/30">
                         <div class="flex items-center mb-4 md:mb-0 w-full md:w-auto">
-                            <div class="w-12 h-12 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-lg shadow-sm ring-2 ring-salon-border mr-4">
+                            <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm ring-2 ring-slate-200 mr-4">
                                 {{ customer.name|slice(0, 1)|upper }}
                             </div>
                             <div>
-                                <h3 class="font-bold text-gray-800 text-lg">{{ customer.name }}</h3>
-                                <p class="text-sm text-gray-500">{{ customer.phone }}</p>
+                                <h3 class="font-bold text-slate-800 text-lg">{{ customer.name }}</h3>
+                                <p class="text-sm text-slate-500">{{ customer.phone }}</p>
                             </div>
                         </div>
                         
                         <div class="w-full md:w-auto" x-data="{ selectedPackage: '' }">
                             <div class="flex flex-col sm:flex-row gap-3">
-                                <select x-model="selectedPackage" x-init="new TomSelect($el, { placeholder: 'Select a package offer...' })" class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-salon-accent focus:border-salon-accent sm:text-sm rounded-md shadow-sm">
+                                <select x-model="selectedPackage" x-init="new TomSelect($el, { placeholder: 'Select a package offer...' })" class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
                                     <option value="">Select a package offer...</option>
                                     {% for pkg in packages %}
                                         <option value="{{ pkg.name }} (Only QAR {{ pkg.price|number_format(2) }})">{{ pkg.name }} - QAR {{ pkg.price }}</option>
@@ -54,7 +54,7 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="p-8 text-center text-gray-500">
+                <div class="p-8 text-center text-slate-500">
                     <p>No birthdays today.</p>
                 </div>
             {% endif %}
@@ -62,32 +62,32 @@
     </div>
 
     <!-- Upcoming Birthdays -->
-    <div class="bg-white rounded-xl shadow-sm border border-salon-border">
-        <div class="px-6 py-4 border-b border-salon-border bg-salon-light flex justify-between items-center rounded-t-xl">
-            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-salon-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center rounded-t-xl">
+            <h2 class="text-lg font-semibold text-slate-800 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 Upcoming This Month
             </h2>
-            <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs font-bold">{{ upcoming_birthdays|length }}</span>
+            <span class="bg-gray-200 text-slate-700 py-1 px-3 rounded-full text-xs font-bold">{{ upcoming_birthdays|length }}</span>
         </div>
         
-        <div class="divide-y divide-gray-100">
+        <div class="divide-y divide-slate-50">
             {% if upcoming_birthdays|length > 0 %}
                 {% for customer in upcoming_birthdays %}
-                    <div class="p-6 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50 transition-colors">
+                    <div class="p-6 flex flex-col md:flex-row justify-between items-center hover:bg-slate-50 transition-colors">
                         <div class="flex items-center mb-4 md:mb-0 w-full md:w-auto">
-                            <div class="w-10 h-10 rounded-full bg-salon-light text-gray-600 flex items-center justify-center font-bold text-sm shadow-sm ring-1 ring-gray-200 mr-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-600 flex items-center justify-center font-bold text-sm shadow-sm ring-1 ring-gray-200 mr-4">
                                 {{ customer.name|slice(0, 1)|upper }}
                             </div>
                             <div>
-                                <h3 class="font-medium text-gray-800">{{ customer.name }}</h3>
-                                <p class="text-xs text-gray-500">Date: {{ customer.date_of_birth|date('M d') }}</p>
+                                <h3 class="font-medium text-slate-800">{{ customer.name }}</h3>
+                                <p class="text-xs text-slate-500">Date: {{ customer.date_of_birth|date('M d') }}</p>
                             </div>
                         </div>
                         
                         <div class="w-full md:w-auto" x-data="{ selectedPackage: '' }">
                             <div class="flex flex-col sm:flex-row gap-3">
-                                <select x-model="selectedPackage" x-init="new TomSelect($el, { placeholder: 'Select a package offer...' })" class="block w-full sm:w-48 pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:outline-none focus:ring-salon-accent focus:border-salon-accent rounded-md shadow-sm">
+                                <select x-model="selectedPackage" x-init="new TomSelect($el, { placeholder: 'Select a package offer...' })" class="block w-full sm:w-48 pl-3 pr-10 py-1.5 text-sm border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm">
                                     <option value="">Select a package offer...</option>
                                     {% for pkg in packages %}
                                         <option value="{{ pkg.name }} (Only QAR {{ pkg.price|number_format(2) }})">{{ pkg.name }}</option>
@@ -107,7 +107,7 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="p-8 text-center text-gray-500">
+                <div class="p-8 text-center text-slate-500">
                     <p>No more birthdays this month.</p>
                 </div>
             {% endif %}

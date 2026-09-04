@@ -1,41 +1,41 @@
 <!-- Top KPI Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center">
         <div class="rounded-full bg-blue-50 p-3 mr-4">
             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
         <div>
-            <p class="text-xs font-medium text-gray-500">Total Revenue</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">QAR {{ total_revenue|number_format(0) }}</p>
+            <p class="text-xs font-medium text-slate-500">Total Revenue</p>
+            <p class="text-xl font-bold text-slate-900 mt-1">QAR {{ total_revenue|number_format(0) }}</p>
         </div>
     </div>
     
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center">
         <div class="rounded-full bg-red-50 p-3 mr-4">
             <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
         <div>
-            <p class="text-xs font-medium text-gray-500">Total Expenses</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">QAR {{ total_expenses|number_format(0) }}</p>
+            <p class="text-xs font-medium text-slate-500">Total Expenses</p>
+            <p class="text-xl font-bold text-slate-900 mt-1">QAR {{ total_expenses|number_format(0) }}</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center">
         <div class="rounded-full bg-purple-50 p-3 mr-4">
             <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
         </div>
         <div>
-            <p class="text-xs font-medium text-gray-500">Total Commissions</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">QAR {{ total_commissions|number_format(0) }}</p>
+            <p class="text-xs font-medium text-slate-500">Total Commissions</p>
+            <p class="text-xl font-bold text-slate-900 mt-1">QAR {{ total_commissions|number_format(0) }}</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center">
         <div class="rounded-full bg-green-50 p-3 mr-4">
             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
         </div>
         <div>
-            <p class="text-xs font-medium text-gray-500">Net Profit</p>
+            <p class="text-xs font-medium text-slate-500">Net Profit</p>
             {% set net_profit = total_revenue - total_expenses - total_commissions %}
             <p class="text-xl font-bold {% if net_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">QAR {{ net_profit|number_format(0) }}</p>
         </div>
@@ -51,13 +51,13 @@
         {% endif %}
     {% endfor %}
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-center">
         <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-medium text-gray-500">Cash Total</span>
+            <span class="text-xs font-medium text-slate-500">Cash Total</span>
             <span class="text-sm font-bold text-green-600">QAR {{ cash_total|number_format(0) }}</span>
         </div>
         <div class="flex justify-between items-center">
-            <span class="text-xs font-medium text-gray-500">Card Total</span>
+            <span class="text-xs font-medium text-slate-500">Card Total</span>
             <span class="text-sm font-bold text-blue-600">QAR {{ card_total|number_format(0) }}</span>
         </div>
     </div>
@@ -65,40 +65,40 @@
 
 <!-- Charts Row -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Revenue Over Time</h3>
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <h3 class="text-lg font-bold text-slate-900 mb-4">Revenue Over Time</h3>
         <div id="revenueChart"></div>
     </div>
     
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Revenue by Payment Method</h3>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-slate-900 mb-4">Revenue by Payment Method</h3>
         <div id="paymentMethodChart" class="flex-1 flex items-center justify-center"></div>
     </div>
 </div>
 
 <!-- Top Services -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-    <div class="p-5 border-b border-gray-100 bg-gray-50">
-        <h3 class="text-lg font-bold text-gray-900">Top Performing Services</h3>
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+    <div class="p-5 border-b border-slate-100 bg-slate-50">
+        <h3 class="text-lg font-bold text-slate-900">Top Performing Services</h3>
     </div>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-white">
                 <tr>
-                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
-                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Bookings</th>
-                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Service</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Bookings</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Revenue</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white">
                 {% for service in top_services %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ service.service_name }}</td>
-                    <td class="px-5 py-3 text-sm text-gray-500 text-right">{{ service.count }}</td>
-                    <td class="px-5 py-3 text-sm font-semibold text-gray-900 text-right">QAR {{ service.revenue|number_format(0) }}</td>
+                <tr class="hover:bg-slate-50">
+                    <td class="px-5 py-3 text-sm font-medium text-slate-900">{{ service.service_name }}</td>
+                    <td class="px-5 py-3 text-sm text-slate-500 text-right">{{ service.count }}</td>
+                    <td class="px-5 py-3 text-sm font-semibold text-slate-900 text-right">QAR {{ service.revenue|number_format(0) }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="3" class="px-5 py-6 text-center text-gray-500 text-sm">No data available</td></tr>
+                <tr><td colspan="3" class="px-5 py-6 text-center text-slate-500 text-sm">No data available</td></tr>
                 {% endfor %}
             </tbody>
         </table>

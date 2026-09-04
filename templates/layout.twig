@@ -31,6 +31,9 @@
     <link href="/assets/vendor/tom-select.css" rel="stylesheet">
     <script src="/assets/vendor/tom-select.min.js"></script>
 
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <!-- Tailwind CSS -->
     <script src="/assets/vendor/tailwindcss.js"></script>
     <script>
@@ -39,15 +42,6 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        salon: {
-                            dark: '#0f172a',    // deep navy/slate 900
-                            navy: '#1e293b',    // slate 800
-                            accent: '#d4af37',  // soft gold
-                            light: '#f8fafc',   // slate 50
-                            border: '#e2e8f0'   // slate 200
-                        }
                     }
                 }
             }
@@ -55,202 +49,212 @@
     </script>
     <style>
         /* Smooth transitions for HTMX */
-        .htmx-indicator{
-            display:none;
-        }
-        .htmx-request .htmx-indicator{
-            display:inline;
-        }
-        .htmx-request.htmx-indicator{
-            display:inline;
-        }
+        .htmx-indicator{ display:none; }
+        .htmx-request .htmx-indicator{ display:inline; }
+        .htmx-request.htmx-indicator{ display:inline; }
+        
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Fix Tom Select Dual Border and make touch friendly */
-        .ts-wrapper { padding: 0 !important; border: none !important; }
-        .ts-control { border: 1px solid #d1d5db !important; border-radius: 0.375rem !important; padding: 0.75rem 0.875rem !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; background-color: #fff !important; min-height: 44px !important; }
-        .ts-control.focus { border-color: #d4af37 !important; box-shadow: 0 0 0 1px #d4af37 !important; outline: none !important; }
+        /* Tom Select overrides (POSMobileS style) */
+        .ts-wrapper { padding: 0 !important; border: none !important; background: transparent !important; box-shadow: none !important; }
+        .ts-control { 
+            border: 1px solid #e2e8f0 !important; 
+            border-radius: 0.75rem !important; 
+            padding: 0.625rem 1rem !important; 
+            box-shadow: none !important; 
+            background-color: #fff !important; 
+            min-height: 42px !important; 
+            font-size: 0.875rem !important;
+        }
+        .ts-control.focus { border-color: #6366f1 !important; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important; outline: none !important; }
         
         /* Global Touch friendly inputs */
         input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], select, textarea {
-            min-height: 44px !important;
+            min-height: 42px !important;
         }
     </style>
     {% block head %}{% endblock %}
 </head>
-<body class="bg-salon-light text-gray-800 antialiased h-screen flex overflow-hidden" x-data="{ sidebarOpen: false }">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden" x-data="{ sidebarOpen: false }">
 
     <!-- Mobile Sidebar Overlay -->
-    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 md:hidden" @click="sidebarOpen = false" style="display: none;" x-cloak></div>
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden" @click="sidebarOpen = false" style="display: none;" x-cloak></div>
 
-    <!-- Sidebar (Charcoal/Navy) -->
-    <aside class="w-64 bg-salon-dark text-slate-300 {% if hide_sidebar %}hidden{% else %}flex{% endif %} flex-col shadow-xl z-50 transition-transform duration-300 flex-shrink-0 fixed inset-y-0 left-0 transform md:relative md:translate-x-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+    <!-- Sidebar (Light Theme POSMobileS style) -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-50 transition-transform duration-300 flex-shrink-0 fixed inset-y-0 left-0 transform md:relative md:translate-x-0 {% if hide_sidebar %}hidden md:hidden{% else %}flex{% endif %}" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
         <!-- Logo Area -->
-        <div class="h-16 flex items-center px-6 border-b border-salon-navy/50 bg-salon-dark">
+        <div class="h-16 flex items-center px-6 border-b border-slate-200 shrink-0">
             <img src="/images/lsms.png" alt="SalonMS" class="w-8 h-8 mr-3 object-contain">
-            <span class="text-xl font-bold text-white tracking-wide">Salon<span class="text-salon-accent">MS</span></span>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 leading-tight">Salon<span class="text-indigo-600">MS</span></h1>
+                <span class="text-xs font-medium text-slate-500">Management System</span>
+            </div>
         </div>
         
         <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-6 space-y-1 px-3">
-            <a href="/web/dashboard" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'dashboard' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'dashboard' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <nav class="flex-1 overflow-y-auto py-4 space-y-2 px-4">
+            <a href="/web/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'dashboard' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 Dashboard
             </a>
-            <a href="/web/appointments" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'appointments' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'appointments' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            
+            <a href="/web/appointments" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'appointments' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
                 Appointments
             </a>
-            <a href="/web/pos" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'pos' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'pos' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            
+            <a href="/web/pos" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'pos' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                 POS & Billing
             </a>
-            <a href="/web/customers" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'customers' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'customers' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            
+            <a href="/web/customers" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'customers' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="users" class="w-5 h-5"></i>
                 Customers
             </a>
+            
             {% if auth_user.role in ['admin', 'receptionist', 'cashier'] %}
-            <a href="/web/services" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'services' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'services' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+            <a href="/web/services" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'services' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="scissors" class="w-5 h-5"></i>
                 Services
             </a>
             {% endif %}
+            
             {% if auth_user.role in ['admin', 'cashier'] %}
-            <a href="/web/packages" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'packages' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'packages' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+            <a href="/web/packages" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'packages' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="package" class="w-5 h-5"></i>
                 Packages
             </a>
             {% endif %}
+            
             {% if auth_user.role in ['admin', 'stylist', 'cashier'] %}
-            <a href="/web/inventory" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'inventory' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'inventory' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            <a href="/web/inventory" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'inventory' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="box" class="w-5 h-5"></i>
                 Inventory
             </a>
             {% endif %}
+            
             {% if auth_user.role == 'admin' %}
-            <a href="/web/employees" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'employees' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'employees' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <a href="/web/employees" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'employees' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="user-check" class="w-5 h-5"></i>
                 Employees
             </a>
             {% endif %}
+            
             {% if auth_user.role in ['admin', 'receptionist', 'stylist', 'cashier'] %}
-            <a href="/web/birthdays" class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-salon-navy hover:text-white group {% if active_menu == 'birthdays' %}bg-salon-navy text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-salon-accent transition-colors {% if active_menu == 'birthdays' %}text-salon-accent{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <a href="/web/birthdays" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'birthdays' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="gift" class="w-5 h-5"></i>
                 Birthdays & Offers
             </a>
             {% endif %}
-        </nav>
-        
-        <!-- Reports / Settings / Logout -->
-        <div class="p-4 border-t border-salon-navy/50 space-y-1">
+            
             {% if auth_user.role in ['admin', 'cashier'] %}
             <div x-data="{ open: {% if active_menu == 'reports' %}true{% else %}false{% endif %} }">
-                <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium transition-colors hover:text-white {% if active_menu == 'reports' %}text-white{% else %}text-slate-400{% endif %} focus:outline-none">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'reports' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} focus:outline-none">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                         Reports
                     </div>
-                    <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}"></i>
                 </button>
                 
                 <div x-show="open" x-collapse x-cloak class="pl-11 pr-3 py-2 space-y-1">
                     {% if auth_user.role == 'admin' %}
-                    <a href="/web/reports" class="block py-1.5 text-sm transition-colors {% if title == 'Reports' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">Overview</a>
-                    <a href="/web/reports/sales" class="block py-1.5 text-sm transition-colors {% if title == 'Sales Summary' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">Sales Summary</a>
-                    <a href="/web/reports/stylists" class="block py-1.5 text-sm transition-colors {% if title == 'Stylist Performance' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">Stylist Performance</a>
-                    <a href="/web/reports/payment-channels" class="block py-1.5 text-sm transition-colors {% if title == 'Payment Channel Report' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">Payment Channels</a>
-                    <a href="/web/reports/shifts" class="block py-1.5 text-sm transition-colors {% if title == 'Register Shifts' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">Register Shifts</a>
+                    <a href="/web/reports" class="block py-1.5 text-sm transition-colors {% if title == 'Reports' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Overview</a>
+                    <a href="/web/reports/sales" class="block py-1.5 text-sm transition-colors {% if title == 'Sales Summary' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Sales Summary</a>
+                    <a href="/web/reports/stylists" class="block py-1.5 text-sm transition-colors {% if title == 'Stylist Performance' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Stylist Performance</a>
+                    <a href="/web/reports/payment-channels" class="block py-1.5 text-sm transition-colors {% if title == 'Payment Channel Report' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Payment Channels</a>
+                    <a href="/web/reports/shifts" class="block py-1.5 text-sm transition-colors {% if title == 'Register Shifts' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Register Shifts</a>
                     {% endif %}
-                    <a href="/web/pos/history" class="block py-1.5 text-sm transition-colors {% if title == 'POS Transaction History' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">POS Transaction History</a>
-                    <a href="/web/reports/eod" class="block py-1.5 text-sm transition-colors {% if title == 'End of Day Report' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">End of Day Report</a>
+                    <a href="/web/pos/history" class="block py-1.5 text-sm transition-colors {% if title == 'POS Transaction History' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">POS Transaction History</a>
+                    <a href="/web/reports/eod" class="block py-1.5 text-sm transition-colors {% if title == 'End of Day Report' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">End of Day Report</a>
                     {% if auth_user.role == 'admin' %}
-                    <a href="/web/reports/inventory-issues" class="block py-1.5 text-sm transition-colors {% if title == 'Inventory Issues Report' %}text-white font-semibold{% else %}text-slate-400 hover:text-white{% endif %}">Inventory Issues</a>
+                    <a href="/web/reports/inventory-issues" class="block py-1.5 text-sm transition-colors {% if title == 'Inventory Issues Report' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Inventory Issues</a>
                     {% endif %}
                 </div>
             </div>
-            <a href="/web/expenses" class="flex items-center px-3 py-2 text-sm font-medium transition-colors hover:text-white {% if active_menu == 'expenses' %}text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            
+            <a href="/web/expenses" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'expenses' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="receipt" class="w-5 h-5"></i>
                 Expenses
             </a>
+            {% endif %}
+            
             {% if auth_user.role == 'admin' %}
-            <a href="/web/settings" class="flex items-center px-3 py-2 text-sm font-medium transition-colors hover:text-white {% if active_menu == 'settings' %}text-white{% else %}text-slate-400{% endif %}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <a href="/web/settings" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'settings' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <i data-lucide="settings" class="w-5 h-5"></i>
                 Settings
             </a>
             {% endif %}
-            {% endif %}
+        </nav>
+        
+        <!-- User Profile (Moved to bottom of sidebar) -->
+        <div class="p-4 border-t border-slate-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    {% if auth_user.profile_image %}
+                        <img src="{{ auth_user.profile_image }}" alt="Profile" class="w-10 h-10 rounded-full object-cover shadow-sm ring-1 ring-slate-200">
+                    {% else %}
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold uppercase shadow-sm ring-1 ring-slate-200">
+                            {{ auth_user.name|slice(0, 1)|default('U') }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <p class="text-sm font-medium text-slate-900 truncate w-24">{{ auth_user.name|default('User') }}</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{{ auth_user.role|default('Stylist') }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-1" x-data="{ profileMenu: false }">
+                    <button @click="profileMenu = !profileMenu" @click.away="profileMenu = false" class="text-slate-400 hover:text-indigo-600 transition-colors p-2 relative">
+                        <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                        <div x-show="profileMenu" x-transition.opacity class="absolute bottom-full right-0 mb-2 w-32 bg-white rounded-lg shadow-xl border border-slate-100 py-1 z-[60]" style="display: none;">
+                            <a href="/web/profile" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 text-left">Profile</a>
+                            <a href="/web/logout" class="block px-4 py-2 text-sm text-rose-600 hover:bg-slate-50 text-left">Sign out</a>
+                        </div>
+                    </button>
+                </div>
+            </div>
         </div>
     </aside>
 
     <!-- Main Content Wrapper -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-salon-light">
-        <!-- Top Header -->
-        <header class="h-16 bg-white border-b border-salon-border flex items-center justify-between px-6 z-10 flex-shrink-0">
-            <div class="flex items-center">
-                <!-- Hamburger Menu (Mobile Only) -->
+    <main class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-slate-50">
+        <!-- Topbar -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-10 shrink-0">
+            <div class="flex items-center gap-4">
                 {% if not hide_sidebar %}
-                <button @click="sidebarOpen = true" class="text-gray-500 hover:text-gray-700 focus:outline-none md:hidden p-2 mr-4 -ml-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button @click="sidebarOpen = true" class="md:hidden text-slate-500 hover:text-slate-700 focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
                 {% else %}
-                <a href="/web/dashboard" class="text-gray-500 hover:text-gray-700 p-2 mr-4 -ml-2 flex items-center">
-                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <a href="/web/dashboard" class="text-slate-500 hover:text-slate-700 flex items-center gap-2">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
                     Back
                 </a>
                 {% endif %}
-                <!-- Breadcrumbs -->
-                <div class="flex items-center text-sm font-medium text-gray-500">
-                <span class="text-gray-400">Salon</span>
-                <svg class="w-4 h-4 mx-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                <span class="text-gray-800">{{ title ?? 'Dashboard' }}</span>
-                </div>
+                <h2 class="text-xl font-semibold text-slate-800 hidden sm:block">{{ title ?? 'Overview' }}</h2>
             </div>
             
-            <!-- Right Actions -->
-            <div class="flex items-center space-x-6">
-                <!-- Notifications -->
+            <div class="flex items-center gap-4">
+                {% block header_actions %}{% endblock %}
                 <!-- Notifications -->
                 <div class="relative" x-data="{ open: false }" hx-get="/web/notifications/dropdown" hx-trigger="load" hx-swap="innerHTML" id="notifications-wrapper">
-                    <!-- Dropdown content will be loaded here by HTMX -->
-                    <button class="relative text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <button class="relative text-slate-500 hover:text-slate-700 transition-colors">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
                     </button>
-                </div>
-                
-                <!-- Profile Dropdown (Alpine) -->
-                <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-3 focus:outline-none">
-                        {% if auth_user.profile_image %}
-                            <img src="{{ auth_user.profile_image }}" alt="Profile" class="w-9 h-9 rounded-full object-cover shadow-sm ring-2 ring-salon-border">
-                        {% else %}
-                            <div class="w-9 h-9 rounded-full bg-salon-dark text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-salon-border uppercase">
-                                {{ auth_user.name|slice(0, 1)|default('U') }}
-                            </div>
-                        {% endif %}
-                        <div class="hidden md:block text-left">
-                            <p class="text-sm font-medium text-gray-700">{{ auth_user.name|default('User') }}</p>
-                            <p class="text-xs text-gray-500 capitalize">{{ auth_user.role|default('Stylist') }}</p>
-                        </div>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <!-- Dropdown -->
-                    <div x-show="open" x-transition.opacity class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50" style="display: none;">
-                        <a href="/web/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Your Profile</a>
-                        <a href="/web/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign out</a>
-                    </div>
                 </div>
             </div>
         </header>
 
         <!-- Dynamic Content Area -->
-        <main class="flex-1 overflow-y-auto {% if hide_sidebar %}p-2 md:p-4{% else %}p-6 md:p-8{% endif %}">
+        <div class="flex-1 overflow-auto p-4 md:p-6">
             {% block content %}{% endblock %}
-        </main>
-    </div>
+        </div>
+    </main>
 
     <!-- Global Modal Container -->
     <div id="modal-container" x-data @close-modal.window="setTimeout(() => $el.innerHTML = '', 100)"></div>
@@ -270,7 +274,7 @@
                 setTimeout(() => window.location.href = $event.detail.redirect, 500);
             }
          "
-         class="fixed bottom-6 right-6 z-50">
+         class="fixed bottom-6 right-6 z-[60]">
         <div x-show="show" 
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 transform translate-y-4"
@@ -279,19 +283,29 @@
              x-transition:leave-start="opacity-100 transform translate-y-0"
              x-transition:leave-end="opacity-0 transform translate-y-4"
              :class="{
-                 'bg-green-600': type === 'success',
-                 'bg-red-600': type === 'error',
+                 'bg-emerald-600': type === 'success',
+                 'bg-rose-600': type === 'error',
                  'bg-blue-600': type === 'info'
              }"
              class="text-white px-6 py-3 rounded-lg shadow-xl font-medium flex items-center gap-3"
              style="display: none;">
-            <svg x-show="type === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <svg x-show="type === 'error'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            <svg x-show="type === 'info'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <i data-lucide="check-circle" x-show="type === 'success'" class="w-5 h-5"></i>
+            <i data-lucide="x-circle" x-show="type === 'error'" class="w-5 h-5"></i>
+            <i data-lucide="info" x-show="type === 'info'" class="w-5 h-5"></i>
             <span x-text="message"></span>
         </div>
     </div>
 
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            lucide.createIcons();
+        });
+    </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

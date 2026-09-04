@@ -337,15 +337,30 @@ class InvoiceService extends BaseService
             $this->loyaltyService->awardPoints($customerId, $invoice['id'], $totalAmount);
         }
 
-        // 5. Calculate and Save Commission
-        if (!empty($data['employee_id'])) {
-            $employeeId = (int)$data['employee_id'];
-            $user = $this->userRepo->getById($employeeId);
+        // 5. Calculate and Save Commission (per-stylist, based on each stylist's item subtotals)
+        $commissionsByUser = [];
+        $fallbackEmployeeId = !empty($data['employee_id']) ? (int)$data['employee_id'] : null;
+
+        foreach ($processedItems as $pItem) {
+            // Determine which stylist to credit for this item
+            $stylistId = $pItem['stylist_id'] ?? $fallbackEmployeeId;
+            if (!$stylistId || $pItem['subtotal'] <= 0) {
+                continue;
+            }
+            
+            if (!isset($commissionsByUser[$stylistId])) {
+                $commissionsByUser[$stylistId] = 0.00;
+            }
+            $commissionsByUser[$stylistId] += $pItem['subtotal'];
+        }
+
+        foreach ($commissionsByUser as $empId => $empSubtotal) {
+            $user = $this->userRepo->getById($empId);
             if ($user && isset($user['commission_rate']) && $user['commission_rate'] > 0) {
-                $commissionAmount = $totalAmount * ($user['commission_rate'] / 100);
+                $commissionAmount = $empSubtotal * ($user['commission_rate'] / 100);
                 
                 $this->commissionRepo->create([
-                    'user_id' => $employeeId,
+                    'user_id' => $empId,
                     'invoice_id' => $invoice['id'],
                     'amount' => $commissionAmount
                 ]);

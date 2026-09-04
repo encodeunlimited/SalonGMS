@@ -95,11 +95,13 @@
             <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Booking Types</h3>
             <div class="mb-8">
                 <form hx-post="/web/settings/booking-types" hx-target="#booking-types-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newBookingInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newBookingInput" placeholder="Add new booking type" required class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add</button>
+                    <input type="text" name="name" x-ref="newBookingInput" placeholder="Add new booking type" required class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border border-slate-200 rounded-lg py-2 px-3">
+                    <button type="submit" class="inline-flex justify-center items-center rounded-lg border border-transparent bg-indigo-600 py-2 px-4 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add
+                    </button>
                 </form>
                 
-                <ul id="booking-types-list" class="divide-y divide-gray-200 border border-slate-200 rounded-md">
+                <ul id="booking-types-list" class="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
                     {% for item in bookingTypes %}
                         {% include 'settings/type_item.twig' with {'item': item, 'type': 'booking'} %}
                     {% else %}
@@ -113,11 +115,13 @@
             <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Payment Types</h3>
             <div class="mb-8">
                 <form hx-post="/web/settings/payment-types" hx-target="#payment-types-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) $refs.newPaymentInput.value = ''" class="flex flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newPaymentInput" placeholder="Add new payment type" required class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add</button>
+                    <input type="text" name="name" x-ref="newPaymentInput" placeholder="Add new payment type" required class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border border-slate-200 rounded-lg py-2 px-3">
+                    <button type="submit" class="inline-flex justify-center items-center rounded-lg border border-transparent bg-indigo-600 py-2 px-4 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add
+                    </button>
                 </form>
                 
-                <ul id="payment-types-list" class="divide-y divide-gray-200 border border-slate-200 rounded-md">
+                <ul id="payment-types-list" class="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
                     {% for item in paymentTypes %}
                         {% include 'settings/type_item.twig' with {'item': item, 'type': 'payment'} %}
                     {% else %}
@@ -131,12 +135,14 @@
             <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Service Categories</h3>
             <div class="mb-8">
                 <form hx-post="/web/settings/service-categories" hx-target="#service-categories-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) { $refs.newServiceCategoryInput.value = ''; $refs.newServiceCategoryArabicInput.value = ''; }" class="flex flex-col sm:flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
-                    <input type="text" name="arabic_name" x-ref="newServiceCategoryArabicInput" placeholder="Arabic Name (Optional)" class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-slate-300 rounded-md py-2 px-3 border">
-                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent bg-gray-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add</button>
+                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border border-slate-200 rounded-lg py-2 px-3">
+                    <input type="text" name="arabic_name" x-ref="newServiceCategoryArabicInput" placeholder="Arabic Name (Optional)" class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border border-slate-200 rounded-lg py-2 px-3">
+                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent bg-indigo-600 py-2 px-4 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add
+                    </button>
                 </form>
                 
-                <ul id="service-categories-list" class="divide-y divide-gray-200 border border-slate-200 rounded-md">
+                <ul id="service-categories-list" class="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
                     {% for item in serviceCategories %}
                         {% include 'settings/type_item.twig' with {'item': item, 'type': 'service-categories', 'path': 'service-categories'} %}
                     {% else %}

@@ -1,15 +1,19 @@
 <li class="p-3 flex items-center justify-between" id="{{ type }}-{{ item.id }}">
     <div class="flex-1" x-data="{ editing: false, newName: '{{ item.name|escape('js') }}', newArabicName: '{{ item.arabic_name|default('')|escape('js') }}' }">
         <div x-show="!editing" class="flex items-center justify-between">
-            <span class="text-sm text-slate-900">
+            <span class="text-sm font-medium text-slate-900">
                 {{ item.name }} 
                 {% if type == 'service-categories' and item.arabic_name %}
-                    <span class="text-slate-500 text-xs ml-2">({{ item.arabic_name }})</span>
+                    <span class="text-slate-500 text-xs ml-2 font-normal">({{ item.arabic_name }})</span>
                 {% endif %}
             </span>
-            <div class="flex items-center space-x-3">
-                <button type="button" @click="editing = true" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Edit</button>
-                <button type="button" hx-delete="/web/settings/{{ path|default(type ~ '-types') }}/{{ item.id }}" hx-target="#{{ type }}-{{ item.id }}" hx-swap="outerHTML" class="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>
+            <div class="flex items-center space-x-2">
+                <button type="button" @click="editing = true" class="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors" title="Edit">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                </button>
+                <button type="button" hx-delete="/web/settings/{{ path|default(type ~ '-types') }}/{{ item.id }}" hx-target="#{{ type }}-{{ item.id }}" hx-swap="outerHTML" class="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors" title="Delete">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
             </div>
         </div>
         <div x-show="editing" class="flex gap-2 mr-4" style="display: none;">

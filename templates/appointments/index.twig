@@ -376,14 +376,49 @@
     /* FullCalendar Tweaks to match Inter font */
     .fc { font-family: 'Inter', sans-serif; }
     .fc-theme-standard td, .fc-theme-standard th { border-color: #f1f5f9; }
-    .fc-theme-standard .fc-scrollgrid { border-color: #e2e8f0; }
+    .fc-theme-standard .fc-scrollgrid { border-color: #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
+    
+    /* Toolbar Button Styling */
     .fc .fc-button-primary {
-        background-color: #0f172a;
-        border-color: #0f172a;
+        background-color: #4f46e5; /* indigo-600 */
+        border-color: #4f46e5;
+        text-transform: capitalize;
+        font-weight: 500;
+        padding: 0.4rem 1rem;
+        transition: all 0.2s;
+    }
+    .fc .fc-button-primary:hover {
+        background-color: #4338ca; /* indigo-700 */
+        border-color: #4338ca;
     }
     .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active {
-        background-color: #1e293b;
-        border-color: #1e293b;
+        background-color: #3730a3; /* indigo-800 */
+        border-color: #3730a3;
+    }
+    
+    /* Event Styling */
+    .fc-event {
+        border-radius: 6px;
+        padding: 2px 4px;
+        font-size: 0.75rem;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        border: none !important;
+        transition: transform 0.1s;
+    }
+    .fc-event:hover {
+        transform: scale(1.02);
+        z-index: 5;
+    }
+    .fc-timegrid-event .fc-event-main {
+        padding: 2px;
+    }
+    .fc-day-today {
+        background-color: #f8fafc !important; /* slate-50 */
+    }
+    .fc-col-header-cell-cushion {
+        padding: 8px 4px;
+        font-weight: 600;
+        color: #475569; /* slate-600 */
     }
 </style>
 {% endblock %}

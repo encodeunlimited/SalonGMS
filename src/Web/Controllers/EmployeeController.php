@@ -103,6 +103,7 @@ class EmployeeController
         try {
             $employee = $this->users->create([
                 'name' => $data['name'],
+                'user_name' => $data['user_name'] ?? null,
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role' => $data['role'],
@@ -169,6 +170,7 @@ class EmployeeController
         
         $updateData = [
             'name' => $data['name'],
+            'user_name' => $data['user_name'] ?? null,
             'email' => $data['email'],
             'role' => $data['role'],
             'commission_rate' => (float)$data['commission_rate'],

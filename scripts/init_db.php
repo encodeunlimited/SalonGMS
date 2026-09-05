@@ -55,6 +55,7 @@ try {
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         tenant_id BIGINT NOT NULL,
         name VARCHAR(255) NOT NULL,
+        user_name VARCHAR(255) UNIQUE NULL,
         email VARCHAR(255) NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role ENUM('Owner', 'Manager', 'Stylist', 'Receptionist', 'Cashier') NOT NULL,

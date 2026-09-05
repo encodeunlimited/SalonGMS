@@ -8,7 +8,12 @@
                     {{ employee.name|slice(0, 1)|upper }}
                 </div>
             {% endif %}
-            <span class="font-medium text-slate-900">{{ employee.name }}</span>
+            <div class="flex flex-col">
+                <span class="font-medium text-slate-900">{{ employee.name }}</span>
+                {% if employee.user_name %}
+                    <span class="text-xs text-slate-500">@{{ employee.user_name }}</span>
+                {% endif %}
+            </div>
         </div>
     </td>
     <td class="px-6 py-5 text-slate-600">{{ employee.email }}</td>

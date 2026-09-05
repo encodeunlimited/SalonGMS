@@ -50,7 +50,7 @@
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/employees?sort=name&dir={{ sort == 'name' and dir == 'asc' ? 'desc' : 'asc' }}"
                         hx-include="#search-box, #role-filter" hx-target="#table-container" hx-select="#table-container" hx-swap="outerHTML" hx-push-url="true">
-                        Name {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
+                        Name / Username {% if sort == 'name' %}{{ dir == 'asc' ? '↑' : '↓' }}{% endif %}
                     </th>
                     <th class="px-6 py-5 font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                         hx-get="/web/employees?sort=email&dir={{ sort == 'email' and dir == 'asc' ? 'desc' : 'asc' }}"

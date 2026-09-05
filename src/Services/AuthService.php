@@ -14,9 +14,9 @@ class AuthService
         $this->userRepo = $userRepo;
     }
 
-    public function attemptLogin(string $email, string $password): array
+    public function attemptLogin(string $identifier, string $password): array
     {
-        $user = $this->userRepo->getByEmailGlobal($email);
+        $user = $this->userRepo->getByIdentifierGlobal($identifier);
         
         if (!$user) {
             throw new Exception("Invalid email or password.");

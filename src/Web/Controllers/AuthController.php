@@ -35,11 +35,11 @@ class AuthController
     public function processLogin(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $email = $data['email'] ?? '';
+        $identifier = $data['email'] ?? '';
         $password = $data['password'] ?? '';
 
         try {
-            $user = $this->authService->attemptLogin($email, $password);
+            $user = $this->authService->attemptLogin($identifier, $password);
             
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();

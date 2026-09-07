@@ -291,6 +291,17 @@
         </tbody>
     </table>
 
+    {% set calc_gross = 0 %}
+    {% set calc_discount = 0 %}
+    {% for item in invoice.items %}
+        {% if item.subtotal < 0 %}
+            {% set calc_discount = calc_discount + (item.subtotal * -1) %}
+        {% else %}
+            {% set calc_gross = calc_gross + item.subtotal %}
+        {% endif %}
+    {% endfor %}
+    {% set calc_net = calc_gross - calc_discount %}
+
     <div class="totals-grid">
         <div class="totals-box left">
             <div class="totals-row">
@@ -298,21 +309,21 @@
                     <span class="arabic-text" dir="rtl">اجمالى الفاتورة</span>
                     Total
                 </div>
-                <div class="totals-value">{{ invoice.total_amount|number_format(0) }}</div>
+                <div class="totals-value">{{ calc_gross|number_format(0) }}</div>
             </div>
             <div class="totals-row">
                 <div class="totals-label">
                     <span class="arabic-text" dir="rtl">الخصم</span>
                     Discount
                 </div>
-                <div class="totals-value">0</div>
+                <div class="totals-value">{{ calc_discount|number_format(0) }}</div>
             </div>
             <div class="totals-row" style="border-bottom: none;">
                 <div class="totals-label">
                     <span class="arabic-text" dir="rtl">الصافى</span>
                     Net
                 </div>
-                <div class="totals-value">{{ invoice.total_amount|number_format(0) }}</div>
+                <div class="totals-value">{{ calc_net|number_format(0) }}</div>
             </div>
         </div>
         <div class="totals-box right">
@@ -321,7 +332,7 @@
                     <span class="arabic-text" dir="rtl">المدفوع</span>
                     paid
                 </div>
-                <div class="totals-value">{{ (invoice.tender_amount > 0 ? invoice.tender_amount : invoice.total_amount)|number_format(0) }}</div>
+                <div class="totals-value">{{ (invoice.tender_amount > 0 ? invoice.tender_amount : calc_net)|number_format(0) }}</div>
             </div>
             <div class="totals-row" style="border-bottom: none;">
                 <div class="totals-label">

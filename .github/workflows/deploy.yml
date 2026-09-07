@@ -32,8 +32,8 @@ jobs:
         env:
           ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         with:
-          server: ftp.ls.encodeunlimited.com
-          username: u600962660.asankaj
+          server: ftp.gs.encodeunlimited.com
+          username: u600962660.gsadmin
           password: ${{ secrets.PHAR_FTP_PASSWORD }}
           protocol: ftp
           port: 21

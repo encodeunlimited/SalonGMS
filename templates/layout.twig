@@ -102,10 +102,10 @@
                 Dashboard
             </a>
             
-            <a href="/web/appointments" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'appointments' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+            {# <a href="/web/appointments" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'appointments' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
                 Appointments
-            </a>
+            </a> #}
             
             <a href="/web/pos" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'pos' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="shopping-cart" class="w-5 h-5"></i>
@@ -124,12 +124,12 @@
             </a>
             {% endif %}
             
-            {% if auth_user.role in ['admin', 'cashier'] %}
+            {# {% if auth_user.role in ['admin', 'cashier'] %}
             <a href="/web/packages" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'packages' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="package" class="w-5 h-5"></i>
                 Packages
             </a>
-            {% endif %}
+            {% endif %} #}
             
             {% if auth_user.role in ['admin', 'stylist', 'cashier'] %}
             <a href="/web/inventory" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'inventory' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
@@ -145,12 +145,12 @@
             </a>
             {% endif %}
             
-            {% if auth_user.role in ['admin', 'receptionist', 'stylist', 'cashier'] %}
+            {# {% if auth_user.role in ['admin', 'receptionist', 'stylist', 'cashier'] %}
             <a href="/web/birthdays" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'birthdays' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="gift" class="w-5 h-5"></i>
                 Birthdays & Offers
             </a>
-            {% endif %}
+            {% endif %} #}
             
             {% if auth_user.role in ['admin', 'cashier'] %}
             <div x-data="{ open: {% if active_menu == 'reports' %}true{% else %}false{% endif %} }">

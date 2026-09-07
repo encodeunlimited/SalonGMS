@@ -18,7 +18,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-500">Cash Collected</h3>
-                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ cash_total|number_format(0) }}</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ cash_total|number_format(1) }}</p>
             </div>
         </div>
 
@@ -29,7 +29,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-500">Card / Other</h3>
-                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ (total_revenue - cash_total)|number_format(0) }}</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ (total_revenue - cash_total)|number_format(1) }}</p>
             </div>
         </div>
 
@@ -40,7 +40,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-500">Expenses</h3>
-                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ total_expenses|number_format(0) }}</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ total_expenses|number_format(1) }}</p>
             </div>
         </div>
 
@@ -51,7 +51,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-500">Commissions</h3>
-                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ total_commissions|number_format(0) }}</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">QAR {{ total_commissions|number_format(1) }}</p>
             </div>
         </div>
 
@@ -62,7 +62,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-500">Net Profit</h3>
-                <p class="text-2xl font-bold {% if eod_net >= 0 %}text-teal-600{% else %}text-orange-600{% endif %} mt-1">QAR {{ eod_net|number_format(0) }}</p>
+                <p class="text-2xl font-bold {% if eod_net >= 0 %}text-teal-600{% else %}text-orange-600{% endif %} mt-1">QAR {{ eod_net|number_format(1) }}</p>
             </div>
         </div>
 
@@ -73,7 +73,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-600">Expected Drawer</h3>
-                <p class="text-2xl font-bold text-green-700 mt-1">QAR {{ (cash_total - total_expenses)|number_format(0) }}</p>
+                <p class="text-2xl font-bold text-green-700 mt-1">QAR {{ (cash_total - total_expenses)|number_format(1) }}</p>
             </div>
         </div>
         
@@ -122,7 +122,7 @@
                 chart: { type: 'donut', height: 300, fontFamily: 'Inter, sans-serif' },
                 colors: ['#1e293b', '#d4af37', '#64748b', '#cbd5e1', '#e2e8f0'],
                 dataLabels: { enabled: false },
-                plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return 'QAR ' + w.globals.seriesTotals.reduce(function(a,b){return a+b;},0).toFixed(0); } } } } } },
+                plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return 'QAR ' + w.globals.seriesTotals.reduce(function(a,b){return a+b;},0).toFixed(1); } } } } } },
                 legend: { position: 'bottom' }
             });
             window.chartInstances['payment'].render();

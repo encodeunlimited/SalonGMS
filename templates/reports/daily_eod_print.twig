@@ -129,7 +129,12 @@
     </div>
 
     <div class="header-logo">
-        Nabiha Henna
+        Khartoum Salon
+    </div>
+
+    <div style="text-align: center; margin-bottom: 10px; font-weight: bold; font-size: 14px;">
+        CR 198062<br>
+        WhatsApp: 6693 1938, 5559 8428
     </div>
 
     <div class="header-title">
@@ -154,15 +159,15 @@
         <tbody>
             <tr>
                 <td>Cash Collected</td>
-                <td>{{ cash_total|number_format(0) }}</td>
+                <td>{{ cash_total|number_format(1) }}</td>
             </tr>
             <tr>
                 <td>Card / Other</td>
-                <td>{{ (total_revenue - cash_total)|number_format(0) }}</td>
+                <td>{{ (total_revenue - cash_total)|number_format(1) }}</td>
             </tr>
             <tr>
                 <td style="border-top: 1px dashed #000; padding-top: 5px;">Total Revenue</td>
-                <td style="border-top: 1px dashed #000; padding-top: 5px;">{{ total_revenue|number_format(0) }}</td>
+                <td style="border-top: 1px dashed #000; padding-top: 5px;">{{ total_revenue|number_format(1) }}</td>
             </tr>
         </tbody>
     </table>
@@ -172,11 +177,11 @@
         <tbody>
             <tr>
                 <td>Expenses</td>
-                <td>{{ total_expenses|number_format(0) }}</td>
+                <td>{{ total_expenses|number_format(1) }}</td>
             </tr>
             <tr>
                 <td>Commissions</td>
-                <td>{{ total_commissions|number_format(0) }}</td>
+                <td>{{ total_commissions|number_format(1) }}</td>
             </tr>
         </tbody>
     </table>
@@ -184,13 +189,13 @@
     <div class="totals-grid">
         <div class="totals-row">
             <div class="totals-label">Expected Drawer (Cash - Expenses)</div>
-            <div class="totals-value">{{ (cash_total - total_expenses)|number_format(0) }}</div>
+            <div class="totals-value">{{ (cash_total - total_expenses)|number_format(1) }}</div>
         </div>
         
         {% set eod_net = total_revenue - total_expenses - total_commissions %}
         <div class="totals-row grand-total">
             <div class="totals-label">Net Profit</div>
-            <div class="totals-value">{{ eod_net|number_format(0) }}</div>
+            <div class="totals-value">{{ eod_net|number_format(1) }}</div>
         </div>
     </div>
 

@@ -131,7 +131,7 @@
                     {% for pkg in packages %}
                         '{{ pkg.name|lower|escape('js') }}'{% if not loop.last %},{% endif %}
                     {% endfor %}
-                ].some(name => name.includes(search_query.toLowerCase()))">
+                ].some(name => name.includes(search_query.toLowerCase())))">
                     <h3 class="font-bold text-slate-800 text-sm mb-3 uppercase tracking-wider">Packages</h3>
                     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         {% for pkg in packages %}
@@ -160,7 +160,7 @@
                     {% for service in services %}
                         '{{ service.name|lower|escape('js') }}'{% if not loop.last %},{% endif %}
                     {% endfor %}
-                ].some(name => name.includes(search_query.toLowerCase()))">
+                ].some(name => name.includes(search_query.toLowerCase())))">
                     <h4 class="text-lg font-semibold text-slate-800 mb-3 border-b pb-2">{{ category }}</h4>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {% for service in services %}

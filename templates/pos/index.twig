@@ -37,6 +37,13 @@
         margin-bottom: 0 !important;
         margin-top: 0 !important;
     }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 </style>
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem({{ appointment_to_checkout.item_id|default(0) }}, '{{ appointment_to_checkout.item_type|default('service')|escape('js') }}', '{{ appointment_to_checkout.item_name|escape('js') }}', {{ appointment_to_checkout.item_price|default(0) }})"{% endif %}>
@@ -58,9 +65,37 @@
                     <input type="text" x-model="search_query" placeholder="Search services..." class="w-full h-[42px] focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-slate-300 rounded-md px-3 border">
                 </div>
             </div>
+            <!-- Category Filter -->
+            <div class="border-b border-slate-100 bg-white px-4 py-3 flex-shrink-0">
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-1">
+                    <button type="button" 
+                            @click="selected_category = 'All Items'"
+                            :class="selected_category === 'All Items' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                            class="whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-sm uppercase tracking-wider">
+                        All Items
+                    </button>
+                    {% if packages|length > 0 %}
+                    <button type="button" 
+                            @click="selected_category = 'Packages'"
+                            :class="selected_category === 'Packages' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                            class="whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-sm uppercase tracking-wider">
+                        Packages
+                    </button>
+                    {% endif %}
+                    {% for category in services_by_category|keys %}
+                    <button type="button" 
+                            @click="selected_category = '{{ category|escape('js') }}'"
+                            :class="selected_category === '{{ category|escape('js') }}' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                            class="whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-sm uppercase tracking-wider">
+                        {{ category }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
             <div class="p-4 flex-1 overflow-y-auto space-y-6">
                 <!-- Available Redemptions (Dynamic based on selected customer) -->
-                <template x-if="available_redemptions && available_redemptions.length > 0">
+                <template x-if="(selected_category === 'All Items') && available_redemptions && available_redemptions.length > 0">
                     <div class="mb-6">
                         <h3 class="font-bold text-indigo-600 text-sm mb-3 uppercase tracking-wider flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -92,7 +127,7 @@
 
                 <!-- Packages Category -->
                 {% if packages|length > 0 %}
-                <div class="mb-6" x-show="search_query === '' || [
+                <div class="mb-6" x-show="(selected_category === 'All Items' || selected_category === 'Packages') && (search_query === '' || [
                     {% for pkg in packages %}
                         '{{ pkg.name|lower|escape('js') }}'{% if not loop.last %},{% endif %}
                     {% endfor %}
@@ -121,7 +156,7 @@
                 {% endif %}
 
                 {% for category, services in services_by_category %}
-                <div x-show="search_query === '' || [
+                <div x-show="(selected_category === 'All Items' || selected_category === '{{ category|escape('js') }}') && (search_query === '' || [
                     {% for service in services %}
                         '{{ service.name|lower|escape('js') }}'{% if not loop.last %},{% endif %}
                     {% endfor %}
@@ -142,7 +177,7 @@
                 </div>
                 {% else %}
                     <!-- Fallback mock services if DB is empty -->
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4" x-show="search_query === '' || ['haircut', 'coloring'].some(name => name.includes(search_query.toLowerCase()))">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4" x-show="(selected_category === 'All Items') && (search_query === '' || ['haircut', 'coloring'].some(name => name.includes(search_query.toLowerCase())))">
                         <div x-show="search_query === '' || 'haircut'.includes(search_query.toLowerCase())"
                              @click="addItem(0, 'service', 'Haircut', 45.00)" class="border border-slate-200 rounded-lg p-3 cursor-pointer hover:border-indigo-600 hover:shadow-md transition-all flex flex-col justify-center items-center text-center bg-white group select-none active:bg-slate-50">
                             <div class="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center mb-2 group-hover:bg-indigo-600 transition-colors text-lg">✂️</div>
@@ -585,6 +620,7 @@
 function posSystem() {
     return {
         search_query: '',
+        selected_category: 'All Items',
         show_checkout_modal: false,
         loyalty_currency_per_point: {{ loyalty_currency_per_point|default(0.001) }},
         employees_data: {{ employees|json_encode|raw }},

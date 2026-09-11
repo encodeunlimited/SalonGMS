@@ -222,4 +222,34 @@ class ReportRepository extends BaseRepository
         ]);
         return $stmt->fetchAll();
     }
+
+    public function getCreditTracking(string $startDate, string $endDate): array
+    {
+        $tenantId = $this->getTenantId();
+        
+        // Total Outstanding Credit
+        $stmt = $this->db->prepare("SELECT SUM(credit_balance) FROM customers WHERE tenant_id = ?");
+        $stmt->execute([$tenantId]);
+        $outstanding = (float)($stmt->fetchColumn() ?: 0.00);
+        
+        // Total Recovered in Period
+        // Proxied via loyalty_transactions representing the payment date, compared to invoice creation date.
+        $stmt2 = $this->db->prepare("
+            SELECT SUM(i.total_amount) 
+            FROM invoices i
+            JOIN loyalty_transactions lt ON i.id = lt.invoice_id
+            WHERE i.tenant_id = ? 
+              AND i.status = 'paid'
+              AND lt.created_at >= ? 
+              AND lt.created_at <= ?
+              AND DATE(i.created_at) < DATE(lt.created_at)
+        ");
+        $stmt2->execute([$tenantId, $startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        $recovered = (float)($stmt2->fetchColumn() ?: 0.00);
+
+        return [
+            'total_outstanding_credit' => $outstanding,
+            'total_recovered_in_period' => $recovered
+        ];
+    }
 }

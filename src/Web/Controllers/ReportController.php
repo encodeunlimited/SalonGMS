@@ -73,6 +73,7 @@ class ReportController
         $stylistPerformance = $this->reports->getStylistPerformance($startDate, $endDate);
         $topCustomers = $this->reports->getTopCustomers($startDate, $endDate);
         $appointmentsSummary = $this->reports->getAppointmentsSummary($startDate, $endDate);
+        $creditTracking = $this->reports->getCreditTracking($startDate, $endDate);
 
         $totalRevenue = array_sum(array_column($revenueOverTime, 'revenue'));
         $totalAppointments = array_sum(array_column($appointmentsSummary, 'count'));
@@ -85,7 +86,8 @@ class ReportController
             'top_services' => $topServices,
             'stylist_performance' => $stylistPerformance,
             'top_customers' => $topCustomers,
-            'appointments_summary' => $appointmentsSummary
+            'appointments_summary' => $appointmentsSummary,
+            'credit_tracking' => $creditTracking
         ];
     }
 

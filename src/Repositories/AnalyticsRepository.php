@@ -71,6 +71,11 @@ class AnalyticsRepository extends BaseRepository
         $stmt->execute([$tenantId, $today . ' 00:00:00', $today . ' 23:59:59']);
         $commissionsToday = (float)($stmt->fetchColumn() ?: 0.00);
 
+        // Total Due
+        $stmt = $this->db->prepare("SELECT SUM(total_amount) FROM invoices WHERE tenant_id = ? AND status NOT IN ('paid', 'void')");
+        $stmt->execute([$tenantId]);
+        $totalDue = (float)($stmt->fetchColumn() ?: 0.00);
+
         return [
             'revenue_today' => $revenueToday,
             'cash_today' => $cashToday,
@@ -79,7 +84,8 @@ class AnalyticsRepository extends BaseRepository
             'active_stylists' => $activeStylists,
             'new_customers' => $newCustomers,
             'expenses_today' => $expensesToday,
-            'commissions_today' => $commissionsToday
+            'commissions_today' => $commissionsToday,
+            'total_due' => $totalDue
         ];
     }
     

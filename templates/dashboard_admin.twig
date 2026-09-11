@@ -125,11 +125,56 @@
         <div id="services-chart" class="flex justify-center mt-auto mb-auto"></div>
     </div>
 
-    <!-- Appointments Status Pie Chart -->
+    <!-- Appointments Status Pie Chart (Hidden per user request) -->
     {# <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
         <h3 class="text-base font-bold text-slate-900 mb-4">Appointments Status</h3>
         <div id="apt-status-chart" class="flex justify-center mt-auto mb-auto"></div>
     </div> #}
+
+    <!-- Action Required / Alerts Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+        <div class="p-5 border-b border-slate-100 bg-slate-50/80">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="bell" class="w-5 h-5 text-indigo-600"></i>
+                Action Required
+            </h3>
+        </div>
+        <div class="flex-1 overflow-y-auto p-0 h-[320px] custom-scrollbar">
+            {% if low_stock_alerts|length > 0 or pending_payments|length > 0 %}
+                <ul class="divide-y divide-slate-100">
+                    {% for item in low_stock_alerts|slice(0, 5) %}
+                        <li class="p-4 hover:bg-slate-50 transition-colors flex items-start gap-3">
+                            <div class="mt-0.5 rounded-full bg-rose-100 p-1.5 text-rose-600 shrink-0">
+                                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-900">{{ item.name }}</p>
+                                <p class="text-xs text-rose-600 font-medium mt-0.5">Low Stock: {{ item.quantity }} remaining</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    {% for payment in pending_payments|slice(0, 5) %}
+                        <li class="p-4 hover:bg-slate-50 transition-colors flex items-start gap-3">
+                            <div class="mt-0.5 rounded-full bg-amber-100 p-1.5 text-amber-600 shrink-0">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-900">Unpaid Invoice #{{ payment.id }}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">{{ payment.customer_name|default('Walk-in Customer') }} &bull; <span class="text-amber-600 font-medium">QAR {{ payment.total_amount|number_format(0) }}</span></p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center space-y-3">
+                    <div class="bg-slate-50 p-4 rounded-full">
+                        <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-400"></i>
+                    </div>
+                    <p class="text-sm font-medium text-slate-500">You're all caught up!<br>No pending actions needed.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <!-- Appointments & Payments Section -->

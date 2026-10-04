@@ -16,6 +16,9 @@ return function (App $app) {
     
     // Public Invoice View
     $app->get('/web/invoices/download/{id}', \App\Web\Controllers\InvoiceController::class . ':download');
+
+    // Deployment & Webhook Cache Clear (Token-protected)
+    $app->map(['GET', 'POST'], '/web/system/clear-cache', [\App\Web\Controllers\SettingsController::class, 'clearCache']);
     
     $app->group('/web', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Web\Controllers\DashboardController::class, 'index']);
@@ -23,6 +26,7 @@ return function (App $app) {
         // Settings
         $group->get('/settings', [\App\Web\Controllers\SettingsController::class, 'index']);
         $group->post('/settings', [\App\Web\Controllers\SettingsController::class, 'store']);
+        $group->post('/settings/clear-cache', [\App\Web\Controllers\SettingsController::class, 'clearCacheWeb']);
         
         $group->post('/settings/booking-types', [\App\Web\Controllers\SettingsController::class, 'storeBookingType']);
         $group->put('/settings/booking-types/{id}', [\App\Web\Controllers\SettingsController::class, 'updateBookingType']);
@@ -36,6 +40,24 @@ return function (App $app) {
         $group->put('/settings/service-categories/{id}', [\App\Web\Controllers\SettingsController::class, 'updateServiceCategory']);
         $group->delete('/settings/service-categories/{id}', [\App\Web\Controllers\SettingsController::class, 'deleteServiceCategory']);
         
+        // Queue & Tickets
+        $group->get('/queue', [\App\Web\Controllers\QueueController::class, 'index']);
+        $group->get('/queue/lanes', [\App\Web\Controllers\QueueController::class, 'lanes']);
+        $group->get('/queue/badge', [\App\Web\Controllers\QueueController::class, 'badge']);
+        $group->get('/queue/estimate', [\App\Web\Controllers\QueueController::class, 'estimate']);
+        $group->get('/queue/barbers/{id}/services', [\App\Web\Controllers\QueueController::class, 'barberServices']);
+        $group->post('/queue/tickets', [\App\Web\Controllers\QueueController::class, 'issueTicket']);
+        $group->get('/queue/tickets/{id}/slip', [\App\Web\Controllers\QueueController::class, 'ticketSlip']);
+        $group->post('/queue/tickets/{id}/call', [\App\Web\Controllers\QueueController::class, 'callTicket']);
+        $group->post('/queue/barbers/{barber_id}/call-next', [\App\Web\Controllers\QueueController::class, 'callNext']);
+        $group->post('/queue/tickets/{id}/complete', [\App\Web\Controllers\QueueController::class, 'completeTicket']);
+        $group->post('/queue/tickets/{id}/status', [\App\Web\Controllers\QueueController::class, 'updateStatus']);
+        $group->post('/queue/tickets/{id}/transfer', [\App\Web\Controllers\QueueController::class, 'transferBarber']);
+        $group->get('/queue/display', [\App\Web\Controllers\QueueController::class, 'display']);
+        $group->get('/queue/display/data', [\App\Web\Controllers\QueueController::class, 'displayData']);
+        $group->get('/queue/history', [\App\Web\Controllers\QueueController::class, 'history']);
+        $group->get('/queue/customers/search', [\App\Web\Controllers\QueueController::class, 'searchCustomers']);
+
         // Appointments
         $group->get('/appointments', \App\Web\Controllers\AppointmentController::class . ':index');
         $group->get('/appointments/services', \App\Web\Controllers\AppointmentController::class . ':getServicesForCustomer');
@@ -72,6 +94,10 @@ return function (App $app) {
         $group->get('/services', \App\Web\Controllers\ServiceController::class . ':index');
         $group->get('/services/create', \App\Web\Controllers\ServiceController::class . ':create');
         $group->post('/services/create', \App\Web\Controllers\ServiceController::class . ':store');
+        $group->get('/services/categories/modal', \App\Web\Controllers\ServiceController::class . ':categoriesModal');
+        $group->post('/services/categories', \App\Web\Controllers\ServiceController::class . ':storeCategory');
+        $group->put('/services/categories/{id}', \App\Web\Controllers\ServiceController::class . ':updateCategory');
+        $group->delete('/services/categories/{id}', \App\Web\Controllers\ServiceController::class . ':deleteCategory');
         $group->get('/services/{id}', \App\Web\Controllers\ServiceController::class . ':show');
         $group->get('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':edit');
         $group->post('/services/{id}/edit', \App\Web\Controllers\ServiceController::class . ':update');

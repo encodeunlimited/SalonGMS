@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main # Change this to your deployment branch if different
+  workflow_dispatch:
+    inputs:
+      clear_cache:
+        description: 'Clear Application & Template Cache on Deploy'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   build-and-deploy:
@@ -21,7 +28,11 @@ jobs:
       - name: Install Dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Run Database Migrations
+      - name: Clear Build Cache
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.clear_cache }}
+        run: php bin/clear-cache.php
+
+      - name: Run Database Migrations & Performance Index Optimization
         run: php bin/migrate_action.php
 
       - name: Build PHAR
@@ -45,3 +56,11 @@ jobs:
             **/.git*/**
             data/**
             uploads/**
+
+      - name: Invalidate Remote Cache
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.clear_cache }}
+        continue-on-error: true
+        run: |
+          echo "Triggering remote cache invalidation..."
+          curl -s -k -X POST "https://gs.encodeunlimited.com/web/system/clear-cache?token=salongms_deploy_cache_clear" || true
+          echo "Remote cache clear request complete."

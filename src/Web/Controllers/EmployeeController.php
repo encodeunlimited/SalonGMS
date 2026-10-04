@@ -236,7 +236,7 @@ class EmployeeController
     public function delete(Request $request, Response $response, array $args): Response
     {
         $role = $request->getAttribute('role');
-        if ($role !== 'admin') {
+        if ($role !== 'admin' && $role !== 'superadmin') {
             return $response->withStatus(500);
         }
         

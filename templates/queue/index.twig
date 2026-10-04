@@ -1,0 +1,534 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+<style>
+    .ts-dropdown {
+        z-index: 9999 !important;
+        border-radius: 0.75rem !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+        background-color: #fff !important;
+    }
+    .ts-control {
+        border-radius: 0.5rem !important;
+    }
+</style>
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto" x-data="queueApp()">
+    
+    <!-- Top Action Bar -->
+    <div class="sm:flex sm:items-center sm:justify-between mb-6 pb-4 border-b border-slate-200">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{% if is_stylist %}My Station & Tickets{% else %}Customer Queue & Barber Stations{% endif %}</h1>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Live Board
+                </span>
+            </div>
+            <p class="mt-1 text-sm text-slate-500">Issue arrival tickets, route customers to selected barbers, and manage waiting times.</p>
+        </div>
+
+        <div class="mt-4 sm:mt-0 flex items-center gap-2.5 flex-wrap">
+            <!-- Fullscreen TV Waiting Lounge Display -->
+            <a href="/web/queue/display" target="_blank" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition shadow-xs">
+                <i data-lucide="tv" class="w-4 h-4"></i>
+                TV Display
+            </a>
+
+            <!-- Queue History -->
+            <a href="/web/queue/history" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition shadow-xs">
+                <i data-lucide="history" class="w-4 h-4"></i>
+                History
+            </a>
+
+            <!-- Manual Refresh -->
+            <button type="button" 
+                    hx-get="/web/queue/lanes" 
+                    hx-target="#queue-lanes-container" 
+                    title="Refresh Lanes"
+                    class="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition shadow-xs">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Issue Ticket Modal Button -->
+            <button type="button" 
+                    @click="openIssueModal()" 
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition shadow-sm">
+                <i data-lucide="plus" class="w-4.5 h-4.5"></i>
+                Issue Ticket
+            </button>
+        </div>
+    </div>
+
+    <!-- Live Auto-Refreshing Queue Lanes Container -->
+    <div id="queue-lanes-container" 
+         hx-get="/web/queue/lanes" 
+         hx-trigger="every 10s" 
+         hx-swap="innerHTML">
+        {% include 'queue/partials/lanes.twig' %}
+    </div>
+
+    <!-- Issue Ticket Modal -->
+    <div x-show="showIssueModal" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         style="display: none;" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showIssueModal" 
+                 x-transition.opacity 
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
+                 @click="showIssueModal = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="showIssueModal" 
+                 x-transition 
+                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-slate-100">
+                
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 text-white flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
+                            <i data-lucide="ticket" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Issue Customer Ticket</h3>
+                            <p class="text-xs text-indigo-100">Select barber to route client to the correct waiting queue</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showIssueModal = false" class="text-white/80 hover:text-white transition">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <form hx-post="/web/queue/tickets" 
+                      hx-target="#ticket-modal-container" 
+                      hx-swap="innerHTML"
+                      @htmx:after-request="onTicketIssued($event)">
+                    
+                    <div class="p-6 space-y-5">
+                        <div id="issue-messages"></div>
+
+                        <!-- Step 1: Customer Details -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                                1. Customer Information
+                            </label>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Customer Name *</label>
+                                    <input type="text" 
+                                           name="customer_name" 
+                                           x-model="form.customer_name" 
+                                           placeholder="e.g. John Doe / Walk-in" 
+                                           required 
+                                           class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Phone Number (Optional)</label>
+                                    <input type="text" 
+                                           name="customer_phone" 
+                                           x-model="form.customer_phone" 
+                                           placeholder="e.g. +974 5555 1234" 
+                                           class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                            </div>
+
+                            <!-- Quick Select from Registered Customers -->
+                            <div class="mt-2.5" x-data="{ showDropdown: false }">
+                                <button type="button" 
+                                        @click="showDropdown = !showDropdown" 
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                                    <span x-text="showDropdown ? 'Hide existing customer lookup' : 'Or select from registered customers'"></span>
+                                </button>
+                                
+                                <div x-show="showDropdown" x-cloak class="mt-2">
+                                    <select name="customer_id" 
+                                            x-model="form.customer_id" 
+                                            @change="onCustomerSelect($event)" 
+                                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50">
+                                        <option value="">-- Choose Registered Customer --</option>
+                                        {% for c in customers %}
+                                        <option value="{{ c.id }}" data-name="{{ c.name }}" data-phone="{{ c.phone }}">{{ c.name }} ({{ c.phone|default('No phone') }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Select Barber / Stylist -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    2. Select Barber / Stylist *
+                                </label>
+                                <span class="text-xs text-slate-500" x-text="selectedBarberInfo"></span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1">
+                                {% for b in barbers %}
+                                <label class="relative flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition select-none"
+                                       :class="form.barber_id == '{{ b.id }}' ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-200' : 'border-slate-200 bg-white hover:border-slate-300'">
+                                    <input type="radio" 
+                                           name="barber_id" 
+                                           value="{{ b.id }}" 
+                                           x-model="form.barber_id" 
+                                           @change="onBarberSelected('{{ b.id }}', '{{ b.name|e('js') }}')" 
+                                           required 
+                                           class="sr-only">
+                                    
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-sm border border-slate-200 shrink-0">
+                                        {{ b.name|slice(0, 1)|upper }}
+                                    </div>
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-xs text-slate-900 truncate block">{{ b.name }}</span>
+                                            {% if b.waiting_count == 0 %}
+                                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Free</span>
+                                            {% else %}
+                                            <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">{{ b.waiting_count }} wait</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5 capitalize">{{ b.role|default('Stylist') }}</p>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Select Stylist Specific Service (Searchable Dropdown) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    3. Stylist Specific Service *
+                                </label>
+                                <span class="text-[11px] font-semibold text-indigo-600" x-text="serviceStatusMessage"></span>
+                            </div>
+
+                            <div class="relative">
+                                <select id="queue-service-select" 
+                                        name="service_id" 
+                                        x-model="form.service_id"
+                                        class="w-full">
+                                    <option value="">-- Choose a Stylist First --</option>
+                                    {% for s in services %}
+                                    <option value="{{ s.id }}">{{ s.name }} - QAR {{ s.price|number_format(2) }} ({{ s.duration_minutes }} mins)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <p class="mt-1 text-[11px] text-slate-400" x-show="!form.barber_id">
+                                &uarr; Click on a stylist above to filter services to their specialty.
+                            </p>
+                        </div>
+
+                        <!-- Step 4: Notes -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Notes / Preferences (Optional)</label>
+                            <input type="text" 
+                                   name="notes" 
+                                   x-model="form.notes" 
+                                   placeholder="e.g. Skin fade, beard oil, preferred chair" 
+                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                        </div>
+
+                        <!-- Live Wait Time & Next Ticket Preview Card -->
+                        <div x-show="estimate.ticket_number" class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3.5 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <div>
+                                    <span class="text-slate-500 block text-[10px] uppercase font-bold">Estimated Ticket</span>
+                                    <span class="font-mono font-black text-indigo-700 text-lg" x-text="estimate.ticket_number"></span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-slate-500 block text-[10px] uppercase font-bold">Queue Ahead</span>
+                                <span class="font-bold text-slate-800" x-text="estimate.barber_waiting_ahead + ' waiting ahead (~' + estimate.estimated_wait_time + 'm)'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                        <button type="button" 
+                                @click="showIssueModal = false" 
+                                class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                :disabled="!form.barber_id || !form.customer_name"
+                                class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                            Issue & Print Ticket
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Barber Modal -->
+    <div x-show="showTransferModal" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         style="display: none;" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showTransferModal" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="showTransferModal = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="showTransferModal" x-transition class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-100 p-6">
+                <h3 class="text-base font-bold text-slate-900 mb-1">Transfer Ticket <span class="font-mono text-indigo-600" x-text="transfer.ticket_number"></span></h3>
+                <p class="text-xs text-slate-500 mb-4">Reassign this customer to another barber queue.</p>
+
+                <form :action="'/web/queue/tickets/' + transfer.ticket_id + '/transfer'" 
+                      method="POST"
+                      hx-post=""
+                      :hx-post="'/web/queue/tickets/' + transfer.ticket_id + '/transfer'"
+                      hx-target="#queue-lanes-container"
+                      @htmx:after-request="showTransferModal = false">
+                    
+                    <div class="space-y-2 mb-5">
+                        <label class="block text-xs font-semibold text-slate-700">Select New Barber</label>
+                        <select name="new_barber_id" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+                            <option value="">-- Choose New Barber --</option>
+                            {% for b in all_barbers|default(barbers) %}
+                            <option value="{{ b.id }}">{{ b.name }} ({{ b.waiting_count }} waiting)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" @click="showTransferModal = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition">Confirm Transfer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Slip Confirmation Container (HTMX injects modal here) -->
+    <div id="ticket-modal-container"></div>
+
+</div>
+
+<script>
+function queueApp() {
+    return {
+        showIssueModal: false,
+        showTransferModal: false,
+        serviceTomSelect: null,
+        serviceStatusMessage: '',
+        servicesList: [],
+        form: {
+            customer_name: '',
+            customer_phone: '',
+            customer_id: '',
+            barber_id: '',
+            service_id: '',
+            notes: ''
+        },
+        estimate: {
+            ticket_number: '',
+            barber_waiting_ahead: 0,
+            estimated_wait_time: 0
+        },
+        transfer: {
+            ticket_id: null,
+            ticket_number: '',
+            current_barber_id: null
+        },
+        selectedBarberInfo: '',
+
+        initServiceDropdown() {
+            const selectEl = document.getElementById('queue-service-select');
+            if (!selectEl) return;
+            
+            if (this.serviceTomSelect) {
+                this.serviceTomSelect.destroy();
+                this.serviceTomSelect = null;
+            }
+
+            this.serviceTomSelect = new TomSelect(selectEl, {
+                valueField: 'id',
+                labelField: 'display_label',
+                searchField: ['name', 'category'],
+                placeholder: 'Type to search services...',
+                allowEmptyOption: true,
+                maxOptions: 100,
+                render: {
+                    option: function(data, escape) {
+                        return '<div class="py-2 px-3 border-b border-slate-50 hover:bg-indigo-50/40">' +
+                            '<div class="flex items-center justify-between">' +
+                                '<span class="font-medium text-slate-900 text-sm">' + escape(data.name) + '</span>' +
+                                '<span class="font-bold text-indigo-600 text-xs">QAR ' + parseFloat(data.price || 0).toFixed(2) + '</span>' +
+                            '</div>' +
+                            '<div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">' +
+                                '<span>' + (data.category ? escape(data.category) : 'Service') + '</span>' +
+                                '<span>&bull;</span>' +
+                                '<span>' + escape(data.duration_minutes || 30) + ' mins</span>' +
+                            '</div>' +
+                        '</div>';
+                    },
+                    item: function(data, escape) {
+                        return '<div class="flex items-center justify-between w-full">' +
+                            '<span class="font-medium text-slate-900">' + escape(data.name) + '</span>' +
+                            '<span class="text-xs text-indigo-700 font-bold ml-2">QAR ' + parseFloat(data.price || 0).toFixed(2) + ' (' + escape(data.duration_minutes || 30) + 'm)</span>' +
+                        '</div>';
+                    }
+                },
+                onChange: (val) => {
+                    this.form.service_id = val;
+                    this.onServiceSelected(val);
+                }
+            });
+        },
+
+        openIssueModal() {
+            this.form.customer_name = '';
+            this.form.customer_phone = '';
+            this.form.customer_id = '';
+            this.form.barber_id = '';
+            this.form.service_id = '';
+            this.form.notes = '';
+            this.selectedBarberInfo = '';
+            this.serviceStatusMessage = 'Select stylist to filter';
+            this.estimate = { ticket_number: '', barber_waiting_ahead: 0, estimated_wait_time: 0 };
+            this.showIssueModal = true;
+
+            this.$nextTick(() => {
+                this.initServiceDropdown();
+                {% if is_stylist %}
+                this.onBarberSelected('{{ current_user_id }}', '{{ auth_user.name|e('js') }}');
+                {% endif %}
+            });
+        },
+
+        onCustomerSelect(e) {
+            const opt = e.target.selectedOptions[0];
+            if (opt && opt.value) {
+                this.form.customer_name = opt.dataset.name || '';
+                this.form.customer_phone = opt.dataset.phone || '';
+            }
+        },
+
+        async onBarberSelected(barberId, barberName) {
+            this.form.barber_id = barberId;
+            this.selectedBarberInfo = 'Stylist: ' + barberName;
+            this.fetchBarberEstimate(barberId);
+            await this.loadBarberSpecificServices(barberId, barberName);
+        },
+
+        async loadBarberSpecificServices(barberId, barberName) {
+            if (!barberId) return;
+            this.serviceStatusMessage = 'Loading services...';
+            
+            if (!this.serviceTomSelect) {
+                this.initServiceDropdown();
+            }
+
+            if (this.serviceTomSelect) {
+                this.serviceTomSelect.clear();
+                this.serviceTomSelect.clearOptions();
+            }
+
+            try {
+                const res = await fetch(`/web/queue/barbers/${barberId}/services`);
+                if (res.ok) {
+                    const services = await res.json();
+                    this.servicesList = services;
+                    const firstName = barberName.split(' ')[0];
+                    this.serviceStatusMessage = services.length + ' services for ' + firstName;
+                    
+                    if (this.serviceTomSelect) {
+                        const formatted = services.map(s => ({
+                            id: s.id.toString(),
+                            name: s.name,
+                            category: s.category || '',
+                            price: s.price,
+                            duration_minutes: s.duration_minutes,
+                            display_label: s.name + ' - QAR ' + parseFloat(s.price).toFixed(2) + ' (' + s.duration_minutes + ' mins)'
+                        }));
+                        this.serviceTomSelect.addOptions(formatted);
+                        this.serviceTomSelect.refreshOptions(false);
+
+                        // If stylist has services, auto-select first one or leave searchable
+                        if (formatted.length > 0) {
+                            this.serviceTomSelect.setValue(formatted[0].id);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching stylist services:', err);
+                this.serviceStatusMessage = '';
+            }
+        },
+
+        onServiceSelected(serviceId) {
+            if (!serviceId || !this.servicesList) return;
+            const selected = this.servicesList.find(s => s.id.toString() === serviceId.toString());
+            if (selected && this.estimate) {
+                const duration = selected.duration_minutes || 25;
+                // Update estimated wait: waiting ahead * duration
+                if (this.estimate.barber_waiting_ahead > 0) {
+                    this.estimate.estimated_wait_time = this.estimate.barber_waiting_ahead * duration;
+                }
+            }
+        },
+
+        async fetchBarberEstimate(barberId) {
+            if (!barberId) return;
+            try {
+                const res = await fetch(`/web/queue/estimate?barber_id=${barberId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    this.estimate = data;
+                }
+            } catch (err) {
+                console.error('Estimate error:', err);
+            }
+        },
+
+        onTicketIssued(event) {
+            if (event.detail.successful) {
+                this.showIssueModal = false;
+                // Refresh lanes board
+                htmx.ajax('GET', '/web/queue/lanes', '#queue-lanes-container');
+            }
+        }
+    }
+}
+
+// Global helper for opening transfer modal
+function openTransferModal(ticketId, ticketNumber, currentBarberId) {
+    const el = document.querySelector('[x-data="queueApp()"]');
+    if (el && el._x_dataStack) {
+        const app = el._x_dataStack[0];
+        app.transfer.ticket_id = ticketId;
+        app.transfer.ticket_number = ticketNumber;
+        app.transfer.current_barber_id = currentBarberId;
+        app.showTransferModal = true;
+    }
+}
+
+// Print ticket slip in popup
+function printTicketSlip(ticketId) {
+    const w = 450;
+    const h = 600;
+    const left = (screen.width/2)-(w/2);
+    const top = (screen.height/2)-(h/2);
+    window.open(
+        `/web/queue/tickets/${ticketId}/slip?print=1`,
+        'PrintTicket',
+        `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=${w}, height=${h}, top=${top}, left=${left}`
+    );
+}
+
+function closeTicketModal() {
+    const container = document.getElementById('ticket-modal-container');
+    if (container) container.innerHTML = '';
+}
+</script>
+{% endblock %}

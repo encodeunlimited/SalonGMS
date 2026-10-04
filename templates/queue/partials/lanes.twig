@@ -1,0 +1,252 @@
+<!-- KPI Summary Bar -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Today</p>
+            <p class="text-2xl font-bold text-slate-900 mt-1">{{ stats.total_tickets|default(0) }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <i data-lucide="ticket" class="w-5 h-5"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 border border-amber-200/80 bg-amber-50/20 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Waiting Now</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1">{{ stats.waiting_count|default(0) }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 border border-emerald-200/80 bg-emerald-50/20 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">In Service</p>
+            <p class="text-2xl font-bold text-emerald-600 mt-1">{{ stats.serving_count|default(0) }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <i data-lucide="scissors" class="w-5 h-5"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 border border-blue-200/80 bg-blue-50/20 shadow-xs flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-blue-700 uppercase tracking-wider">Completed</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.completed_count|default(0) }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between col-span-2 lg:col-span-1">
+        <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Wait Time</p>
+            <p class="text-2xl font-bold text-slate-900 mt-1">{{ stats.avg_wait_time|default(0) }} <span class="text-xs text-slate-500 font-normal">mins</span></p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+            <i data-lucide="hourglass" class="w-5 h-5"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Barber Lanes Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+    {% for lane in barber_queues %}
+    {% set barber = lane.barber %}
+    {% set isMyLane = (current_user_role == 'stylist' and current_user_id == barber.id) %}
+    
+    <div class="bg-slate-100/80 rounded-2xl p-4 border {% if isMyLane %}border-indigo-400 ring-2 ring-indigo-200 bg-indigo-50/20{% else %}border-slate-200{% endif %} flex flex-col h-full transition shadow-xs">
+        
+        <!-- Lane Header: Barber Profile -->
+        <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-xs mb-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                            {{ barber.name|slice(0, 1)|upper }}
+                        </div>
+                        {% if lane.serving %}
+                        <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                        {% else %}
+                        <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-slate-300 border-2 border-white rounded-full"></span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="font-bold text-slate-900 text-sm leading-tight">{{ barber.name }}</h3>
+                            {% if isMyLane %}
+                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">You</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-slate-500 capitalize">{{ barber.role|default('Stylist') }}</p>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold {% if lane.total_waiting > 0 %}bg-amber-100 text-amber-800 border border-amber-200{% else %}bg-slate-100 text-slate-600{% endif %}">
+                        <i data-lucide="users" class="w-3 h-3"></i>
+                        {{ lane.total_waiting }} waiting
+                    </span>
+                </div>
+            </div>
+
+            <!-- Call Next Action Button -->
+            <div class="mt-3 pt-3 border-t border-slate-100">
+                <button type="button"
+                        hx-post="/web/queue/barbers/{{ barber.id }}/call-next"
+                        hx-target="#queue-lanes-container"
+                        {% if lane.total_waiting == 0 %}disabled{% endif %}
+                        class="w-full py-2 px-3 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition {% if lane.total_waiting > 0 %}bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs cursor-pointer{% else %}bg-slate-100 text-slate-400 cursor-not-allowed{% endif %}">
+                    <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                    Call Next Customer
+                </button>
+            </div>
+        </div>
+
+        <!-- Section 1: In Service (Chair) -->
+        <div class="mb-3">
+            <div class="flex items-center justify-between mb-1.5 px-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Now Serving
+                </span>
+                {% if lane.serving %}
+                <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+                {% endif %}
+            </div>
+
+            {% if lane.serving %}
+            {% set s = lane.serving %}
+            <div class="bg-white rounded-xl p-3.5 border-2 border-emerald-500 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+                    In Chair
+                </div>
+
+                <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight">{{ s.ticket_number }}</span>
+                    <span class="text-xs font-bold text-slate-700 truncate max-w-[130px]">{{ s.customer_name }}</span>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-500 mb-3">
+                    <span class="truncate">{{ s.service_name|default('Haircut / Service') }}</span>
+                    {% if s.called_at %}
+                    <span class="text-[11px] text-slate-400">{{ s.called_at|date('h:i A') }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-100">
+                    <!-- Checkout in POS -->
+                    <a href="/web/pos?queue_id={{ s.id }}" 
+                       class="py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-xs transition text-center">
+                        <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+                        Checkout
+                    </a>
+
+                    <!-- Complete Ticket -->
+                    <button type="button"
+                            hx-post="/web/queue/tickets/{{ s.id }}/complete"
+                            hx-target="#queue-lanes-container"
+                            class="py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition">
+                        <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        Done
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white/60 border border-dashed border-slate-300 rounded-xl p-4 text-center">
+                <i data-lucide="coffee" class="w-5 h-5 text-slate-400 mx-auto mb-1"></i>
+                <p class="text-xs text-slate-500 font-medium">Chair is currently empty</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Ready for next waiting client</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Section 2: Waiting Queue -->
+        <div class="flex-1 flex flex-col min-h-[160px]">
+            <div class="flex items-center justify-between mb-1.5 px-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Waiting Line ({{ lane.waiting|length }})
+                </span>
+            </div>
+
+            {% if lane.waiting|length > 0 %}
+            <div class="space-y-2 overflow-y-auto max-h-[360px] pr-1">
+                {% for w in lane.waiting %}
+                <div class="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:border-slate-300 transition group relative">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 font-bold text-[10px] flex items-center justify-center border border-slate-200">
+                                {{ loop.index }}
+                            </span>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono font-bold text-sm text-indigo-700">{{ w.ticket_number }}</span>
+                                    <span class="font-semibold text-xs text-slate-800 truncate max-w-[110px]">{{ w.customer_name }}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 truncate">{{ w.service_name|default('Haircut') }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Call Button -->
+                        <button type="button"
+                                hx-post="/web/queue/tickets/{{ w.id }}/call"
+                                hx-target="#queue-lanes-container"
+                                title="Call this ticket to chair"
+                                class="px-2 py-1 rounded bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 text-[11px] font-bold transition flex items-center gap-1">
+                            <i data-lucide="bell" class="w-3 h-3"></i>
+                            Call
+                        </button>
+                    </div>
+
+                    <!-- Wait Details & Actions Footer -->
+                    <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                        <span>Issued {{ w.created_at|date('h:i A') }}</span>
+                        
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="printTicketSlip({{ w.id }})" class="hover:text-slate-700 text-slate-500" title="Print Ticket">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button type="button" onclick="openTransferModal({{ w.id }}, '{{ w.ticket_number }}', {{ barber.id }})" class="hover:text-indigo-600 text-slate-500" title="Transfer to another barber">
+                                <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button type="button" 
+                                    hx-post="/web/queue/tickets/{{ w.id }}/status"
+                                    hx-vals='{"status": "cancelled"}'
+                                    hx-target="#queue-lanes-container"
+                                    hx-confirm="Cancel ticket {{ w.ticket_number }}?"
+                                    class="hover:text-red-600 text-slate-400" 
+                                    title="Cancel Ticket">
+                                <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white/40 border border-slate-200/60 rounded-xl p-4 text-center my-auto">
+                <p class="text-xs text-slate-400">No customers waiting</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+    
+    {% if barber_queues|length == 0 %}
+    <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-xs">
+        <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="scissors" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 mb-1">No Active Tickets</h3>
+        <p class="text-xs text-slate-500 max-w-md mx-auto">Your station currently has no customers in the queue.</p>
+    </div>
+    {% endif %}
+</div>
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>

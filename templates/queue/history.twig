@@ -1,0 +1,186 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between mb-6 pb-4 border-b border-slate-200">
+        <div>
+            <div class="flex items-center gap-2">
+                <a href="/web/queue" class="text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Queue Ticket History & Logs</h1>
+            </div>
+            <p class="mt-1 text-sm text-slate-500">Audit past queue tickets, wait times, and customer service history.</p>
+        </div>
+
+        <div class="mt-4 sm:mt-0 flex items-center gap-2">
+            <a href="/web/queue" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
+                <i data-lucide="ticket" class="w-4 h-4"></i>
+                Active Queue Board
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs mb-6">
+        <form method="GET" action="/web/queue/history" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+                <input type="date" name="date" value="{{ filters.date }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Barber</label>
+                {% if is_stylist %}
+                <input type="text" readonly value="{{ auth_user.name }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-700 font-medium cursor-not-allowed">
+                <input type="hidden" name="barber_id" value="{{ current_user_id }}">
+                {% else %}
+                <select name="barber_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white">
+                    <option value="">All Barbers</option>
+                    {% for b in barbers %}
+                    <option value="{{ b.id }}" {% if filters.barber_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white">
+                    <option value="">All Statuses</option>
+                    <option value="completed" {% if filters.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="serving" {% if filters.status == 'serving' %}selected{% endif %}>Serving / In Chair</option>
+                    <option value="waiting" {% if filters.status == 'waiting' %}selected{% endif %}>Waiting</option>
+                    <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="no_show" {% if filters.status == 'no_show' %}selected{% endif %}>No-Show</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Search</label>
+                <input type="text" name="search" value="{{ filters.search }}" placeholder="Ticket # or Customer..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white">
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition">
+                    Filter
+                </button>
+                <a href="/web/queue/history" class="px-3 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 text-sm font-medium transition" title="Clear Filters">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-700">
+                <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-500 tracking-wider">
+                    <tr>
+                        <th class="px-5 py-3.5">Ticket #</th>
+                        <th class="px-5 py-3.5">Time Issued</th>
+                        <th class="px-5 py-3.5">Customer</th>
+                        <th class="px-5 py-3.5">Assigned Barber</th>
+                        <th class="px-5 py-3.5">Service</th>
+                        <th class="px-5 py-3.5">Status</th>
+                        <th class="px-5 py-3.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% if tickets|length > 0 %}
+                    {% for t in tickets %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-5 py-4 font-mono font-bold text-slate-900">
+                            {{ t.ticket_number }}
+                        </td>
+                        <td class="px-5 py-4 text-xs text-slate-500">
+                            <div>{{ t.created_at|date('h:i A') }}</div>
+                            <div class="text-[10px] text-slate-400">{{ t.created_at|date('d M Y') }}</div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="font-semibold text-slate-900 block">{{ t.customer_name }}</span>
+                            {% if t.customer_phone %}
+                            <span class="text-xs text-slate-400">{{ t.customer_phone }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4 font-medium text-slate-800">
+                            {{ t.barber_name|default('Unassigned') }}
+                        </td>
+                        <td class="px-5 py-4 text-xs text-slate-600">
+                            {{ t.full_service_name|default(t.service_name|default('Standard Haircut')) }}
+                        </td>
+                        <td class="px-5 py-4">
+                            {% if t.status == 'completed' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                <i data-lucide="check" class="w-3 h-3"></i> Completed
+                            </span>
+                            {% elseif t.status == 'serving' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> In Chair
+                            </span>
+                            {% elseif t.status == 'waiting' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <i data-lucide="clock" class="w-3 h-3"></i> Waiting
+                            </span>
+                            {% elseif t.status == 'cancelled' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                Cancelled
+                            </span>
+                            {% elseif t.status == 'no_show' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                No-Show
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button type="button" 
+                                        onclick="window.open('/web/queue/tickets/{{ t.id }}/slip?print=1', 'PrintTicket', 'width=450,height=600')" 
+                                        class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition" 
+                                        title="Print Ticket">
+                                    <i data-lucide="printer" class="w-4 h-4"></i>
+                                </button>
+                                {% if t.invoice_id %}
+                                <a href="/web/invoices/download/{{ t.invoice_id }}" 
+                                   target="_blank" 
+                                   class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 transition" 
+                                   title="View Invoice">
+                                    <i data-lucide="receipt" class="w-4 h-4"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="px-5 py-12 text-center text-slate-400">
+                            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-60"></i>
+                            <p class="font-medium text-slate-600">No tickets found</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Try adjusting your filters or date range</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="px-5 py-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+            <span>Showing {{ tickets|length }} of {{ total }} tickets</span>
+            <div class="flex gap-1">
+                {% for p in 1..total_pages %}
+                <a href="?page={{ p }}&date={{ filters.date }}&barber_id={{ filters.barber_id }}&status={{ filters.status }}&search={{ filters.search }}" 
+                   class="px-2.5 py-1 rounded border {% if p == page %}bg-indigo-600 text-white border-indigo-600 font-bold{% else %}bg-white border-slate-200 text-slate-700 hover:bg-slate-50{% endif %}">
+                    {{ p }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

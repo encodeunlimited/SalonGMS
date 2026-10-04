@@ -216,7 +216,7 @@ class ServiceController
     {
         if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $role = $request->getAttribute('role');
-        if ($role !== 'admin') {
+        if ($role !== 'admin' && $role !== 'superadmin') {
             return $response->withStatus(403);
         }
         
@@ -237,5 +237,105 @@ class ServiceController
                                 'show-toast' => ['message' => 'Error deleting service: ' . $e->getMessage(), 'type' => 'error']
                             ]));
         }
+    }
+
+    public function categoriesModal(Request $request, Response $response): Response
+    {
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->serviceCategoryRepo->setTenantId($tenantId);
+        $categories = $this->serviceCategoryRepo->getAllWithCount();
+
+        return $this->view->render($response, 'services/categories_modal.twig', [
+            'categories' => $categories
+        ]);
+    }
+
+    public function storeCategory(Request $request, Response $response): Response
+    {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->serviceCategoryRepo->setTenantId($tenantId);
+
+        $data = $request->getParsedBody();
+        $name = trim($data['name'] ?? '');
+        $arabicName = !empty($data['arabic_name']) ? trim($data['arabic_name']) : null;
+
+        if (empty($name)) {
+            $response->getBody()->write('<div id="category-alert-message" hx-swap-oob="true" class="p-3 rounded-lg bg-red-50 text-red-800 text-xs border border-red-200">Category name is required.</div>');
+            return $response->withStatus(400);
+        }
+
+        try {
+            $category = $this->serviceCategoryRepo->create([
+                'name' => $name,
+                'arabic_name' => $arabicName
+            ]);
+            $category['services_count'] = 0;
+
+            $clearAlert = '<div id="category-alert-message" hx-swap-oob="true"></div>';
+            $html = $this->view->fetch('services/category_item.twig', ['cat' => $category]);
+            
+            $response->getBody()->write($clearAlert . $html);
+            return $response;
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) {
+                $response->getBody()->write('<div id="category-alert-message" hx-swap-oob="true" class="p-3 rounded-lg bg-red-50 text-red-800 text-xs border border-red-200">Category "' . htmlspecialchars($name) . '" already exists!</div>');
+                return $response->withStatus(200);
+            }
+            throw $e;
+        }
+    }
+
+    public function updateCategory(Request $request, Response $response, array $args): Response
+    {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->serviceCategoryRepo->setTenantId($tenantId);
+
+        $id = (int)$args['id'];
+        $data = $request->getParsedBody();
+        $name = trim($data['name'] ?? '');
+        $arabicName = !empty($data['arabic_name']) ? trim($data['arabic_name']) : null;
+
+        if (empty($name)) {
+            $response->getBody()->write('<div id="category-alert-message" hx-swap-oob="true" class="p-3 rounded-lg bg-red-50 text-red-800 text-xs border border-red-200">Category name cannot be empty.</div>');
+            return $response->withStatus(400);
+        }
+
+        try {
+            $this->serviceCategoryRepo->update($id, [
+                'name' => $name,
+                'arabic_name' => $arabicName
+            ]);
+            $category = $this->serviceCategoryRepo->getByIdWithCount($id);
+
+            $clearAlert = '<div id="category-alert-message" hx-swap-oob="true"></div>';
+            $html = $this->view->fetch('services/category_item.twig', ['cat' => $category]);
+
+            $response->getBody()->write($clearAlert . $html);
+            return $response;
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) {
+                $category = $this->serviceCategoryRepo->getByIdWithCount($id);
+                $errorAlert = '<div id="category-alert-message" hx-swap-oob="true" class="p-3 rounded-lg bg-red-50 text-red-800 text-xs border border-red-200">Category name already exists!</div>';
+                $html = $this->view->fetch('services/category_item.twig', ['cat' => $category]);
+                $response->getBody()->write($errorAlert . $html);
+                return $response;
+            }
+            throw $e;
+        }
+    }
+
+    public function deleteCategory(Request $request, Response $response, array $args): Response
+    {
+        if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
+        $tenantId = (int)$request->getAttribute('tenant_id');
+        $this->serviceCategoryRepo->setTenantId($tenantId);
+
+        $id = (int)$args['id'];
+        $this->serviceCategoryRepo->delete($id);
+
+        $response->getBody()->write('');
+        return $response->withHeader('Content-Type', 'text/html');
     }
 }

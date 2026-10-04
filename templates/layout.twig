@@ -107,6 +107,18 @@
                 Appointments
             </a> #}
             
+            {% if system_settings.enable_queue_system|default('1') == '1' %}
+            <a href="/web/queue" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'queue' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="ticket" class="w-5 h-5"></i>
+                    Queue & Tickets
+                </div>
+                <span id="nav-queue-count" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800" hx-get="/web/queue/badge" hx-trigger="load, every 15s" hx-swap="outerHTML">
+                    0
+                </span>
+            </a>
+            {% endif %}
+
             <a href="/web/pos" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'pos' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                 POS & Billing
@@ -117,42 +129,28 @@
                 Customers
             </a>
             
-            {% if auth_user.role in ['admin', 'receptionist', 'cashier'] %}
+            {% if auth_user.role in ['superadmin', 'admin', 'receptionist', 'cashier'] %}
             <a href="/web/services" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'services' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="scissors" class="w-5 h-5"></i>
                 Services
             </a>
             {% endif %}
             
-            {# {% if auth_user.role in ['admin', 'cashier'] %}
-            <a href="/web/packages" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'packages' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                <i data-lucide="package" class="w-5 h-5"></i>
-                Packages
-            </a>
-            {% endif %} #}
-            
-            {% if auth_user.role in ['admin', 'stylist', 'cashier'] %}
+            {% if auth_user.role in ['superadmin', 'admin', 'stylist', 'cashier'] %}
             <a href="/web/inventory" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'inventory' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="box" class="w-5 h-5"></i>
                 Inventory
             </a>
             {% endif %}
             
-            {% if auth_user.role == 'admin' %}
+            {% if auth_user.role in ['superadmin', 'admin'] %}
             <a href="/web/employees" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'employees' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="user-check" class="w-5 h-5"></i>
                 Employees
             </a>
             {% endif %}
             
-            {# {% if auth_user.role in ['admin', 'receptionist', 'stylist', 'cashier'] %}
-            <a href="/web/birthdays" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'birthdays' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                <i data-lucide="gift" class="w-5 h-5"></i>
-                Birthdays & Offers
-            </a>
-            {% endif %} #}
-            
-            {% if auth_user.role in ['admin', 'cashier'] %}
+            {% if auth_user.role in ['superadmin', 'admin', 'cashier'] %}
             <div x-data="{ open: {% if active_menu == 'reports' %}true{% else %}false{% endif %} }">
                 <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'reports' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} focus:outline-none">
                     <div class="flex items-center gap-3">
@@ -163,7 +161,7 @@
                 </button>
                 
                 <div x-show="open" x-collapse x-cloak class="pl-11 pr-3 py-2 space-y-1">
-                    {% if auth_user.role == 'admin' %}
+                    {% if auth_user.role in ['superadmin', 'admin'] %}
                     <a href="/web/reports" class="block py-1.5 text-sm transition-colors {% if title == 'Reports' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Overview</a>
                     <a href="/web/reports/sales" class="block py-1.5 text-sm transition-colors {% if title == 'Sales Summary' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Sales Summary</a>
                     <a href="/web/reports/stylists" class="block py-1.5 text-sm transition-colors {% if title == 'Stylist Performance' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Stylist Performance</a>
@@ -172,7 +170,7 @@
                     {% endif %}
                     <a href="/web/pos/history" class="block py-1.5 text-sm transition-colors {% if title == 'POS Transaction History' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">POS Transaction History</a>
                     <a href="/web/reports/eod" class="block py-1.5 text-sm transition-colors {% if title == 'End of Day Report' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">End of Day Report</a>
-                    {% if auth_user.role == 'admin' %}
+                    {% if auth_user.role in ['superadmin', 'admin'] %}
                     <a href="/web/reports/inventory-issues" class="block py-1.5 text-sm transition-colors {% if title == 'Inventory Issues Report' %}text-indigo-700 font-semibold{% else %}text-slate-500 hover:text-indigo-600{% endif %}">Inventory Issues</a>
                     {% endif %}
                 </div>
@@ -184,7 +182,7 @@
             </a>
             {% endif %}
             
-            {% if auth_user.role == 'admin' %}
+            {% if auth_user.role == 'superadmin' %}
             <a href="/web/settings" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_menu == 'settings' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                 <i data-lucide="settings" class="w-5 h-5"></i>
                 Settings

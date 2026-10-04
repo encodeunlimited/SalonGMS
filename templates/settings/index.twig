@@ -79,6 +79,50 @@
                     </label>
                 </div>
 
+                <hr class="my-6 border-slate-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-md font-semibold leading-6 text-slate-900 flex items-center gap-2">
+                            <i data-lucide="ticket" class="w-5 h-5 text-indigo-600"></i>
+                            Ticket & Barber Queue System
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Enable receptionists to issue tickets to arriving customers linked to specific barbers.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 space-y-4">
+                    <label class="relative flex items-start cursor-pointer select-none">
+                        <div class="flex items-center h-5">
+                            <input type="checkbox" name="enable_queue_system" value="1" {% if settings.enable_queue_system|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 h-4 w-4">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <span class="font-medium text-slate-900">Enable Ticket / Queue System</span>
+                            <p class="text-xs text-slate-500">Show Queue & Tickets menu in sidebar, barber lane boards, and customer ticket issuance.</p>
+                        </div>
+                    </label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200/70">
+                        <div>
+                            <label for="queue_ticket_prefix" class="block text-xs font-medium text-slate-700">Ticket Number Prefix</label>
+                            <input type="text" name="queue_ticket_prefix" id="queue_ticket_prefix" maxlength="5" value="{{ settings.queue_ticket_prefix|default('T') }}" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-md py-1.5 px-3 border uppercase font-mono" placeholder="T">
+                            <p class="mt-1 text-[11px] text-slate-500">Example: "T" creates T-001, T-002, etc.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700">Sound Notifications</label>
+                            <label class="mt-2.5 flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" name="queue_sound_enabled" value="1" {% if settings.queue_sound_enabled|default('1') == '1' %}checked{% endif %} class="rounded border-slate-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                                <span class="text-xs text-slate-700 font-medium">Play chime alert when a ticket is called</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <label for="queue_display_message" class="block text-xs font-medium text-slate-700">Waiting Lounge Display Banner Message</label>
+                        <input type="text" name="queue_display_message" id="queue_display_message" value="{{ settings.queue_display_message|default('Please watch the display and wait for your ticket number to be called.') }}" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-md py-1.5 px-3 border" placeholder="Please watch the screen for your ticket number...">
+                    </div>
+                </div>
+
                 <div class="mt-6 mb-8">
                     <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         Save Settings
@@ -132,24 +176,37 @@
 
             <hr class="my-6 border-slate-200">
             
-            <h3 class="text-lg font-medium leading-6 text-slate-900 mb-4">Service Categories</h3>
-            <div class="mb-8">
-                <form hx-post="/web/settings/service-categories" hx-target="#service-categories-list" hx-swap="beforeend" @htmx:after-request="if($event.detail.successful) { $refs.newServiceCategoryInput.value = ''; $refs.newServiceCategoryArabicInput.value = ''; }" class="flex flex-col sm:flex-row items-center gap-2 mb-4" x-data>
-                    <input type="text" name="name" x-ref="newServiceCategoryInput" placeholder="Add new service category" required class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border border-slate-200 rounded-lg py-2 px-3">
-                    <input type="text" name="arabic_name" x-ref="newServiceCategoryArabicInput" placeholder="Arabic Name (Optional)" class="w-full sm:flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border border-slate-200 rounded-lg py-2 px-3">
-                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent bg-indigo-600 py-2 px-4 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
-                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add
-                    </button>
-                </form>
-                
-                <ul id="service-categories-list" class="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
-                    {% for item in serviceCategories %}
-                        {% include 'settings/type_item.twig' with {'item': item, 'type': 'service-categories', 'path': 'service-categories'} %}
-                    {% else %}
-                        <li class="p-3 text-sm text-slate-500 text-center">No service categories added yet.</li>
-                    {% endfor %}
-                </ul>
+            <!-- System Performance & Cache Management -->
+            <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-5">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="zap" class="w-5 h-5 text-amber-500"></i>
+                            <h3 class="text-base font-bold text-slate-900">System Performance & Cache</h3>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-600 max-w-xl">
+                            Compiled Twig templates, memory-mapped SQLite buffers, and database indexes are automatically optimized. Clear the cache if you updated views or deployed new changes.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="cache-message" class="mt-4 empty:hidden"></div>
+
+                <div class="mt-4 flex items-center gap-3">
+                    <form hx-post="/web/settings/clear-cache" hx-target="#cache-message" hx-indicator="#cache-spinner">
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 px-4 shadow-sm transition-all focus:ring-2 focus:ring-slate-400">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            <span>Clear System Cache</span>
+                            <svg id="cache-spinner" class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white htmx-indicator hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </form>
+                    <span class="text-xs text-slate-400 font-mono">Auto-bust active on git deploy</span>
+                </div>
             </div>
+
         </div>
     </div>
 </div>

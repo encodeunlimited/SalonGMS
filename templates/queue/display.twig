@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting Lounge Queue Display</title>
+    <!-- Tailwind CSS -->
+    <script src="/assets/vendor/tailwindcss.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        salon: {
+                            gold: '#fbbf24',
+                            dark: '#030712'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(99, 102, 241, 0.9); box-shadow: 0 0 25px rgba(99, 102, 241, 0.4); }
+            50% { border-color: rgba(16, 185, 129, 0.9); box-shadow: 0 0 35px rgba(16, 185, 129, 0.6); }
+        }
+        .active-serving-card {
+            animation: pulse-border 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 flex flex-col overflow-hidden font-sans select-none bg-radial from-slate-900 via-slate-950 to-black">
+
+    <!-- Top Bar -->
+    <header class="h-20 bg-slate-900/80 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0 backdrop-blur-md">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-indigo-500/30">
+                S
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                    SALON <span class="text-indigo-400">WAITING LOUNGE</span>
+                </h1>
+                <p class="text-xs font-semibold text-slate-400 tracking-wider uppercase">Live Customer Queue Board</p>
+            </div>
+        </div>
+
+        <!-- Clock & Fullscreen -->
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <div id="live-time" class="text-2xl font-mono font-bold text-white tracking-wider">--:--:--</div>
+                <div id="live-date" class="text-xs text-slate-400 font-medium">Loading date...</div>
+            </div>
+
+            <button onclick="toggleFullScreen()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Toggle Fullscreen">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 grid grid-cols-12 gap-6 min-h-0">
+        
+        <!-- Left Side: NOW SERVING (HERO 7 Columns) -->
+        <section class="col-span-7 flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <h2 class="text-xl font-black uppercase tracking-wider text-emerald-400">NOW SERVING</h2>
+                </div>
+                <span class="text-xs text-slate-400 uppercase font-semibold">Please proceed to your barber chair</span>
+            </div>
+
+            <!-- Serving Cards Container -->
+            <div id="serving-container" class="flex-1 space-y-4 overflow-y-auto pr-2">
+                <!-- Dynamically rendered or SSR initial -->
+                {% if display_data.serving|length > 0 %}
+                    {% for item in display_data.serving %}
+                    <div class="active-serving-card bg-slate-900/90 border-2 border-indigo-500 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex items-center justify-between">
+                        <div class="flex items-center gap-6">
+                            <div class="text-center bg-indigo-950/80 border border-indigo-500/50 rounded-2xl px-6 py-4">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block mb-1">Ticket</span>
+                                <span class="text-6xl font-black font-mono text-white tracking-tight">{{ item.ticket_number }}</span>
+                            </div>
+
+                            <div>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    CHAIR READY
+                                </span>
+                                <h3 class="text-3xl font-extrabold text-white">{{ item.customer_name }}</h3>
+                                <p class="text-slate-400 text-sm mt-1">{{ item.full_service_name|default(item.service_name|default('Standard Haircut')) }}</p>
+                            </div>
+                        </div>
+
+                        <div class="text-right bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60 min-w-[200px]">
+                            <span class="text-xs uppercase font-bold text-slate-400 block mb-1">Barber / Stylist</span>
+                            <span class="text-2xl font-black text-indigo-300">{{ item.barber_name }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="h-full flex flex-col items-center justify-center bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl p-12 text-center">
+                        <svg class="w-16 h-16 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        <h3 class="text-xl font-bold text-slate-400">All Stations are Clear</h3>
+                        <p class="text-sm text-slate-500 mt-1">Next customer tickets will appear here as soon as called</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Right Side: WAITING LINE (5 Columns) -->
+        <section class="col-span-5 flex flex-col min-h-0 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 backdrop-blur-xs">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h2 class="text-lg font-black uppercase tracking-wider text-amber-400">UP NEXT IN QUEUE</h2>
+                </div>
+                <span id="waiting-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800">
+                    {{ display_data.waiting|length }} waiting
+                </span>
+            </div>
+
+            <div id="waiting-container" class="flex-1 space-y-2.5 overflow-y-auto pr-1">
+                {% if display_data.waiting|length > 0 %}
+                    {% for w in display_data.waiting %}
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3.5 flex items-center justify-between transition hover:border-slate-600">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-lg bg-slate-900 text-slate-400 font-bold text-xs flex items-center justify-center border border-slate-700">
+                                #{{ loop.index }}
+                            </span>
+                            <div>
+                                <span class="text-xl font-black font-mono text-indigo-400 mr-2">{{ w.ticket_number }}</span>
+                                <span class="font-bold text-slate-200 text-sm">{{ w.customer_name }}</span>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 font-semibold block">For: <span class="text-slate-200">{{ w.barber_name }}</span></span>
+                            {% if w.estimated_wait_time > 0 %}
+                            <span class="text-[11px] text-amber-400/90 font-medium">~{{ w.estimated_wait_time }}m wait</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="h-full flex flex-col items-center justify-center text-center p-8">
+                        <p class="text-sm font-semibold text-slate-500">Waiting queue is empty</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Notice Ticker -->
+    <footer class="h-12 bg-indigo-950/80 border-t border-indigo-900/60 px-8 flex items-center justify-between text-xs text-indigo-200 font-medium shrink-0">
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+            <span>NOTICE:</span>
+            <span id="ticker-message">{{ settings.queue_display_message|default('Please wait in the lounge until your ticket number is announced. Thank you for your patience!') }}</span>
+        </div>
+        <div class="text-indigo-400 font-semibold">
+            SalonMS Queue System
+        </div>
+    </footer>
+
+    <script>
+        // Digital Clock
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+            
+            document.getElementById('live-time').innerText = timeStr;
+            document.getElementById('live-date').innerText = dateStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Audio Bell / Chime Synthesizer using Web Audio API
+        let audioCtx = null;
+        function playChime() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const now = audioCtx.currentTime;
+
+                // High tone
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(880, now); // A5
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.8);
+
+                // Lower bell tone
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(659.25, now + 0.25); // E5
+                gain2.gain.setValueAtTime(0.3, now + 0.25);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(now + 0.25);
+                osc2.stop(now + 1.2);
+            } catch (e) {
+                console.log('Audio chime error:', e);
+            }
+        }
+
+        // Enable audio on first user interaction
+        window.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }, { once: true });
+
+        // Polling loop to fetch live queue data
+        let previousServingIds = [];
+
+        async function fetchQueueData() {
+            try {
+                const res = await fetch('/web/queue/display/data');
+                if (res.ok) {
+                    const data = await res.json();
+                    renderDisplay(data);
+                }
+            } catch (err) {
+                console.error('Polling error:', err);
+            }
+        }
+
+        function renderDisplay(data) {
+            const servingContainer = document.getElementById('serving-container');
+            const waitingContainer = document.getElementById('waiting-container');
+            const waitingBadge = document.getElementById('waiting-badge');
+
+            // Detect new serving tickets to play chime
+            const currentServingIds = (data.serving || []).map(s => s.id);
+            const hasNew = currentServingIds.some(id => !previousServingIds.includes(id));
+            if (hasNew && previousServingIds.length > 0) {
+                playChime();
+            }
+            previousServingIds = currentServingIds;
+
+            // Render Serving
+            if (data.serving && data.serving.length > 0) {
+                servingContainer.innerHTML = data.serving.map(item => `
+                    <div class="active-serving-card bg-slate-900/90 border-2 border-indigo-500 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex items-center justify-between">
+                        <div class="flex items-center gap-6">
+                            <div class="text-center bg-indigo-950/80 border border-indigo-500/50 rounded-2xl px-6 py-4">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block mb-1">Ticket</span>
+                                <span class="text-6xl font-black font-mono text-white tracking-tight">${item.ticket_number}</span>
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    CHAIR READY
+                                </span>
+                                <h3 class="text-3xl font-extrabold text-white">${item.customer_name}</h3>
+                                <p class="text-slate-400 text-sm mt-1">${item.full_service_name || item.service_name || 'Standard Haircut'}</p>
+                            </div>
+                        </div>
+                        <div class="text-right bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60 min-w-[200px]">
+                            <span class="text-xs uppercase font-bold text-slate-400 block mb-1">Barber / Stylist</span>
+                            <span class="text-2xl font-black text-indigo-300">${item.barber_name}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                servingContainer.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl p-12 text-center">
+                        <svg class="w-16 h-16 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        <h3 class="text-xl font-bold text-slate-400">All Stations are Clear</h3>
+                        <p class="text-sm text-slate-500 mt-1">Next customer tickets will appear here as soon as called</p>
+                    </div>
+                `;
+            }
+
+            // Render Waiting
+            waitingBadge.innerText = (data.waiting ? data.waiting.length : 0) + ' waiting';
+            if (data.waiting && data.waiting.length > 0) {
+                waitingContainer.innerHTML = data.waiting.map((w, idx) => `
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3.5 flex items-center justify-between transition hover:border-slate-600">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-lg bg-slate-900 text-slate-400 font-bold text-xs flex items-center justify-center border border-slate-700">
+                                #${idx + 1}
+                            </span>
+                            <div>
+                                <span class="text-xl font-black font-mono text-indigo-400 mr-2">${w.ticket_number}</span>
+                                <span class="font-bold text-slate-200 text-sm">${w.customer_name}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 font-semibold block">For: <span class="text-slate-200">${w.barber_name}</span></span>
+                            ${w.estimated_wait_time > 0 ? `<span class="text-[11px] text-amber-400/90 font-medium">~${w.estimated_wait_time}m wait</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                waitingContainer.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-8">
+                        <p class="text-sm font-semibold text-slate-500">Waiting queue is empty</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Poll every 4 seconds
+        setInterval(fetchQueueData, 4000);
+
+        // Fullscreen toggle
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

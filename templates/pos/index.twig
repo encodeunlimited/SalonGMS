@@ -46,7 +46,7 @@
     }
 </style>
 
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6" x-data="posSystem()" {% if appointment_to_checkout %}x-init="addItem({{ appointment_to_checkout.item_id|default(0) }}, '{{ appointment_to_checkout.item_type|default('service')|escape('js') }}', '{{ appointment_to_checkout.item_name|escape('js') }}', {{ appointment_to_checkout.item_price|default(0) }})"{% endif %}>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6" x-data="posSystem()" {% if appointment_to_checkout and not (appointment_to_checkout.queue_id is defined and appointment_to_checkout.queue_id) %}x-init="addItem({{ appointment_to_checkout.item_id|default(0) }}, '{{ appointment_to_checkout.item_type|default('service')|escape('js') }}', '{{ appointment_to_checkout.item_name|escape('js') }}', {{ appointment_to_checkout.item_price|default(0) }})"{% endif %}>
     <!-- Left: Service Selection -->
     <div class="lg:col-span-8">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden h-[calc(100vh-140px)] flex flex-col">
@@ -488,7 +488,12 @@
                     </template>
                 </div>
                 {% if appointment_to_checkout %}
-                    <input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">
+                    {% if appointment_to_checkout.id %}
+                        <input type="hidden" name="appointment_id" value="{{ appointment_to_checkout.id }}">
+                    {% endif %}
+                    {% if appointment_to_checkout.queue_id is defined and appointment_to_checkout.queue_id %}
+                        <input type="hidden" name="queue_id" value="{{ appointment_to_checkout.queue_id }}">
+                    {% endif %}
                 {% endif %}
                 
                 <button type="submit" 
@@ -624,7 +629,20 @@ function posSystem() {
         show_checkout_modal: false,
         loyalty_currency_per_point: {{ loyalty_currency_per_point|default(0.001) }},
         employees_data: {{ employees|json_encode|raw }},
-        items: [],
+        items: [
+            {% if appointment_to_checkout and (appointment_to_checkout.queue_id is defined and appointment_to_checkout.queue_id) and (appointment_to_checkout.item_id or appointment_to_checkout.item_name) %}
+            {
+                id: {{ appointment_to_checkout.item_id|default(0) }},
+                type: '{{ appointment_to_checkout.item_type|default("service") }}',
+                name: '{{ appointment_to_checkout.item_name|default("Service")|e("js") }}',
+                price: {{ appointment_to_checkout.item_price|default(0) }},
+                quantity: 1,
+                service_id: {{ appointment_to_checkout.item_id|default(0) }},
+                stylist_id: '{{ appointment_to_checkout.user_id|default("") }}',
+                stylist_name: '{{ appointment_to_checkout.stylist_name|default("")|e("js") }}'
+            }
+            {% endif %}
+        ],
         customer_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.customer_id }}{% else %}{% endif %}',
         employee_id: '{% if appointment_to_checkout %}{{ appointment_to_checkout.user_id }}{% elseif auth_user.role == "stylist" %}{{ auth_user.user_id }}{% else %}{% endif %}',
         payment_method: 'Cash',

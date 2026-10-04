@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Ticket {{ ticket.ticket_number }}</title>
+    <style>
+        @page {
+            size: 80mm auto;
+            margin: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            width: 76mm;
+            margin: 0 auto;
+            padding: 12px 6px;
+            color: #000;
+            background: #fff;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .header {
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #666;
+            padding-bottom: 8px;
+        }
+        .salon-name {
+            font-size: 18px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 2px 0;
+        }
+        .ticket-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #333;
+            margin-top: 4px;
+        }
+        .ticket-box {
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 10px 4px;
+            margin: 12px 0;
+            background: #fbfbfb;
+        }
+        .ticket-number {
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            line-height: 1;
+            margin: 0;
+            font-family: monospace, sans-serif;
+        }
+        .barber-section {
+            margin: 10px 0;
+            padding: 8px;
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .barber-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 2px;
+        }
+        .barber-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .details-table {
+            width: 100%;
+            font-size: 11px;
+            margin: 10px 0;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .details-table td {
+            padding: 3px 0;
+        }
+        .details-table td.label {
+            color: #475569;
+            width: 45%;
+        }
+        .details-table td.value {
+            font-weight: 700;
+            text-align: right;
+            color: #0f172a;
+        }
+        .footer {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px dashed #666;
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.4;
+        }
+        .no-print {
+            margin-bottom: 16px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 4px;
+            }
+        }
+        .btn {
+            display: inline-block;
+            background: #4f46e5;
+            color: #fff;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            margin: 0 4px;
+        }
+        .btn-secondary {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn" onclick="window.print()">Print Ticket</button>
+        <button class="btn btn-secondary" onclick="window.close()">Close</button>
+    </div>
+
+    <div class="header">
+        <h1 class="salon-name">Salon Management</h1>
+        <div class="ticket-title">Customer Queue Ticket</div>
+    </div>
+
+    <div class="ticket-box">
+        <div style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #475569; margin-bottom: 4px;">Your Ticket Number</div>
+        <div class="ticket-number">{{ ticket.ticket_number }}</div>
+    </div>
+
+    <div class="barber-section">
+        <div class="barber-label">Assigned Barber / Stylist</div>
+        <div class="barber-name">{{ ticket.barber_name|default('Any Available Barber') }}</div>
+    </div>
+
+    <table class="details-table">
+        <tr>
+            <td class="label">Customer:</td>
+            <td class="value">{{ ticket.customer_name }}</td>
+        </tr>
+        {% if ticket.customer_phone %}
+        <tr>
+            <td class="label">Phone:</td>
+            <td class="value">{{ ticket.customer_phone }}</td>
+        </tr>
+        {% endif %}
+        {% if ticket.service_name %}
+        <tr>
+            <td class="label">Service:</td>
+            <td class="value">{{ ticket.service_name }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td class="label">Issued At:</td>
+            <td class="value">{{ ticket.created_at|date('h:i A - d M Y') }}</td>
+        </tr>
+        {% if ticket.estimated_wait_time > 0 %}
+        <tr>
+            <td class="label">Est. Wait:</td>
+            <td class="value">~{{ ticket.estimated_wait_time }} mins</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <div class="footer">
+        {{ settings.queue_display_message|default('Please take a seat. Your ticket number will be announced and shown on the waiting display.') }}
+        <div style="margin-top: 6px; font-weight: bold;">Thank You for Your Visit!</div>
+    </div>
+
+    <script>
+        // Auto print when opened as a print slip
+        if (window.location.search.includes('print=1')) {
+            window.onload = function() {
+                window.print();
+            };
+        }
+    </script>
+</body>
+</html>

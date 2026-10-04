@@ -6,11 +6,18 @@
         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Overview</h2>
         <p class="text-sm text-slate-500 mt-1">Here's what's happening at your salon today.</p>
     </div>
-    <!-- Example Action Button -->
-    <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm transition-colors flex items-center">
-        <i data-lucide="download" class="w-4 h-4 mr-2"></i>
-        Export Report
-    </button>
+    <div class="flex items-center gap-2">
+        {% if system_settings.enable_queue_system|default('1') == '1' %}
+        <a href="/web/queue" class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-100 shadow-xs transition-colors flex items-center gap-1.5">
+            <i data-lucide="ticket" class="w-4 h-4"></i>
+            Queue Board ({{ queue_stats.waiting_count|default(0) }} waiting)
+        </a>
+        {% endif %}
+        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm transition-colors flex items-center">
+            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+            Export Report
+        </button>
+    </div>
 </div>
 
 <!-- KPI Cards -->

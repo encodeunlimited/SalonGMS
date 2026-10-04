@@ -10,6 +10,9 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->safeLoad();
 
+// Automatically invalidate stale template cache if a new PHAR was deployed
+\App\Services\CacheService::autoBustIfPharUpdated();
+
 // Instantiate PHP-DI ContainerBuilder
 $containerBuilder = new ContainerBuilder();
 

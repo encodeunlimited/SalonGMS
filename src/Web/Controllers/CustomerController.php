@@ -203,7 +203,7 @@ class CustomerController
     {
         if ($request->getAttribute('role') === 'cashier') return $response->withStatus(403);
         $role = $request->getAttribute('role');
-        if ($role !== 'admin') {
+        if ($role !== 'admin' && $role !== 'superadmin') {
             return $response->withStatus(403);
         }
         

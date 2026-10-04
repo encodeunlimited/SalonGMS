@@ -6,10 +6,18 @@
         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Front Desk Dashboard</h2>
         <p class="text-sm text-slate-500 mt-1">Manage today's appointments and payments.</p>
     </div>
-    <a href="/web/pos" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors flex items-center">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-        Open POS
-    </a>
+    <div class="flex items-center gap-2">
+        {% if system_settings.enable_queue_system|default('1') == '1' %}
+        <a href="/web/queue" class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-100 shadow-xs transition-colors flex items-center gap-1.5">
+            <i data-lucide="ticket" class="w-4 h-4"></i>
+            Queue Board ({{ queue_stats.waiting_count|default(0) }} waiting)
+        </a>
+        {% endif %}
+        <a href="/web/pos" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            Open POS
+        </a>
+    </div>
 </div>
 
 <!-- Charts Section -->

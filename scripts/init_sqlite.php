@@ -125,6 +125,31 @@ try {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS queue_tickets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id INTEGER NOT NULL,
+        ticket_number VARCHAR(50) NOT NULL,
+        sequence_num INTEGER NOT NULL,
+        customer_id INTEGER NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_phone VARCHAR(50) NULL,
+        barber_id INTEGER NOT NULL,
+        service_id INTEGER NULL,
+        service_name VARCHAR(255) NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'waiting',
+        estimated_wait_time INTEGER DEFAULT 0,
+        notes TEXT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        called_at DATETIME NULL,
+        served_at DATETIME NULL,
+        completed_at DATETIME NULL,
+        invoice_id INTEGER NULL,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+        FOREIGN KEY (barber_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE SET NULL
+    );
     ";
     
     $pdo->exec($schema);

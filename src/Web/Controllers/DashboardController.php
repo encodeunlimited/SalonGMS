@@ -19,6 +19,7 @@ class DashboardController
     private InvoiceRepository $invoiceRepo;
     private CustomerRepository $customerRepo;
     private InventoryRepository $inventoryRepo;
+    private \App\Repositories\QueueRepository $queueRepo;
 
     public function __construct(
         Twig $view, 
@@ -26,7 +27,8 @@ class DashboardController
         AppointmentRepository $appointmentRepo, 
         InvoiceRepository $invoiceRepo,
         CustomerRepository $customerRepo,
-        InventoryRepository $inventoryRepo
+        InventoryRepository $inventoryRepo,
+        \App\Repositories\QueueRepository $queueRepo
     ) {
         $this->view = $view;
         $this->analytics = $analytics;
@@ -34,6 +36,7 @@ class DashboardController
         $this->invoiceRepo = $invoiceRepo;
         $this->customerRepo = $customerRepo;
         $this->inventoryRepo = $inventoryRepo;
+        $this->queueRepo = $queueRepo;
     }
 
     public function index(Request $request, Response $response): Response
@@ -45,6 +48,7 @@ class DashboardController
         $this->invoiceRepo->setTenantId($tenantId);
         $this->customerRepo->setTenantId($tenantId);
         $this->inventoryRepo->setTenantId($tenantId);
+        $this->queueRepo->setTenantId($tenantId);
         
         $role = $request->getAttribute('role') ?? 'stylist';
         $userId = (int)$request->getAttribute('user_id');
@@ -67,7 +71,10 @@ class DashboardController
             }
         }
 
-        if ($role === 'admin') {
+        // Queue Summary
+        $queueStats = $this->queueRepo->getQueueStats($today);
+
+        if ($role === 'admin' || $role === 'superadmin') {
             $kpi = $this->analytics->getDashboardKPIs();
             $weeklyRevenue = $this->analytics->getWeeklyRevenueData();
             $servicesBreakdown = $this->analytics->getServicesBreakdown();
@@ -88,6 +95,7 @@ class DashboardController
             return $this->view->render($response, 'dashboard_admin.twig', [
                 'title' => 'Dashboard',
                 'active_menu' => 'dashboard',
+                'queue_stats' => $queueStats,
                 'kpi' => $kpi,
                 'today_appointments' => $todayAppointments,
                 'tomorrow_appointments' => $tomorrowAppointments,
@@ -121,6 +129,7 @@ class DashboardController
             return $this->view->render($response, 'dashboard_receptionist.twig', [
                 'title' => 'Front Desk Dashboard',
                 'active_menu' => 'dashboard',
+                'queue_stats' => $queueStats,
                 'today_appointments' => $todayAppointments,
                 'tomorrow_appointments' => $tomorrowAppointments,
                 'pending_payments' => $pendingPayments,
@@ -152,6 +161,7 @@ class DashboardController
             return $this->view->render($response, 'dashboard_cashier.twig', [
                 'title' => 'Cashier Dashboard',
                 'active_menu' => 'dashboard',
+                'queue_stats' => $queueStats,
                 'kpi' => $kpi,
                 'today_appointments' => $todayAppointments,
                 'tomorrow_appointments' => $tomorrowAppointments,
@@ -181,9 +191,21 @@ class DashboardController
             $commissionTrend = $this->analytics->getStylistCommissionTrend($userId);
             $servicesBreakdown = $this->analytics->getStylistServicesBreakdown($userId);
 
+            // Queue for this stylist
+            $myQueueTickets = $this->queueRepo->getBarberQueue($userId, $today);
+            $myServing = null;
+            $myWaiting = [];
+            foreach ($myQueueTickets as $qt) {
+                if ($qt['status'] === 'serving') $myServing = $qt;
+                elseif ($qt['status'] === 'waiting') $myWaiting[] = $qt;
+            }
+            $myQueue = ['serving' => $myServing, 'waiting' => $myWaiting];
+
             return $this->view->render($response, 'dashboard_stylist.twig', [
                 'title' => 'Stylist Dashboard',
                 'active_menu' => 'dashboard',
+                'queue_stats' => $queueStats,
+                'my_queue' => $myQueue,
                 'today_appointments' => $todayAppointments,
                 'tomorrow_appointments' => $tomorrowAppointments,
                 'kpi' => $kpi,

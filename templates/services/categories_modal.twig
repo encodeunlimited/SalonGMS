@@ -1,0 +1,139 @@
+<div x-data="{ open: true }" 
+     x-show="open" 
+     class="fixed inset-0 z-50 overflow-y-auto" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true">
+    
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div x-show="open" 
+             x-transition:enter="ease-out duration-300" 
+             x-transition:enter-start="opacity-0" 
+             x-transition:enter-end="opacity-100" 
+             x-transition:leave="ease-in duration-200" 
+             x-transition:leave-start="opacity-100" 
+             x-transition:leave-end="opacity-0" 
+             class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
+             @click="open = false; setTimeout(() => $dispatch('close-modal'), 200)"
+             aria-hidden="true"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <!-- Modal panel -->
+        <div x-show="open" 
+             x-transition:enter="ease-out duration-300" 
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+             x-transition:leave="ease-in duration-200" 
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+             class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full border border-slate-100">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-6 py-4.5 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                        <i data-lucide="tag" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white leading-tight">Service Categories</h3>
+                        <p class="text-xs text-slate-300">Create and manage categories to group salon services</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        @click="open = false; setTimeout(() => $dispatch('close-modal'), 200)" 
+                        class="text-white/70 hover:text-white transition p-1 rounded-lg hover:bg-white/10">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <!-- Alert Messages Container -->
+                <div id="category-alert-message"></div>
+
+                <!-- Add New Category Form -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2.5 flex items-center gap-1.5">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-600"></i>
+                        Add New Category
+                    </h4>
+                    
+                    <form id="add-category-form"
+                          hx-post="/web/services/categories" 
+                          hx-target="#categories-table-body" 
+                          hx-swap="afterbegin" 
+                          @htmx:after-request="if($event.detail.successful) { $el.reset(); document.getElementById('cat-empty-row')?.remove(); if(typeof lucide !== 'undefined') lucide.createIcons(); }"
+                          class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                        
+                        <div class="sm:col-span-6">
+                            <input type="text" 
+                                   name="name" 
+                                   required 
+                                   placeholder="Category Name (e.g. Hair Cuts) *" 
+                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+
+                        <div class="sm:col-span-4">
+                            <input type="text" 
+                                   name="arabic_name" 
+                                   placeholder="Arabic Name (Optional)" 
+                                   dir="rtl"
+                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <button type="submit" 
+                                    class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition shadow-xs">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Add
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Categories List Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                    <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Existing Categories</span>
+                        <span class="text-xs text-slate-500" id="categories-count">{{ categories|length }} Categories</span>
+                    </div>
+
+                    <div class="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                        <table class="w-full text-left">
+                            <tbody id="categories-table-body">
+                                {% for cat in categories %}
+                                    {% include 'services/category_item.twig' with {'cat': cat} %}
+                                {% else %}
+                                <tr id="cat-empty-row">
+                                    <td class="py-8 px-4 text-center text-slate-400 text-sm">
+                                        <i data-lucide="folder-open" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                                        No service categories found. Add your first category above.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-slate-50 px-6 py-3.5 flex items-center justify-between border-t border-slate-100">
+                <p class="text-xs text-slate-500">Changes will reflect instantly across service forms and filters.</p>
+                <button type="button" 
+                        @click="open = false; setTimeout(() => $dispatch('close-modal'), 200)" 
+                        class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition shadow-xs">
+                    Done
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>

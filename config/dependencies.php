@@ -42,14 +42,18 @@ return function (ContainerBuilder $containerBuilder) {
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 $pdo->setAttribute(PDO::ATTR_TIMEOUT, 5); // 5 second timeout
-                // High-performance SQLite PRAGMAs
-                $pdo->exec('PRAGMA journal_mode = WAL;');
-                $pdo->exec('PRAGMA synchronous = NORMAL;');
-                $pdo->exec('PRAGMA busy_timeout = 5000;');
-                $pdo->exec('PRAGMA cache_size = -64000;'); // 64MB cache
-                $pdo->exec('PRAGMA temp_store = MEMORY;');
-                // Enable foreign keys
-                $pdo->exec('PRAGMA foreign_keys = ON;');
+
+                // Apply high-performance SQLite PRAGMAs (WAL, NORMAL sync, 256MB mmap, 64MB cache)
+                \App\Services\DatabaseOptimizer::tuneConnection($pdo, 'sqlite');
+
+                // Self-healing check: ensure indexes exist
+                try {
+                    $hasIndex = $pdo->query("SELECT 1 FROM sqlite_master WHERE type='index' AND name='idx_tenant_settings_lookup' LIMIT 1")->fetchColumn();
+                    if (!$hasIndex) {
+                        \App\Services\DatabaseOptimizer::ensureIndexes($pdo, 'sqlite');
+                    }
+                } catch (\Throwable $e) {}
+
                 return $pdo;
             }
 
@@ -59,11 +63,14 @@ return function (ContainerBuilder $containerBuilder) {
             $port = $settings['port'];
             
             $dsn = "mysql:host=$host;dbname=$dbname;port=$port;charset=utf8mb4";
-            return new PDO($dsn, $settings['user'], $settings['pass'], [
+            $pdo = new PDO($dsn, $settings['user'], $settings['pass'], [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
+
+            \App\Services\DatabaseOptimizer::tuneConnection($pdo, 'mysql');
+            return $pdo;
         },
 
         \App\Repositories\BookingTypeRepository::class => function (ContainerInterface $c) {
@@ -149,6 +156,9 @@ return function (ContainerBuilder $containerBuilder) {
         Twig::class => function (ContainerInterface $c) {
             $settings = $c->get('settings');
             
+            // Check if deployment occurred and auto-bust stale cache
+            \App\Services\CacheService::autoBustIfPharUpdated();
+
             // Handle PHAR execution for Twig cache
             if (str_starts_with(__DIR__, 'phar://')) {
                 $baseDir = dirname(\Phar::running(false));
@@ -157,9 +167,21 @@ return function (ContainerBuilder $containerBuilder) {
                 $cacheDir = __DIR__ . '/../data/cache/twig';
             }
             
-            // Use Twig caching if not in development mode
-            $cache = $settings['displayErrorDetails'] ? false : $cacheDir;
-            return Twig::create(__DIR__ . '/../templates', ['cache' => $cache]);
+            $isDev = !empty($settings['displayErrorDetails']);
+            if (!$isDev && !is_dir($cacheDir)) {
+                @mkdir($cacheDir, 0777, true);
+            }
+
+            // In production, use file cache with auto_reload so updated templates reload immediately
+            $cache = $isDev ? false : $cacheDir;
+            return Twig::create(__DIR__ . '/../templates', [
+                'cache' => $cache,
+                'auto_reload' => true,
+            ]);
+        },
+
+        \App\Services\CacheService::class => function (ContainerInterface $c) {
+            return new \App\Services\CacheService();
         },
 
         \App\Services\PdfService::class => function (ContainerInterface $c) {
@@ -186,6 +208,21 @@ return function (ContainerBuilder $containerBuilder) {
                 $c->get(\App\Repositories\PackageRepository::class),
                 $c->get(\App\Repositories\CustomerPackageRepository::class),
                 $c->get(\App\Repositories\RatingRepository::class)
+            );
+        },
+
+        \App\Repositories\QueueRepository::class => function (ContainerInterface $c) {
+            return new \App\Repositories\QueueRepository($c->get(PDO::class));
+        },
+
+        \App\Web\Controllers\QueueController::class => function (ContainerInterface $c) {
+            return new \App\Web\Controllers\QueueController(
+                $c->get(\Slim\Views\Twig::class),
+                $c->get(\App\Repositories\QueueRepository::class),
+                $c->get(\App\Repositories\UserRepository::class),
+                $c->get(\App\Repositories\ServiceRepository::class),
+                $c->get(\App\Repositories\CustomerRepository::class),
+                $c->get(\App\Repositories\TenantSettingRepository::class)
             );
         },
     ]);

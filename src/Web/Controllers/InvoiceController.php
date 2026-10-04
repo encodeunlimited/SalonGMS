@@ -33,6 +33,7 @@ class InvoiceController
     private PackageRepository $packageRepo;
     private \App\Repositories\CustomerPackageRepository $customerPackageRepo;
     private \App\Repositories\PosSessionRepository $posSessionRepo;
+    private \App\Repositories\QueueRepository $queueRepo;
 
     public function __construct(
         Twig $view, 
@@ -47,7 +48,8 @@ class InvoiceController
         CustomerRepository $customerRepo,
         PackageRepository $packageRepo,
         \App\Repositories\CustomerPackageRepository $customerPackageRepo,
-        \App\Repositories\PosSessionRepository $posSessionRepo
+        \App\Repositories\PosSessionRepository $posSessionRepo,
+        \App\Repositories\QueueRepository $queueRepo
     ) {
         $this->view = $view;
         $this->invoiceService = $invoiceService;
@@ -62,6 +64,7 @@ class InvoiceController
         $this->packageRepo = $packageRepo;
         $this->customerPackageRepo = $customerPackageRepo;
         $this->posSessionRepo = $posSessionRepo;
+        $this->queueRepo = $queueRepo;
     }
 
     public function pos(Request $request, Response $response): Response
@@ -132,6 +135,7 @@ class InvoiceController
         $packages = $this->packageRepo->getAll();
 
         $appointmentId = (int)($request->getQueryParams()['appointment_id'] ?? 0);
+        $queueId = (int)($request->getQueryParams()['queue_id'] ?? 0);
         $appointmentToCheckout = null;
         if ($appointmentId > 0) {
             $this->appointmentRepo->setTenantId($tenantId);
@@ -168,6 +172,25 @@ class InvoiceController
                 } elseif (strpos($appointmentToCheckout['service'], '(Package Redemption)') !== false) {
                     $appointmentToCheckout['item_price'] = 0.00;
                 }
+            }
+        } elseif ($queueId > 0) {
+            $this->queueRepo->setTenantId($tenantId);
+            $ticket = $this->queueRepo->getTicketDetails($queueId);
+            if ($ticket) {
+                $appointmentToCheckout = [
+                    'id' => null,
+                    'queue_id' => $ticket['id'],
+                    'customer_id' => $ticket['customer_id'] ?? null,
+                    'customer_name' => $ticket['customer_name'] ?? 'Walk-in Customer',
+                    'customer_phone' => $ticket['customer_phone'] ?: ($ticket['registered_customer_phone'] ?? ''),
+                    'user_id' => $ticket['barber_id'],
+                    'stylist_name' => $ticket['barber_name'],
+                    'service' => $ticket['service_name'] ?: ($ticket['full_service_name'] ?? 'Haircut'),
+                    'item_type' => 'service',
+                    'item_id' => $ticket['service_id'] ?? 0,
+                    'item_name' => $ticket['service_name'] ?: ($ticket['full_service_name'] ?? 'Haircut'),
+                    'item_price' => $ticket['service_price'] ?? 0.00
+                ];
             }
         }
 
@@ -391,6 +414,12 @@ class InvoiceController
 
             $invoice = $this->invoiceService->checkout($data);
             
+            if (!empty($data['queue_id'])) {
+                $qId = (int)$data['queue_id'];
+                $this->queueRepo->setTenantId($tenantId);
+                $this->queueRepo->completeTicket($qId, $invoice['id'] ?? null);
+            }
+
             if (!empty($data['appointment_id'])) {
                 $appId = (int)$data['appointment_id'];
                 $this->appointmentRepo->setTenantId($tenantId);

@@ -70,4 +70,9 @@ try {
     }
 }
 
+// Apply high-performance database indexes
+echo "Optimizing database indexes...\n";
+\App\Services\DatabaseOptimizer::ensureIndexes($pdo);
+echo "Database indexes verified.\n";
+
 echo "Migrations complete.\n";

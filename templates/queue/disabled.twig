@@ -1,0 +1,35 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-12 max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 sm:p-12 text-center">
+        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <i data-lucide="ticket" class="w-8 h-8"></i>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Queue & Ticket System is Disabled</h2>
+        <p class="text-slate-600 max-w-md mx-auto mb-8 text-sm leading-relaxed">
+            The customer queue and barber ticket management module is currently turned off in your salon settings. You can enable it anytime to start issuing tickets and managing barber waiting lines.
+        </p>
+        
+        {% if auth_user.role == 'admin' %}
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="/web/settings" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-sm">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                Go to Settings & Enable
+            </a>
+            <a href="/web/dashboard" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition">
+                Return to Dashboard
+            </a>
+        </div>
+        {% else %}
+        <p class="text-xs text-slate-400">Please contact a salon administrator to enable this feature.</p>
+        <div class="mt-4">
+            <a href="/web/dashboard" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition">
+                Back to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

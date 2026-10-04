@@ -31,8 +31,23 @@ class SettingsController
         $this->serviceCategoryRepo = $serviceCategoryRepo;
     }
 
+    private function checkSuperAdmin(Request $request, Response $response): ?Response
+    {
+        $role = $request->getAttribute('role');
+        if ($role !== 'superadmin') {
+            if ($request->getMethod() === 'GET') {
+                return $response->withHeader('Location', '/web/dashboard')->withStatus(302);
+            }
+            $response->getBody()->write('Forbidden: Only Super Admin can access settings.');
+            return $response->withStatus(403);
+        }
+        return null;
+    }
+
     public function index(Request $request, Response $response): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $tenantId = $request->getAttribute('tenant_id');
         $this->settingsRepo->setTenantId($tenantId);
         $this->bookingTypesRepo->setTenantId($tenantId);
@@ -43,6 +58,10 @@ class SettingsController
 
         if (!isset($settings['open_time'])) $settings['open_time'] = '09:00';
         if (!isset($settings['close_time'])) $settings['close_time'] = '17:00';
+        if (!isset($settings['enable_queue_system'])) $settings['enable_queue_system'] = '1';
+        if (!isset($settings['queue_ticket_prefix'])) $settings['queue_ticket_prefix'] = 'T';
+        if (!isset($settings['queue_sound_enabled'])) $settings['queue_sound_enabled'] = '1';
+        if (!isset($settings['queue_display_message'])) $settings['queue_display_message'] = 'Please wait for your ticket to be called.';
 
         $bookingTypes = $this->bookingTypesRepo->getAll();
         $paymentTypes = $this->paymentTypesRepo->getAll();
@@ -60,6 +79,8 @@ class SettingsController
 
     public function store(Request $request, Response $response): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $tenantId = $request->getAttribute('tenant_id');
         $this->settingsRepo->setTenantId($tenantId);
 
@@ -81,9 +102,15 @@ class SettingsController
         $this->settingsRepo->set('pos_show_credit', isset($data['pos_show_credit']) ? '1' : '0');
         $this->settingsRepo->set('pos_show_split', isset($data['pos_show_split']) ? '1' : '0');
 
+        // Ticket / Queue System Settings
+        $this->settingsRepo->set('enable_queue_system', isset($data['enable_queue_system']) ? '1' : '0');
+        $this->settingsRepo->set('queue_ticket_prefix', !empty($data['queue_ticket_prefix']) ? strtoupper(trim($data['queue_ticket_prefix'])) : 'T');
+        $this->settingsRepo->set('queue_sound_enabled', isset($data['queue_sound_enabled']) ? '1' : '0');
+        $this->settingsRepo->set('queue_display_message', trim($data['queue_display_message'] ?? ''));
+
         $response->getBody()->write('
             <div id="form-messages" class="mb-4 p-3 rounded-lg bg-green-50 text-green-800 text-sm border border-green-200">
-                Business hours saved successfully!
+                Salon settings saved successfully!
             </div>
         ');
         return $response->withStatus(200);
@@ -93,6 +120,8 @@ class SettingsController
 
     public function storeBookingType(Request $request, Response $response): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->bookingTypesRepo->setTenantId($request->getAttribute('tenant_id'));
         $data = $request->getParsedBody();
         if (!empty($data['name'])) {
@@ -112,6 +141,8 @@ class SettingsController
 
     public function updateBookingType(Request $request, Response $response, array $args): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->bookingTypesRepo->setTenantId($request->getAttribute('tenant_id'));
         $data = $request->getParsedBody();
         $id = (int)$args['id'];
@@ -135,6 +166,8 @@ class SettingsController
 
     public function deleteBookingType(Request $request, Response $response, array $args): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->bookingTypesRepo->setTenantId($request->getAttribute('tenant_id'));
         $this->bookingTypesRepo->delete((int)$args['id']);
         return $response->withStatus(200);
@@ -144,6 +177,8 @@ class SettingsController
 
     public function storePaymentType(Request $request, Response $response): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->paymentTypesRepo->setTenantId($request->getAttribute('tenant_id'));
         $data = $request->getParsedBody();
         if (!empty($data['name'])) {
@@ -163,6 +198,8 @@ class SettingsController
 
     public function updatePaymentType(Request $request, Response $response, array $args): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->paymentTypesRepo->setTenantId($request->getAttribute('tenant_id'));
         $data = $request->getParsedBody();
         $id = (int)$args['id'];
@@ -185,6 +222,8 @@ class SettingsController
 
     public function deletePaymentType(Request $request, Response $response, array $args): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->paymentTypesRepo->setTenantId($request->getAttribute('tenant_id'));
         $this->paymentTypesRepo->delete((int)$args['id']);
         return $response->withStatus(200);
@@ -194,6 +233,8 @@ class SettingsController
 
     public function storeServiceCategory(Request $request, Response $response): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->serviceCategoryRepo->setTenantId($request->getAttribute('tenant_id'));
         $data = $request->getParsedBody();
         if (!empty($data['name'])) {
@@ -216,6 +257,8 @@ class SettingsController
 
     public function updateServiceCategory(Request $request, Response $response, array $args): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->serviceCategoryRepo->setTenantId($request->getAttribute('tenant_id'));
         $data = $request->getParsedBody();
         $id = (int)$args['id'];
@@ -241,8 +284,52 @@ class SettingsController
 
     public function deleteServiceCategory(Request $request, Response $response, array $args): Response
     {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
         $this->serviceCategoryRepo->setTenantId($request->getAttribute('tenant_id'));
         $this->serviceCategoryRepo->delete((int)$args['id']);
         return $response->withStatus(200);
+    }
+
+    public function clearCache(Request $request, Response $response): Response
+    {
+        $role = $request->getAttribute('role');
+        $params = $request->getQueryParams();
+        $token = $params['token'] ?? ($request->getHeaderLine('X-Deploy-Token') ?: '');
+        $validToken = $_ENV['DEPLOY_CACHE_TOKEN'] ?? 'salongms_deploy_cache_clear';
+
+        if ($role !== 'superadmin' && $token !== $validToken) {
+            $response->getBody()->write(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+
+        $result = \App\Services\CacheService::clearAll();
+        TenantSettingRepository::clearRuntimeCache();
+
+        $response->getBody()->write(json_encode([
+            'status' => 'success',
+            'message' => 'Cache cleared successfully!',
+            'details' => $result
+        ]));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function clearCacheWeb(Request $request, Response $response): Response
+    {
+        if ($auth = $this->checkSuperAdmin($request, $response)) return $auth;
+
+        $result = \App\Services\CacheService::clearAll();
+        TenantSettingRepository::clearRuntimeCache();
+
+        $html = '<div id="cache-message" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-fade-in shadow-sm">
+            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <div>
+                <p class="font-bold">System cache cleared successfully!</p>
+                <p class="text-xs text-emerald-700 mt-0.5">' . htmlspecialchars(implode(' ', $result['messages'])) . '</p>
+            </div>
+        </div>';
+
+        $response->getBody()->write($html);
+        return $response;
     }
 }
